@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stropts.h>
 #include <arch/sms.h>
-#include <sms.h>
 #include <rect.h>
 #include <input.h>
 
@@ -13,7 +12,7 @@ extern unsigned char font_8x8_bbc_system[];
 
 const unsigned char palette[] = {0x00,0x01,0x05,0x15,0x24,0x25,0x29,0x39,0x16,0x1a,0x1b,0x2a,0x3a,0x3e,0x2b,0x3f};
 
-// const struct r_Rect8 rect = {0, 32, 0, 24};
+const struct r_Rect8 rect = {0, 32, 0, 24};
 
 void main(void)
 {
@@ -35,7 +34,6 @@ void main(void)
   ioctl(1, IOCTL_OTERM_CLS);
   ioctl(1, IOCTL_OTERM_PAUSE, 0);
 
-  gotoxy(0, 0);
   printf("SMS says Hello World!");
   while (1)
   {
