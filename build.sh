@@ -1,3 +1,5 @@
 #!/bin/sh
 
-docker run --rm -i -t -v $(pwd):/src z88dk/z88dk make
+mrbc -B bytecode --verbose add.rb
+
+docker run --rm -i -t -v $(pwd):/src z88dk/z88dk zcc +sms -vn test_prog.c mrubyz.c add.c -o test_prog -create-app
