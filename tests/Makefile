@@ -6,13 +6,14 @@ include $(Z88DK_DIR)/test/suites/make.config
 FRAMEWORK_DIR = $(Z88DK_DIR)/test/framework
 
 SOURCES += $(wildcard *.c)
-SOURCES += ../mrubyz.c ../add.c
+SOURCES += ../mrubyz.c ./add.rb
 OBJECTS := $(SOURCES:.c=.o)
 CFLAGS +=  -DNO_LOG_RUNNING -DNO_LOG_PASSED
 
 all:	test.bin
 
 test.bin: $(SOURCES)
+	mrbc -B bytecode add.rb
 	$(call compile,-lm)
 	$(runtest)
 
