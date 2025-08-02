@@ -2,5 +2,6 @@
 /*.bin
 /.cache
 /.vscode
-add.mrb
-add.c
+*.bin
+*.map
+*.ruby.c
