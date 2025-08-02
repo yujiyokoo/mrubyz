@@ -1,4 +1,4 @@
-#include "test.h"
+#include "test_integer.h"
 
 int main(int argc, char *argv[])
 {
