@@ -6,18 +6,21 @@ include $(Z88DK_DIR)/test/suites/make.config
 FRAMEWORK_DIR = $(Z88DK_DIR)/test/framework
 
 SOURCES += $(wildcard *.c)
+SOURCES += $(wildcard ruby/*.c)
 SOURCES += ../mrubyz.c
-OBJECTS := $(SOURCES:.c=.o) $(BYTECODE_C_FILES:.ruby.c=.rb.o)
+
+OBJECTS := $(SOURCES:.c=.o) $(BYTECODE_C_FILES:.ruby.c=.ruby.o)
+
 CFLAGS +=  -DNO_LOG_RUNNING -DNO_LOG_PASSED
 
-RUBY_FILES := $(wildcard *.rb)
+RUBY_FILES := $(wildcard ruby/*.rb)
 BYTECODE_C_FILES := $(RUBY_FILES:.rb=.ruby.c)
 
 all:	test.bin
 .PHONY: all clean debug test.bin
 
-%.ruby.c: %.rb
-	mrbc -B $(basename $< .rb) -o $@ $<
+ruby/%.ruby.c: ruby/%.rb
+	mrbc -B $(basename $(notdir $<) .rb) -o $@ $<
 
 test.bin: $(SOURCES) $(BYTECODE_C_FILES)
 	$(call compile,-lm)
