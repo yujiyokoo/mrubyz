@@ -58,6 +58,15 @@ void op_add(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   *curr_p = *curr_p + 1;
 }
 
+void op_sub(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+  // register(a)'s value + register(a+1)'s value in register(a)
+  uint8_t reg_index = bytecode[*curr_p] - 1;
+  if(reg_index >= 5) { exit(-1); }
+  printf("subtracting. reg %d from %d, values are %d and %d\n", reg_index + 1, reg_index, vm->regs[reg_index + 1], vm->regs[reg_index]);
+  vm->regs[reg_index] -= vm->regs[reg_index + 1];
+  *curr_p = *curr_p + 1;
+}
+
 void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   // TODO: check header
   // we know header length is 20, so skip for now
@@ -112,6 +121,10 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_STOP: exiting = 1; break;
       case OP_MOVE: op_move(vm, bytecode, &curr); break;
       case OP_ADD: op_add(vm, bytecode, &curr); break;
+      case OP_SUB: op_sub(vm, bytecode, &curr); break;
+      default:
+        printf("unknown instruction: %d\n", instruction);
+        exit(-1);
     }
   }
     // pop off first
