@@ -11,7 +11,7 @@ void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p, uint8_t 
   // printf("curr_p value %d\n", *curr_p);
 
   // TODO: raise error
-  if(reg_index >= 4) {
+  if(reg_index >= 5) {
     // printf("register %d not available\n", reg_index);
     exit(-1);
   } else {
@@ -19,23 +19,43 @@ void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p, uint8_t 
     // printf("imm_val %d\n", imm_val);
     // printf("bc[curr_p] %d\n", bytecode[*curr_p]);
     // printf("OP_LOADI__1 %d\n", OP_LOADI__1);
+    printf("loading %d to reg %d\n", imm_val, reg_index);
     vm->regs[reg_index] = imm_val;
-    curr_p++;
+    *curr_p = *curr_p + 1;
   }
 }
 
 int op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   uint8_t reg_index = bytecode[*curr_p] - 1;
-  curr_p++;
+  *curr_p = *curr_p + 1;
 
   // TODO: raise error
-  if(reg_index >= 4) {
+  if(reg_index >= 5) {
     printf("register %d not available\n", reg_index);
     exit(-1);
   } else {
-    // printf("vm->r[ri]: %d\n", vm->regs[reg_index]);
+    // printf("vm->r[ri]: %d\n",vm->regs[reg_index]);
+    printf("returning %d\n", vm->regs[reg_index]);
     return vm->regs[reg_index];
   }
+}
+
+void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+  uint8_t dest_reg = bytecode[*curr_p] - 1;
+  uint8_t src_reg = bytecode[*curr_p + 1] - 1;
+  if(dest_reg >= 5 || src_reg >= 5) { exit(-1); }
+  printf("moving. reg %d to %d, value is %d\n", src_reg, dest_reg, vm->regs[src_reg]);
+  vm->regs[dest_reg] = vm->regs[src_reg];
+  *curr_p = *curr_p + 2;
+}
+
+void op_add(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+  // register(a)'s value + register(a+1)'s value in register(a)
+  uint8_t reg_index = bytecode[*curr_p] - 1;
+  if(reg_index >= 5) { exit(-1); }
+  printf("adding. reg %d to %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index], vm->regs[reg_index+1]);
+  vm->regs[reg_index] += vm->regs[reg_index + 1];
+  *curr_p = *curr_p + 1;
 }
 
 void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
@@ -90,6 +110,8 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       // FIXME: Currently this return exits from any level...
       case OP_RETURN: retval = op_return(vm, bytecode, &curr); exiting = 1; break;
       case OP_STOP: exiting = 1; break;
+      case OP_MOVE: op_move(vm, bytecode, &curr); break;
+      case OP_ADD: op_add(vm, bytecode, &curr); break;
     }
   }
     // pop off first

@@ -14,7 +14,7 @@ RUBY_FILES := $(wildcard *.rb)
 BYTECODE_C_FILES := $(RUBY_FILES:.rb=.ruby.c)
 
 all:	test.bin
-.PHONY: all clean debug test
+.PHONY: all clean debug test.bin
 
 %.ruby.c: %.rb
 	mrbc -B $(basename $< .rb) -o $@ $<

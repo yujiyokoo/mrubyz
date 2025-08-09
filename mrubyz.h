@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 struct mrbz_virtual_machine {
-  // FIXME: fixed to 4
-  int regs[4];
+  // FIXME: fixed to 5
+  int regs[5];
 };
 
 struct mrbz_value {
