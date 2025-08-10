@@ -3,7 +3,9 @@
 #include <stdio.h>
 
 extern uint8_t add[];
+extern uint8_t loadi_n[];
 extern uint8_t loadi[];
+extern uint8_t loadineg[];
 extern uint8_t sub[];
 extern uint8_t mul[];
 extern uint8_t div[];
@@ -11,12 +13,28 @@ extern uint8_t div[];
 extern uint8_t addi[];
 extern uint8_t subi[];
 
-void test_integer_load_return() {
+void test_integer_loadi_n() {
+  mrbz_val v;
+  mrbz_vm vm;
+  mrbz_vm_run(&vm, &v, loadi_n);
+
+  Assert(v.value == 5, "integer load failed");
+}
+
+void test_integer_loadi() {
   mrbz_val v;
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, loadi);
 
-  Assert(v.value == 5, "integer load failed");
+  Assert(v.value == 127, "integer loadi failed");
+}
+
+void test_integer_loadineg() {
+  mrbz_val v;
+  mrbz_vm vm;
+  mrbz_vm_run(&vm, &v, loadineg);
+
+  Assert(v.value == -128, "integer loadi failed");
 }
 
 void test_integer_add() {
@@ -70,7 +88,9 @@ void test_integer_div() {
 int test_integer()
 {
   suite_setup("integer tests");
-  suite_add_test(test_integer_load_return);
+  suite_add_test(test_integer_loadi_n);
+  suite_add_test(test_integer_loadi);
+  suite_add_test(test_integer_loadineg);
   suite_add_test(test_integer_add);
   suite_add_test(test_integer_sub);
   suite_add_test(test_integer_mul);

@@ -134,6 +134,24 @@ void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p, uint8_t 
   }
 }
 
+void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p, uint8_t inst) {
+  uint8_t reg_index = bytecode[*curr_p] - 1;
+  uint8_t imm_val = bytecode[*curr_p+1];
+  if(reg_index >= 5) { exit(-1); }
+  printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
+  vm->regs[reg_index] = imm_val;
+  *curr_p = *curr_p + 2;
+}
+
+void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p, uint8_t inst) {
+  uint8_t reg_index = bytecode[*curr_p] - 1;
+  uint8_t imm_val = bytecode[*curr_p+1];
+  if(reg_index >= 5) { exit(-1); }
+  printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
+  vm->regs[reg_index] = -imm_val;
+  *curr_p = *curr_p + 2;
+}
+
 int op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   uint8_t reg_index = bytecode[*curr_p] - 1;
   *curr_p = *curr_p + 1;
@@ -152,8 +170,8 @@ int op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
 void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   uint8_t dest_reg = bytecode[*curr_p] - 1;
   uint8_t src_reg = bytecode[*curr_p + 1] - 1;
-  if(dest_reg >= 5 || src_reg >= 5) { exit(-1); }
   printf("moving. reg %d to %d, value is %d\n", src_reg, dest_reg, vm->regs[src_reg]);
+  if(dest_reg >= 5 || src_reg >= 5) { exit(-1); }
   vm->regs[dest_reg] = vm->regs[src_reg];
   *curr_p = *curr_p + 2;
 }
@@ -254,7 +272,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   while (!exiting) {
     uint8_t instruction;
     instruction = bytecode[curr++];
-    // printf("OP: %s\n", op_names[instruction]);
+    printf("OP: %s\n", op_names[instruction]);
     switch(instruction) {
       case OP_NOP: break;
       case OP_LOADI_0: // fall through
@@ -265,6 +283,8 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_LOADI_5: // fall through
       case OP_LOADI_6: // fall through
       case OP_LOADI_7: op_loadi_n(vm, bytecode, &curr, instruction); break;
+      case OP_LOADI: op_loadi(vm, bytecode, &curr, instruction); break;
+      case OP_LOADINEG: op_loadineg(vm, bytecode, &curr, instruction); break;
       // FIXME: Currently this return exits from any level...
       case OP_RETURN: retval = op_return(vm, bytecode, &curr); exiting = 1; break;
       case OP_STOP: exiting = 1; break;
@@ -275,10 +295,10 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_DIV: op_div(vm, bytecode, &curr); break;
       case OP_ADDI: op_addi(vm, bytecode, &curr); break;
       case OP_SUBI: op_subi(vm, bytecode, &curr); break;
-      deault:
+      default:
+        printf("unsupported instruction: %d\n", instruction);
         printf("OP: %s\n", op_names[instruction]);
-        printf("unknown instruction: %d\n", instruction);
-        exit(-1);
+        break;
     }
   }
     // pop off first
