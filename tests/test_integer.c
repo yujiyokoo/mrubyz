@@ -18,7 +18,7 @@ void test_integer_loadi_n() {
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, loadi_n);
 
-  Assert(v.value == 5, "integer load failed");
+  Assert(v.intval == 5, "integer load failed");
 }
 
 void test_integer_loadi() {
@@ -26,7 +26,7 @@ void test_integer_loadi() {
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, loadi);
 
-  Assert(v.value == 127, "integer loadi failed");
+  Assert(v.intval == 127, "integer loadi failed");
 }
 
 void test_integer_loadineg() {
@@ -34,7 +34,7 @@ void test_integer_loadineg() {
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, loadineg);
 
-  Assert(v.value == -128, "integer loadi failed");
+  Assert(v.intval == -128, "integer loadi failed");
 }
 
 void test_integer_add() {
@@ -42,7 +42,7 @@ void test_integer_add() {
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, add);
 
-  Assert(v.value == 6, "integer add failed");
+  Assert(v.intval == 6, "integer add failed");
 }
 
 void test_integer_addi() {
@@ -50,7 +50,7 @@ void test_integer_addi() {
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, addi);
 
-  Assert(v.value == 6, "integer addi failed");
+  Assert(v.intval == 6, "integer addi failed");
 }
 
 void test_integer_subi() {
@@ -58,7 +58,7 @@ void test_integer_subi() {
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, subi);
 
-  Assert(v.value == 1, "integer subi failed");
+  Assert(v.intval == 1, "integer subi failed");
 }
 
 void test_integer_sub() {
@@ -66,7 +66,7 @@ void test_integer_sub() {
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, sub);
 
-  Assert(v.value == 1, "integer sub failed");
+  Assert(v.intval == 1, "integer sub failed");
 }
 
 void test_integer_mul() {
@@ -74,7 +74,7 @@ void test_integer_mul() {
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, mul);
 
-  Assert(v.value == 4, "integer mul failed");
+  Assert(v.intval == 4, "integer mul failed");
 }
 
 void test_integer_div() {
@@ -82,7 +82,7 @@ void test_integer_div() {
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, div);
 
-  Assert(v.value == 3, "integer div failed");
+  Assert(v.intval == 3, "integer div failed");
 }
 
 int test_integer()

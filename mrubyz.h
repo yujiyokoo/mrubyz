@@ -3,19 +3,25 @@
 
 #include <stdint.h>
 
-struct mrbz_virtual_machine {
-  // FIXME: fixed to 5
-  int regs[5];
-};
+typedef enum {
+  T_INT = 0,
+  T_STRING = 1,
+} mrbz_type;
 
 struct mrbz_value {
-  // TODO: Use enum
-  int type;
+  mrbz_type type;
   // TODO: support any mrbz type
-  uint16_t value;
+  union {
+    uint16_t intval;
+    char* strval;
+  };
 };
-
 typedef struct mrbz_value mrbz_val;
+
+struct mrbz_virtual_machine {
+  // FIXME: fixed to 5
+  mrbz_val regs[5];
+};
 typedef struct mrbz_virtual_machine mrbz_vm;
 
 void mrbz_vm_run(mrbz_vm*, mrbz_val*, unsigned char*);
