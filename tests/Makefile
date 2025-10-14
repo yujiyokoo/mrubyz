@@ -11,7 +11,7 @@ SOURCES += ../mrubyz.c
 
 OBJECTS := $(SOURCES:.c=.o) $(BYTECODE_C_FILES:.ruby.c=.ruby.o)
 
-CFLAGS +=  -DNO_LOG_RUNNING -DNO_LOG_PASSED
+CFLAGS +=  -DNO_LOG_RUNNING -DNO_LOG_PASSED -DAMALLOC
 
 RUBY_FILES := $(wildcard ruby/*.rb)
 BYTECODE_C_FILES := $(RUBY_FILES:.rb=.ruby.c)

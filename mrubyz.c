@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 const char* op_names[] = {
   "OP_NOP        = 0x00",
@@ -128,7 +129,7 @@ void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p, uint8_t 
     // printf("imm_val %d\n", imm_val);
     // printf("bc[curr_p] %d\n", bytecode[*curr_p]);
     // printf("OP_LOADI__1 %d\n", OP_LOADI__1);
-    printf("loading %d to reg %d\n", imm_val, reg_index);
+    //printf("loading %d to reg %d\n", imm_val, reg_index);
     vm->regs[reg_index].type = T_INT;
     vm->regs[reg_index].intval = imm_val;
     *curr_p = *curr_p + 1;
@@ -139,7 +140,7 @@ void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p, uint8_t in
   uint8_t reg_index = bytecode[*curr_p] - 1;
   uint8_t imm_val = bytecode[*curr_p+1];
   if(reg_index >= 5) { exit(-1); }
-  printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
+  //printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = imm_val;
   *curr_p = *curr_p + 2;
@@ -149,7 +150,7 @@ void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p, uint8_t
   uint8_t reg_index = bytecode[*curr_p] - 1;
   uint8_t imm_val = bytecode[*curr_p+1];
   if(reg_index >= 5) { exit(-1); }
-  printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
+  //printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = -imm_val;
   *curr_p = *curr_p + 2;
@@ -161,11 +162,11 @@ int op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
 
   // TODO: raise error
   if(reg_index >= 5) {
-    printf("register %d not available\n", reg_index);
+    //printf("register %d not available\n", reg_index);
     exit(-1);
   } else {
     // printf("vm->r[ri]: %d\n",vm->regs[reg_index]);
-    printf("returning %d\n", vm->regs[reg_index].intval);
+    //printf("returning %d\n", vm->regs[reg_index].intval);
     return vm->regs[reg_index].intval;
   }
 }
@@ -173,7 +174,7 @@ int op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
 void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   uint8_t dest_reg = bytecode[*curr_p] - 1;
   uint8_t src_reg = bytecode[*curr_p + 1] - 1;
-  printf("moving. reg %d to %d, intval is %d\n", src_reg, dest_reg, vm->regs[src_reg]);
+  //printf("moving. reg %d to %d, intval is %d\n", src_reg, dest_reg, vm->regs[src_reg]);
   if(dest_reg >= 5 || src_reg >= 5) { exit(-1); }
   // TODO: check this assignment is valid with the compiler
   vm->regs[dest_reg] = vm->regs[src_reg];
@@ -184,7 +185,7 @@ void op_add(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = bytecode[*curr_p] - 1;
   if(reg_index >= 5) { exit(-1); }
-  printf("adding. reg %d to %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index+1].intval);
+  //printf("adding. reg %d to %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index+1].intval);
   vm->regs[reg_index].intval += vm->regs[reg_index + 1].intval;
   *curr_p = *curr_p + 1;
 }
@@ -194,7 +195,7 @@ void op_addi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   uint8_t reg_index = bytecode[*curr_p] - 1;
   if(reg_index >= 5) { exit(-1); }
   uint8_t imm_val = bytecode[*curr_p + 1];
-  printf("adding. %d to reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
+  //printf("adding. %d to reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval += imm_val;
   *curr_p = *curr_p + 2;
 }
@@ -203,7 +204,7 @@ void op_sub(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = bytecode[*curr_p] - 1;
   if(reg_index >= 5) { exit(-1); }
-  printf("subtracting. reg %d from %d, values are %d and %d\n", reg_index + 1, reg_index, vm->regs[reg_index + 1].intval, vm->regs[reg_index].intval);
+  //printf("subtracting. reg %d from %d, values are %d and %d\n", reg_index + 1, reg_index, vm->regs[reg_index + 1].intval, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval -= vm->regs[reg_index + 1].intval;
   *curr_p = *curr_p + 1;
 }
@@ -213,7 +214,7 @@ void op_subi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   uint8_t reg_index = bytecode[*curr_p] - 1;
   if(reg_index >= 5) { exit(-1); }
   uint8_t imm_val = bytecode[*curr_p + 1];
-  printf("subtracting. %d from reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
+  //printf("subtracting. %d from reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval -= imm_val;
   *curr_p = *curr_p + 2;
 }
@@ -222,7 +223,7 @@ void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = bytecode[*curr_p] - 1;
   if(reg_index >= 5) { exit(-1); }
-  printf("multiplying. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
+  //printf("multiplying. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
   vm->regs[reg_index].intval *= vm->regs[reg_index + 1].intval;
   *curr_p = *curr_p + 1;
 }
@@ -231,25 +232,46 @@ void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = bytecode[*curr_p] - 1;
   if(reg_index >= 5) { exit(-1); }
-  printf("dividing. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
+  //printf("dividing. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
   vm->regs[reg_index].intval /= vm->regs[reg_index + 1].intval;
   *curr_p = *curr_p + 1;
 }
 
+uint16_t flip_endian(uint16_t i) {
+  return (i << 8) | (i >> 8);
+}
+
+void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
+  // TODO: pool is in RITE binary. Pool belongs to IREP
+  printf("mrbz_irep_pool_entry_ptr: %d\n", irep_p->pool+idx);
+  return irep_p->pool+idx;
+}
+
 void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
-  // arg0 shoulsd be duplicated
+  // arg0 should be duplicated
   // then copied to register indicated by arg1
+  uint8_t reg_index = bytecode[*curr_p] - 1;
+  if(reg_index >= 5) { exit(-1); }
+  uint8_t pool_index = bytecode[++(*curr_p)];
+  void* pool_entry_base = mrbz_irep_pool_entry_ptr(vm->irep, pool_index);
+  uint16_t plen = (uint16_t)pool_entry_base[1];
+  vm->regs[reg_index].type = T_STRING;
+  // TODO: Add length to mrbz value, and copy length
+  uint16_t str_len = (uint16_t)pool_entry_base[3];
+  vm->regs[reg_index].strval = malloc(str_len * sizeof(char) + 1);
+  // + 1 is there for now to null-terminate the string
+  strncpy(vm->regs[reg_index].strval, pool_entry_base + 5, str_len + 1);
 }
 
 void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
-  // TODO: check header
+  // TODO: check more header vaules
   // we know header length is 20, so skip for now
   uint16_t curr = 20;
   // to view contents
   // for(uint16_t cp = curr; cp < 100; cp ++) {
     // printf("bytecode at %d: %d\n", cp, bytecode[cp]);
   // }
-  curr += 4; // TODO: skipping IREP
+  curr += 4; // TODO: skipping "IREP"
 
   // TODO: it's 4 bytes..
   // BUT! uint32_t is not supported?
@@ -258,14 +280,14 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
                  // ((uint32_t)bytecode[curr+1] << 16) |
                  // ((uint32_t)bytecode[curr] << 24);
   //printf("length: %d\n", len)
-  curr += 4;
+  curr += 4; // skpping 4 bytes for the section length
   curr += 4; // TODO: skipping "0300"
   uint16_t record_len = bytecode[curr+3] |
                  (bytecode[curr+2] << 8) ;
   // printf("irep rec len: %d\n", record_len);
-  curr += 4;
+  curr += 4; // skipping 4 bytes for irep record size
 
-  // TODO: skipping...
+  // TODO: skipping nlocals, nregs, rlen, clen...
   curr += 2 + 2 + 2 + 2 ;
   // TODO: it's 4 bytes..
   // BUT! uint32_t is not supported?
@@ -273,8 +295,13 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
                  (bytecode[curr+2] << 8) ;
                  // ((uint32_t)bytecode[curr+1] << 16) |
                  // ((uint32_t)bytecode[curr] << 24);
-  printf("ilen: %d\n", ilen);
-  curr += 4;
+  // printf("ilen: %d\n", ilen);
+  curr += 4; // skip 4 bytes for the ilen
+
+  // TODO: init this properly as pointer...?
+  vm->irep.pool = bytecode + curr + ilen;
+
+  // printf("bytecode start is: %d, curr (iseq start index) is: %d, iseq length is: %d\n", bytecode, curr, ilen);
 
 
   // while instructions are left
@@ -284,7 +311,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   while (!exiting) {
     uint8_t instruction;
     instruction = bytecode[curr++];
-    printf("PC: %d, OP: %s\n", curr, op_names[instruction]);
+    //printf("PC: %d, OP: %s\n", curr, op_names[instruction]);
     switch(instruction) {
       case OP_NOP: break;
       case OP_LOADI_0: // fall through
@@ -309,8 +336,8 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_SUBI: op_subi(vm, bytecode, &curr); break;
       case OP_STRING: op_string(vm, bytecode, &curr); break;
       default:
-        printf("unsupported instruction: 0x%x\n", instruction);
-        printf("OP: %s\n", op_names[instruction]);
+        //printf("unsupported instruction: 0x%x\n", instruction);
+        //printf("OP: %s\n", op_names[instruction]);
         break;
     }
   }

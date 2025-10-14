@@ -18,9 +18,16 @@ struct mrbz_value {
 };
 typedef struct mrbz_value mrbz_val;
 
+struct mrubyz_irep {
+  const uint8_t *pool;
+};
+
+typedef struct mrubyz_irep mrbz_irep;
+
 struct mrbz_virtual_machine {
   // FIXME: fixed to 5
   mrbz_val regs[5];
+  mrbz_irep irep;
 };
 typedef struct mrbz_virtual_machine mrbz_vm;
 
