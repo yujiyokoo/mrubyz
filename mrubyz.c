@@ -156,9 +156,10 @@ void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p, uint8_t
   *curr_p = *curr_p + 2;
 }
 
-int op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   uint8_t reg_index = bytecode[*curr_p] - 1;
   *curr_p = *curr_p + 1;
+  // printf("reg_index is: %d\n", reg_index);
 
   // TODO: raise error
   if(reg_index >= 5) {
@@ -166,8 +167,10 @@ int op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
     exit(-1);
   } else {
     // printf("vm->r[ri]: %d\n",vm->regs[reg_index]);
-    //printf("returning %d\n", vm->regs[reg_index].intval);
-    return vm->regs[reg_index].intval;
+    // printf("returning type %d\n", vm->regs[reg_index].type);
+    mrbz_val* foo = vm->regs + reg_index;
+    // printf("returning %s\n", foo->strval);
+    return vm->regs + reg_index;
   }
 }
 
@@ -243,7 +246,7 @@ uint16_t flip_endian(uint16_t i) {
 
 void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
   // TODO: pool is in RITE binary. Pool belongs to IREP
-  printf("mrbz_irep_pool_entry_ptr: %d\n", irep_p->pool+idx);
+  // printf("mrbz_irep_pool_entry_ptr: %d\n", irep_p->pool+idx);
   return irep_p->pool+idx;
 }
 
@@ -260,7 +263,9 @@ void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   uint16_t str_len = (uint16_t)pool_entry_base[3];
   vm->regs[reg_index].strval = malloc(str_len * sizeof(char) + 1);
   // + 1 is there for now to null-terminate the string
+  // printf("copying string: %s\n", pool_entry_base+5);
   strncpy(vm->regs[reg_index].strval, pool_entry_base + 5, str_len + 1);
+  // printf("copied string: %s\n", vm->regs[reg_index].strval);
 }
 
 void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
@@ -306,7 +311,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
 
   // while instructions are left
   int exiting = 0;
-  int retval = -1;
+  mrbz_val *retval = NULL;
 
   while (!exiting) {
     uint8_t instruction;
@@ -346,6 +351,18 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
 
   // printf("retval: %d\n", retval);
   // set the return val
-  rval->type = 0;
-  rval->intval = retval;
+  if(retval != NULL) {
+    rval->type = retval->type;
+    switch(rval->type) {
+      case T_INT:
+        rval->intval = retval->intval;
+        break;
+      case T_STRING:
+        rval->strval = retval->strval;
+        break;
+      default:
+        // FIXME: unknown / unhandled type
+        break;
+    }
+  }
 }
