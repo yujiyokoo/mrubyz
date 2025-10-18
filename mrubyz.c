@@ -287,6 +287,27 @@ void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   }
 }
 
+void op_jmpnot(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+  uint8_t reg_index = bytecode[*curr_p] - 1;
+  int16_t jump_by = (bytecode[*curr_p+1] << 8) | (bytecode[*curr_p+2]);
+
+  *curr_p += 3;
+
+  if(vm->regs[reg_index].type == T_NIL || vm->regs[reg_index].type == T_FALSE) {
+    *curr_p += jump_by;
+  }
+}
+
+void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+  uint8_t reg_index = bytecode[*curr_p] - 1;
+  int8_t left = bytecode[*curr_p];
+  int8_t right = bytecode[*curr_p+1];
+  int16_t jump_by = (bytecode[*curr_p] << 8) | (bytecode[*curr_p+1]);
+
+  *curr_p += 2;
+  *curr_p += jump_by;
+}
+
 void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   // TODO: check more header vaules
   // we know header length is 20, so skip for now
@@ -335,7 +356,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   while (!exiting) {
     uint8_t instruction;
     instruction = bytecode[curr++];
-    //printf("PC: %d, OP: %s\n", curr, op_names[instruction]);
+    // printf("PC: %d(%x), OP: %s\n", curr, curr, op_names[instruction]);
     switch(instruction) {
       case OP_NOP: break;
       case OP_MOVE: op_move(vm, bytecode, &curr); break;
@@ -349,6 +370,8 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_LOADI_5: // fall through
       case OP_LOADI_6: // fall through
       case OP_LOADI_7: op_loadi_n(vm, bytecode, &curr, instruction); break;
+      case OP_JMP: op_jmp(vm, bytecode, &curr); break;
+      case OP_JMPNOT: op_jmpnot(vm, bytecode, &curr); break;
       // FIXME: Currently this return exits from any level...
       case OP_RETURN: retval = op_return(vm, bytecode, &curr); exiting = 1; break;
       case OP_ADD: op_add(vm, bytecode, &curr); break;
@@ -378,6 +401,9 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case T_STRING:
         rval->strval = retval->strval;
         break;
+      case T_TRUE:
+      case T_FALSE:
+        // these types don't have values - only types. Fall through
       default:
         // FIXME: unknown / unhandled type
         break;

@@ -8,13 +8,14 @@ typedef enum {
   T_STRING = 1,
   T_TRUE   = 2,
   T_FALSE  = 3,
+  T_NIL  = 4,
 } mrbz_type;
 
 struct mrbz_value {
   mrbz_type type;
   // TODO: support any mrbz type
   union {
-    uint16_t intval;
+    int16_t intval;
     char* strval;
   };
 };
