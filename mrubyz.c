@@ -280,6 +280,7 @@ void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
     } else {
       vm->regs[reg_index].type = T_FALSE;
     }
+    (*curr_p)++; // Advance for 1 byte arg
   } else {
     printf("non-integer comparison not supported\n");
     exit(-1);
@@ -360,13 +361,11 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_STRING: op_string(vm, bytecode, &curr); break;
       case OP_STOP: exiting = 1; break;
       default:
-        //printf("unsupported instruction: 0x%x\n", instruction);
-        //printf("OP: %s\n", op_names[instruction]);
+        printf("unsupported instruction: 0x%x\n", instruction);
+        printf("OP: %s\n", op_names[instruction]);
         break;
     }
   }
-    // pop off first
-    // execute
 
   // printf("retval: %d\n", retval);
   // set the return val
