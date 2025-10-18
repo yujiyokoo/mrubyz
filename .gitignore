@@ -5,3 +5,4 @@
 *.bin
 *.map
 *.ruby.c
+/tests/ruby/*.mrb
