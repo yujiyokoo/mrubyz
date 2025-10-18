@@ -1,6 +1,5 @@
 #include "test.h"
 #include "../mrubyz.h"
-#include <stdio.h>
 
 extern uint8_t load_literal_str[];
 
