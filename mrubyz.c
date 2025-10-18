@@ -337,6 +337,9 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
     //printf("PC: %d, OP: %s\n", curr, op_names[instruction]);
     switch(instruction) {
       case OP_NOP: break;
+      case OP_MOVE: op_move(vm, bytecode, &curr); break;
+      case OP_LOADI: op_loadi(vm, bytecode, &curr, instruction); break;
+      case OP_LOADINEG: op_loadineg(vm, bytecode, &curr, instruction); break;
       case OP_LOADI_0: // fall through
       case OP_LOADI_1: // fall through
       case OP_LOADI_2: // fall through
@@ -345,20 +348,17 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_LOADI_5: // fall through
       case OP_LOADI_6: // fall through
       case OP_LOADI_7: op_loadi_n(vm, bytecode, &curr, instruction); break;
-      case OP_LOADI: op_loadi(vm, bytecode, &curr, instruction); break;
-      case OP_LOADINEG: op_loadineg(vm, bytecode, &curr, instruction); break;
       // FIXME: Currently this return exits from any level...
       case OP_RETURN: retval = op_return(vm, bytecode, &curr); exiting = 1; break;
-      case OP_STOP: exiting = 1; break;
-      case OP_MOVE: op_move(vm, bytecode, &curr); break;
       case OP_ADD: op_add(vm, bytecode, &curr); break;
+      case OP_ADDI: op_addi(vm, bytecode, &curr); break;
       case OP_SUB: op_sub(vm, bytecode, &curr); break;
+      case OP_SUBI: op_subi(vm, bytecode, &curr); break;
       case OP_MUL: op_mul(vm, bytecode, &curr); break;
       case OP_DIV: op_div(vm, bytecode, &curr); break;
-      case OP_ADDI: op_addi(vm, bytecode, &curr); break;
-      case OP_SUBI: op_subi(vm, bytecode, &curr); break;
-      case OP_STRING: op_string(vm, bytecode, &curr); break;
       case OP_GT: op_gt(vm, bytecode, &curr); break;
+      case OP_STRING: op_string(vm, bytecode, &curr); break;
+      case OP_STOP: exiting = 1; break;
       default:
         //printf("unsupported instruction: 0x%x\n", instruction);
         //printf("OP: %s\n", op_names[instruction]);
