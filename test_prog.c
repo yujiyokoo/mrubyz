@@ -26,7 +26,7 @@ void main() {
   mrbz_vm_run(&vm, &v, bytecode);
 
   printf("\n");
-  printf("returned num: %d\n", v.value);
+  printf("returned num: %d\n", v.intval);
   printf("\n");
 
   for (;;) {
