@@ -4,8 +4,10 @@
 #include <stdint.h>
 
 typedef enum {
-  T_INT = 0,
+  T_INT    = 0,
   T_STRING = 1,
+  T_TRUE   = 2,
+  T_FALSE  = 3,
 } mrbz_type;
 
 struct mrbz_value {

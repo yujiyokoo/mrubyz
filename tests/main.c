@@ -7,6 +7,7 @@ int main(int argc, char *argv[])
 
   res += test_integer();
   res += test_string();
+  res += test_compare();
 
   return res;
 }

@@ -268,6 +268,24 @@ void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   // printf("copied string: %s\n", vm->regs[reg_index].strval);
 }
 
+void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+  // TODO: generic object support
+  uint8_t reg_index = bytecode[*curr_p] - 1;
+  if(reg_index >= 5) { exit(-1); }
+  // Only supports integer for now
+  if(vm->regs[reg_index].type == T_INT && vm->regs[reg_index+1].type == T_INT) {
+    // TODO: handle freeing... GCing...
+    if(vm->regs[reg_index].intval > vm->regs[reg_index+1].intval) {
+      vm->regs[reg_index].type = T_TRUE;
+    } else {
+      vm->regs[reg_index].type = T_FALSE;
+    }
+  } else {
+    printf("non-integer comparison not supported\n");
+    exit(-1);
+  }
+}
+
 void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   // TODO: check more header vaules
   // we know header length is 20, so skip for now
@@ -340,6 +358,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_ADDI: op_addi(vm, bytecode, &curr); break;
       case OP_SUBI: op_subi(vm, bytecode, &curr); break;
       case OP_STRING: op_string(vm, bytecode, &curr); break;
+      case OP_GT: op_gt(vm, bytecode, &curr); break;
       default:
         //printf("unsupported instruction: 0x%x\n", instruction);
         //printf("OP: %s\n", op_names[instruction]);
