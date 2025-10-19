@@ -122,46 +122,53 @@ void check_reg_idx(uint8_t idx) {
   }
 }
 
-void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p, uint8_t inst) {
+void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr, uint8_t inst) {
   uint8_t imm_val = inst - OP_LOADI_0;
-  uint8_t reg_index = bytecode[*curr_p];
-  // printf("curr_p intval %d\n", *curr_p);
+  uint8_t reg_index = bytecode[*cp_ptr];
+  // printf("cp_ptr intval %d\n", *cp_ptr);
 
   // TODO: raise error
   check_reg_idx(reg_index);
   // printf("inst %d\n", inst);
   // printf("imm_val %d\n", imm_val);
-  // printf("bc[curr_p] %d\n", bytecode[*curr_p]);
+  // printf("bc[cp_ptr] %d\n", bytecode[*cp_ptr]);
   // printf("OP_LOADI__1 %d\n", OP_LOADI__1);
   //printf("loading %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = imm_val;
-  *curr_p = *curr_p + 1;
+  *cp_ptr = *cp_ptr + 1;
 }
 
-void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p, uint8_t inst) {
-  uint8_t reg_index = bytecode[*curr_p];
-  uint8_t imm_val = bytecode[*curr_p+1];
+// returns the byte at the current CP, and advances the CP by 1
+uint8_t next_byte(unsigned char* bytecode, uint16_t *cp_ptr) {
+  return bytecode[(*cp_ptr)++];
+}
+
+// returns the 16-bit word at the current CP, and advances the CP by 2
+uint16_t next_word(unsigned char* bytecode, uint16_t *cp_ptr) {
+  return (bytecode[(*cp_ptr)++] << 8) | (bytecode[(*cp_ptr)++]);
+}
+
+void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr, uint8_t inst) {
+  uint8_t reg_index = next_byte(bytecode, cp_ptr);
+  uint8_t imm_val = next_byte(bytecode, cp_ptr);
   check_reg_idx(reg_index);
   //printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = imm_val;
-  *curr_p = *curr_p + 2;
 }
 
-void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p, uint8_t inst) {
-  uint8_t reg_index = bytecode[*curr_p];
-  uint8_t imm_val = bytecode[*curr_p+1];
+void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr, uint8_t inst) {
+  uint8_t reg_index = next_byte(bytecode, cp_ptr);
+  uint8_t imm_val = next_byte(bytecode, cp_ptr);
   check_reg_idx(reg_index);
   //printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = -imm_val;
-  *curr_p = *curr_p + 2;
 }
 
-mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
-  uint8_t reg_index = bytecode[*curr_p];
-  *curr_p = *curr_p + 1;
+mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
+  uint8_t reg_index = next_byte(bytecode, cp_ptr);
   // printf("reg_index is: %d\n", reg_index);
 
   // TODO: raise error
@@ -174,75 +181,64 @@ mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   return vm->regs + reg_index;
 }
 
-void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
-  uint8_t dest_reg = bytecode[*curr_p];
-  uint8_t src_reg = bytecode[*curr_p + 1];
+void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
+  uint8_t dest_reg = next_byte(bytecode, cp_ptr);
+  uint8_t src_reg = next_byte(bytecode, cp_ptr);
   //printf("moving. reg %d to %d, intval is %d\n", src_reg, dest_reg, vm->regs[src_reg]);
   check_reg_idx(dest_reg);
   check_reg_idx(src_reg);
   // TODO: check this assignment is valid with the compiler
   vm->regs[dest_reg] = vm->regs[src_reg];
-  *curr_p = *curr_p + 2;
 }
 
-void op_add(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+void op_add(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
-  uint8_t reg_index = bytecode[*curr_p];
+  uint8_t reg_index = next_byte(bytecode, cp_ptr);
   check_reg_idx(reg_index);
   //printf("adding. reg %d to %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index+1].intval);
   vm->regs[reg_index].intval += vm->regs[reg_index + 1].intval;
-  *curr_p = *curr_p + 1;
 }
 
-void op_addi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+void op_addi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
-  uint8_t reg_index = bytecode[*curr_p];
+  uint8_t reg_index = next_byte(bytecode, cp_ptr);
+  uint8_t imm_val = next_byte(bytecode, cp_ptr);
   check_reg_idx(reg_index);
-  uint8_t imm_val = bytecode[*curr_p + 1];
   //printf("adding. %d to reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval += imm_val;
-  *curr_p = *curr_p + 2;
 }
 
-void op_sub(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+void op_sub(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
-  uint8_t reg_index = bytecode[*curr_p];
+  uint8_t reg_index = next_byte(bytecode, cp_ptr);
   check_reg_idx(reg_index);
   //printf("subtracting. reg %d from %d, values are %d and %d\n", reg_index + 1, reg_index, vm->regs[reg_index + 1].intval, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval -= vm->regs[reg_index + 1].intval;
-  *curr_p = *curr_p + 1;
 }
 
-void op_subi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+void op_subi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
-  uint8_t reg_index = bytecode[*curr_p];
+  uint8_t reg_index = next_byte(bytecode, cp_ptr);
+  uint8_t imm_val = next_byte(bytecode, cp_ptr);
   check_reg_idx(reg_index);
-  uint8_t imm_val = bytecode[*curr_p + 1];
   //printf("subtracting. %d from reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval -= imm_val;
-  *curr_p = *curr_p + 2;
 }
 
-void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
-  uint8_t reg_index = bytecode[*curr_p];
+  uint8_t reg_index = next_byte(bytecode, cp_ptr);
   check_reg_idx(reg_index);
   //printf("multiplying. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
   vm->regs[reg_index].intval *= vm->regs[reg_index + 1].intval;
-  *curr_p = *curr_p + 1;
 }
 
-void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
-  uint8_t reg_index = bytecode[*curr_p];
+  uint8_t reg_index = next_byte(bytecode, cp_ptr);
   check_reg_idx(reg_index);
   //printf("dividing. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
   vm->regs[reg_index].intval /= vm->regs[reg_index + 1].intval;
-  *curr_p = *curr_p + 1;
-}
-
-uint16_t flip_endian(uint16_t i) {
-  return (i << 8) | (i >> 8);
 }
 
 void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
@@ -251,12 +247,12 @@ void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
   return irep_p->pool+idx;
 }
 
-void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
   // arg0 should be duplicated
   // then copied to register indicated by arg1
-  uint8_t reg_index = bytecode[*curr_p];
+  uint8_t reg_index = next_byte(bytecode, cp_ptr);
   check_reg_idx(reg_index);
-  uint8_t pool_index = bytecode[++(*curr_p)];
+  uint8_t pool_index = bytecode[*cp_ptr];
   void* pool_entry_base = mrbz_irep_pool_entry_ptr(vm->irep, pool_index);
   uint16_t plen = (uint16_t)pool_entry_base[1];
   vm->regs[reg_index].type = T_STRING;
@@ -269,9 +265,9 @@ void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
   // printf("copied string: %s\n", vm->regs[reg_index].strval);
 }
 
-void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
+void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
   // TODO: generic object support
-  uint8_t reg_index = bytecode[*curr_p];
+  uint8_t reg_index = next_byte(bytecode, cp_ptr);
   check_reg_idx(reg_index);
   // Only supports integer for now
   if(vm->regs[reg_index].type == T_INT && vm->regs[reg_index+1].type == T_INT) {
@@ -281,32 +277,25 @@ void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
     } else {
       vm->regs[reg_index].type = T_FALSE;
     }
-    (*curr_p)++; // Advance for 1 byte arg
   } else {
     printf("non-integer comparison not supported\n");
     exit(-1);
   }
 }
 
-void op_jmpnot(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
-  uint8_t reg_index = bytecode[*curr_p];
-  int16_t jump_by = (bytecode[*curr_p+1] << 8) | (bytecode[*curr_p+2]);
-
-  *curr_p += 3;
+void op_jmpnot(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
+  uint8_t reg_index = next_byte(bytecode,  cp_ptr);
+  int16_t jump_by = next_word(bytecode, cp_ptr);
 
   if(vm->regs[reg_index].type == T_NIL || vm->regs[reg_index].type == T_FALSE) {
-    *curr_p += jump_by;
+    *cp_ptr += jump_by;
   }
 }
 
-void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* curr_p) {
-  uint8_t reg_index = bytecode[*curr_p];
-  int8_t left = bytecode[*curr_p];
-  int8_t right = bytecode[*curr_p+1];
-  int16_t jump_by = (bytecode[*curr_p] << 8) | (bytecode[*curr_p+1]);
+void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
+  int16_t jump_by = next_word(bytecode, cp_ptr);
 
-  *curr_p += 2;
-  *curr_p += jump_by;
+  *cp_ptr += jump_by;
 }
 
 void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
