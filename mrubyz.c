@@ -117,58 +117,58 @@ const char* op_names[] = {
 
 void check_reg_idx(uint8_t idx) {
   if(idx > 5) {
-    printf("reg index %d is above the maximum allowed\n");
+    printf("reg index %d(%x) is above the maximum allowed\n", idx, idx);
     exit(-1);
   }
 }
 
-void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr, uint8_t inst) {
+void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
   uint8_t imm_val = inst - OP_LOADI_0;
-  uint8_t reg_index = bytecode[*cp_ptr];
-  // printf("cp_ptr intval %d\n", *cp_ptr);
+  uint8_t reg_index = bytecode[*pc_ptr];
+  // printf("pc_ptr intval %d\n", *pc_ptr);
 
   // TODO: raise error
   check_reg_idx(reg_index);
   // printf("inst %d\n", inst);
   // printf("imm_val %d\n", imm_val);
-  // printf("bc[cp_ptr] %d\n", bytecode[*cp_ptr]);
+  // printf("bc[pc_ptr] %d\n", bytecode[*pc_ptr]);
   // printf("OP_LOADI__1 %d\n", OP_LOADI__1);
   //printf("loading %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = imm_val;
-  *cp_ptr = *cp_ptr + 1;
+  *pc_ptr = *pc_ptr + 1;
 }
 
 // returns the byte at the current CP, and advances the CP by 1
-uint8_t next_byte(unsigned char* bytecode, uint16_t *cp_ptr) {
-  return bytecode[(*cp_ptr)++];
+uint8_t next_byte(unsigned char* bytecode, uint16_t *pc_ptr) {
+  return bytecode[(*pc_ptr)++];
 }
 
 // returns the 16-bit word at the current CP, and advances the CP by 2
-uint16_t next_word(unsigned char* bytecode, uint16_t *cp_ptr) {
-  return (bytecode[(*cp_ptr)++] << 8) | (bytecode[(*cp_ptr)++]);
+uint16_t next_word(unsigned char* bytecode, uint16_t *pc_ptr) {
+  return (bytecode[(*pc_ptr)++] << 8) | (bytecode[(*pc_ptr)++]);
 }
 
-void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr, uint8_t inst) {
-  uint8_t reg_index = next_byte(bytecode, cp_ptr);
-  uint8_t imm_val = next_byte(bytecode, cp_ptr);
+void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  uint8_t imm_val = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index);
   //printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = imm_val;
 }
 
-void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr, uint8_t inst) {
-  uint8_t reg_index = next_byte(bytecode, cp_ptr);
-  uint8_t imm_val = next_byte(bytecode, cp_ptr);
+void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  uint8_t imm_val = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index);
   //printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = -imm_val;
 }
 
-mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
-  uint8_t reg_index = next_byte(bytecode, cp_ptr);
+mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
   // printf("reg_index is: %d\n", reg_index);
 
   // TODO: raise error
@@ -181,9 +181,9 @@ mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
   return vm->regs + reg_index;
 }
 
-void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
-  uint8_t dest_reg = next_byte(bytecode, cp_ptr);
-  uint8_t src_reg = next_byte(bytecode, cp_ptr);
+void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t dest_reg = next_byte(bytecode, pc_ptr);
+  uint8_t src_reg = next_byte(bytecode, pc_ptr);
   //printf("moving. reg %d to %d, intval is %d\n", src_reg, dest_reg, vm->regs[src_reg]);
   check_reg_idx(dest_reg);
   check_reg_idx(src_reg);
@@ -191,51 +191,51 @@ void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
   vm->regs[dest_reg] = vm->regs[src_reg];
 }
 
-void op_add(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
+void op_add(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
-  uint8_t reg_index = next_byte(bytecode, cp_ptr);
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index);
   //printf("adding. reg %d to %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index+1].intval);
   vm->regs[reg_index].intval += vm->regs[reg_index + 1].intval;
 }
 
-void op_addi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
+void op_addi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
-  uint8_t reg_index = next_byte(bytecode, cp_ptr);
-  uint8_t imm_val = next_byte(bytecode, cp_ptr);
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  uint8_t imm_val = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index);
   //printf("adding. %d to reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval += imm_val;
 }
 
-void op_sub(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
+void op_sub(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
-  uint8_t reg_index = next_byte(bytecode, cp_ptr);
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index);
   //printf("subtracting. reg %d from %d, values are %d and %d\n", reg_index + 1, reg_index, vm->regs[reg_index + 1].intval, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval -= vm->regs[reg_index + 1].intval;
 }
 
-void op_subi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
+void op_subi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
-  uint8_t reg_index = next_byte(bytecode, cp_ptr);
-  uint8_t imm_val = next_byte(bytecode, cp_ptr);
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  uint8_t imm_val = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index);
   //printf("subtracting. %d from reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval -= imm_val;
 }
 
-void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
+void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
-  uint8_t reg_index = next_byte(bytecode, cp_ptr);
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index);
   //printf("multiplying. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
   vm->regs[reg_index].intval *= vm->regs[reg_index + 1].intval;
 }
 
-void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
+void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
-  uint8_t reg_index = next_byte(bytecode, cp_ptr);
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index);
   //printf("dividing. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
   vm->regs[reg_index].intval /= vm->regs[reg_index + 1].intval;
@@ -247,15 +247,15 @@ void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
   return irep_p->pool+idx;
 }
 
-void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
-  // arg0 should be duplicated
-  // then copied to register indicated by arg1
-  uint8_t reg_index = next_byte(bytecode, cp_ptr);
+void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index);
-  uint8_t pool_index = bytecode[*cp_ptr];
+
+  uint8_t pool_index = next_byte(bytecode, pc_ptr);
   void* pool_entry_base = mrbz_irep_pool_entry_ptr(vm->irep, pool_index);
   uint16_t plen = (uint16_t)pool_entry_base[1];
   vm->regs[reg_index].type = T_STRING;
+
   // TODO: Add length to mrbz value, and copy length
   uint16_t str_len = (uint16_t)pool_entry_base[3];
   vm->regs[reg_index].strval = malloc(str_len * sizeof(char) + 1);
@@ -265,9 +265,9 @@ void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
   // printf("copied string: %s\n", vm->regs[reg_index].strval);
 }
 
-void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
+void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // TODO: generic object support
-  uint8_t reg_index = next_byte(bytecode, cp_ptr);
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index);
   // Only supports integer for now
   if(vm->regs[reg_index].type == T_INT && vm->regs[reg_index+1].type == T_INT) {
@@ -283,61 +283,83 @@ void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
   }
 }
 
-void op_jmpnot(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
-  uint8_t reg_index = next_byte(bytecode,  cp_ptr);
-  int16_t jump_by = next_word(bytecode, cp_ptr);
+void op_jmpnot(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode,  pc_ptr);
+  int16_t jump_by = next_word(bytecode, pc_ptr);
 
   if(vm->regs[reg_index].type == T_NIL || vm->regs[reg_index].type == T_FALSE) {
-    *cp_ptr += jump_by;
+    *pc_ptr += jump_by;
   }
 }
 
-void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* cp_ptr) {
-  int16_t jump_by = next_word(bytecode, cp_ptr);
+void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  int16_t jump_by = next_word(bytecode, pc_ptr);
 
-  *cp_ptr += jump_by;
+  *pc_ptr += jump_by;
+}
+
+void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  uint8_t sym_index = next_byte(bytecode, pc_ptr);
+  uint8_t arg_info = next_byte(bytecode, pc_ptr); // mostly ignored
+
+  // FIXME: right now, shortcutting due to time constraints.
+  // sym index 0 is automatically "puts"
+  if(sym_index != 0) {
+    printf("method call invoked with unsupported symbol index\n");
+    exit(-1);
+  }
+  if(arg_info != 1) {
+    printf("method call invoked with unsupported args\n");
+    exit(-1);
+  }
+
+  // FIXME: even worse, but this will do for now :P
+  // puts is called with R1 as arg, so R[1+1] is the arg sent to puts
+  fprintf(stdout, "%s", vm->regs[reg_index+1].strval);
 }
 
 void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   // TODO: check more header vaules
   // we know header length is 20, so skip for now
-  uint16_t curr = 20;
+  uint16_t pc = 20;
   // to view contents
-  // for(uint16_t cp = curr; cp < 100; cp ++) {
+  // for(uint16_t cp = pc; cp < 100; cp ++) {
     // printf("bytecode at %d: %d\n", cp, bytecode[cp]);
   // }
-  curr += 4; // TODO: skipping "IREP"
+  pc += 4; // TODO: skipping "IREP"
 
   // TODO: it's 4 bytes..
   // BUT! uint32_t is not supported?
-  uint16_t section_len = bytecode[curr+3] |
-                 (bytecode[curr+2] << 8) ;
-                 // ((uint32_t)bytecode[curr+1] << 16) |
-                 // ((uint32_t)bytecode[curr] << 24);
+  uint16_t section_len = bytecode[pc+3] |
+                 (bytecode[pc+2] << 8) ;
+                 // ((uint32_t)bytecode[pc+1] << 16) |
+                 // ((uint32_t)bytecode[pc] << 24);
   //printf("length: %d\n", len)
-  curr += 4; // skpping 4 bytes for the section length
-  curr += 4; // TODO: skipping "0300"
-  uint16_t record_len = bytecode[curr+3] |
-                 (bytecode[curr+2] << 8) ;
+  pc += 4; // skpping 4 bytes for the section length
+  pc += 4; // TODO: skipping "0300"
+  uint16_t record_len = bytecode[pc+3] |
+                 (bytecode[pc+2] << 8) ;
   // printf("irep rec len: %d\n", record_len);
-  curr += 4; // skipping 4 bytes for irep record size
+  pc += 4; // skipping 4 bytes for irep record size
 
   // TODO: skipping nlocals, nregs, rlen, clen...
-  curr += 2 + 2 + 2 + 2 ;
+  pc += 2 + 2 + 2 + 2 ;
   // TODO: it's 4 bytes..
   // BUT! uint32_t is not supported?
-  uint16_t ilen = bytecode[curr+3] |
-                 (bytecode[curr+2] << 8) ;
-                 // ((uint32_t)bytecode[curr+1] << 16) |
-                 // ((uint32_t)bytecode[curr] << 24);
+  uint16_t ilen = bytecode[pc+3] |
+                 (bytecode[pc+2] << 8) ;
+                 // ((uint32_t)bytecode[pc+1] << 16) |
+                 // ((uint32_t)bytecode[pc] << 24);
   // printf("ilen: %d\n", ilen);
-  curr += 4; // skip 4 bytes for the ilen
+  pc += 4; // skip 4 bytes for the ilen
 
-  // TODO: init this properly as pointer...?
-  vm->irep.pool = bytecode + curr + ilen;
+  vm->irep.pool = bytecode + pc + ilen;
 
-  // printf("bytecode start is: %d, curr (iseq start index) is: %d, iseq length is: %d\n", bytecode, curr, ilen);
+  // printf("bytecode start is: %d, pc (iseq start index) is: %d, iseq length is: %d\n", bytecode, pc, ilen);
 
+  // initialise R0 with an object
+  vm->regs[0].type = T_OBJECT;
 
   // while instructions are left
   int exiting = 0;
@@ -345,13 +367,13 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
 
   while (!exiting) {
     uint8_t instruction;
-    instruction = bytecode[curr++];
-    // printf("PC: %d(%x), OP: %s\n", curr, curr, op_names[instruction]);
+    instruction = bytecode[pc++];
+    // printf("PC: %d(%x), OP: %s\n", pc, pc, op_names[instruction]);
     switch(instruction) {
       case OP_NOP: break;
-      case OP_MOVE: op_move(vm, bytecode, &curr); break;
-      case OP_LOADI: op_loadi(vm, bytecode, &curr, instruction); break;
-      case OP_LOADINEG: op_loadineg(vm, bytecode, &curr, instruction); break;
+      case OP_MOVE: op_move(vm, bytecode, &pc); break;
+      case OP_LOADI: op_loadi(vm, bytecode, &pc, instruction); break;
+      case OP_LOADINEG: op_loadineg(vm, bytecode, &pc, instruction); break;
       case OP_LOADI_0: // fall through
       case OP_LOADI_1: // fall through
       case OP_LOADI_2: // fall through
@@ -359,19 +381,20 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_LOADI_4: // fall through
       case OP_LOADI_5: // fall through
       case OP_LOADI_6: // fall through
-      case OP_LOADI_7: op_loadi_n(vm, bytecode, &curr, instruction); break;
-      case OP_JMP: op_jmp(vm, bytecode, &curr); break;
-      case OP_JMPNOT: op_jmpnot(vm, bytecode, &curr); break;
+      case OP_LOADI_7: op_loadi_n(vm, bytecode, &pc, instruction); break;
+      case OP_JMP: op_jmp(vm, bytecode, &pc); break;
+      case OP_JMPNOT: op_jmpnot(vm, bytecode, &pc); break;
+      case OP_SSEND: op_ssend(vm, bytecode, &pc); break;
       // FIXME: Currently this return exits from any level...
-      case OP_RETURN: retval = op_return(vm, bytecode, &curr); exiting = 1; break;
-      case OP_ADD: op_add(vm, bytecode, &curr); break;
-      case OP_ADDI: op_addi(vm, bytecode, &curr); break;
-      case OP_SUB: op_sub(vm, bytecode, &curr); break;
-      case OP_SUBI: op_subi(vm, bytecode, &curr); break;
-      case OP_MUL: op_mul(vm, bytecode, &curr); break;
-      case OP_DIV: op_div(vm, bytecode, &curr); break;
-      case OP_GT: op_gt(vm, bytecode, &curr); break;
-      case OP_STRING: op_string(vm, bytecode, &curr); break;
+      case OP_RETURN: retval = op_return(vm, bytecode, &pc); exiting = 1; break;
+      case OP_ADD: op_add(vm, bytecode, &pc); break;
+      case OP_ADDI: op_addi(vm, bytecode, &pc); break;
+      case OP_SUB: op_sub(vm, bytecode, &pc); break;
+      case OP_SUBI: op_subi(vm, bytecode, &pc); break;
+      case OP_MUL: op_mul(vm, bytecode, &pc); break;
+      case OP_DIV: op_div(vm, bytecode, &pc); break;
+      case OP_GT: op_gt(vm, bytecode, &pc); break;
+      case OP_STRING: op_string(vm, bytecode, &pc); break;
       case OP_STOP: exiting = 1; break;
       default:
         printf("unsupported instruction: 0x%x\n", instruction);

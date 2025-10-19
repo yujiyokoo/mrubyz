@@ -9,6 +9,7 @@ typedef enum {
   T_TRUE   = 2,
   T_FALSE  = 3,
   T_NIL  = 4,
+  T_OBJECT  = 5,
 } mrbz_type;
 
 struct mrbz_value {
@@ -23,6 +24,7 @@ typedef struct mrbz_value mrbz_val;
 
 struct mrubyz_irep {
   const uint8_t *pool;
+  const uint16_t *syms;
 };
 
 typedef struct mrubyz_irep mrbz_irep;
