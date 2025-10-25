@@ -241,10 +241,34 @@ void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   vm->regs[reg_index].intval /= vm->regs[reg_index + 1].intval;
 }
 
+void op_loadnil(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  check_reg_idx(reg_index);
+  vm->regs[reg_index].type = T_NIL;
+}
+
 void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
   // TODO: pool is in RITE binary. Pool belongs to IREP
   // printf("mrbz_irep_pool_entry_ptr: %d\n", irep_p->pool+idx);
-  return irep_p->pool+idx;
+  const uint8_t *pool_cpy = irep_p->pool;
+  const uint16_t plen = *(uint16_t*)(irep_p->pool);
+  pool_cpy += 2; // skip plen
+  while(idx > 0) {
+    switch(*pool_cpy) {
+    case IREP_TT_STR:
+    case IREP_TT_SSTR:
+      pool_cpy++; // skip type
+      uint16_t len = (*(pool_cpy++) << 8) | *(pool_cpy++);
+      pool_cpy += len +1;
+      break;
+    default:
+      printf("Unsupported IREP_TT in constant pool: %x\n", *irep_p->pool);
+      exit(-1);
+    };
+    idx--;
+  }
+
+  return pool_cpy;
 }
 
 void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -253,15 +277,18 @@ void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 
   uint8_t pool_index = next_byte(bytecode, pc_ptr);
   void* pool_entry_base = mrbz_irep_pool_entry_ptr(vm->irep, pool_index);
-  uint16_t plen = (uint16_t)pool_entry_base[1];
   vm->regs[reg_index].type = T_STRING;
 
   // TODO: Add length to mrbz value, and copy length
-  uint16_t str_len = (uint16_t)pool_entry_base[3];
-  vm->regs[reg_index].strval = malloc(str_len * sizeof(char) + 1);
+  uint16_t str_len = (uint16_t)pool_entry_base[1];
+  // TODO: seems like my demo runs out of RAM? Let's point this to static str...
+  //vm->regs[reg_index].strval = malloc(str_len * sizeof(char) + 1);
+  vm->regs[reg_index].strval = pool_entry_base + 3;
   // + 1 is there for now to null-terminate the string
   // printf("copying string: %s\n", pool_entry_base+5);
-  strncpy(vm->regs[reg_index].strval, pool_entry_base + 5, str_len + 1);
+  // printf("regs: %x\n", vm->regs);
+  // printf("dest: %x\n", vm->regs[reg_index].strval);
+  // strncpy(vm->regs[reg_index].strval, pool_entry_base + 5, str_len + 1);
   // printf("copied string: %s\n", vm->regs[reg_index].strval);
 }
 
@@ -382,6 +409,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_LOADI_5: // fall through
       case OP_LOADI_6: // fall through
       case OP_LOADI_7: op_loadi_n(vm, bytecode, &pc, instruction); break;
+      case OP_LOADNIL: op_loadnil(vm, bytecode, &pc); break;
       case OP_JMP: op_jmp(vm, bytecode, &pc); break;
       case OP_JMPNOT: op_jmpnot(vm, bytecode, &pc); break;
       case OP_SSEND: op_ssend(vm, bytecode, &pc); break;

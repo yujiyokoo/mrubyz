@@ -12,6 +12,13 @@ typedef enum {
   T_OBJECT  = 5,
 } mrbz_type;
 
+typedef enum irep_const_type {
+  IREP_TT_STR   = 0,
+  IREP_TT_SSTR  = 2,
+  IREP_TT_INT32 = 1,
+  IREP_TT_INT64 = 3,
+} const_type;
+
 struct mrbz_value {
   mrbz_type type;
   // TODO: support any mrbz type

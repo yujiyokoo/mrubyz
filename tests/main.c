@@ -2,6 +2,8 @@
 #include "test_string.h"
 #include "test_compare.h"
 #include "test_loop.h"
+#include "test_output.h"
+#include "test_loop_output.h"
 
 int main(int argc, char *argv[])
 {
@@ -11,6 +13,8 @@ int main(int argc, char *argv[])
   res += test_string();
   res += test_compare();
   res += test_loop();
+  res += test_output();
+  res += test_loop_output();
 
   return res;
 }
