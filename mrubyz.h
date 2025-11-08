@@ -32,6 +32,8 @@ typedef struct mrbz_value mrbz_val;
 struct mrubyz_irep {
   const uint8_t *pool;
   const uint16_t *syms;
+  uint8_t nregs;
+  uint8_t nlocals;
 };
 
 typedef struct mrubyz_irep mrbz_irep;

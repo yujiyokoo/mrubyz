@@ -115,8 +115,8 @@ const char* op_names[] = {
   "OP_STOP       = 0x69"
 };
 
-void check_reg_idx(uint8_t idx) {
-  if(idx > 5) {
+void check_reg_idx(uint8_t idx, uint16_t nregs) {
+  if(idx > nregs) {
     printf("reg index %d(%x) is above the maximum allowed\n", idx, idx);
     exit(-1);
   }
@@ -128,7 +128,7 @@ void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t 
   // printf("pc_ptr intval %d\n", *pc_ptr);
 
   // TODO: raise error
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
   // printf("inst %d\n", inst);
   // printf("imm_val %d\n", imm_val);
   // printf("bc[pc_ptr] %d\n", bytecode[*pc_ptr]);
@@ -152,7 +152,7 @@ uint16_t next_word(unsigned char* bytecode, uint16_t *pc_ptr) {
 void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
   //printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = imm_val;
@@ -161,7 +161,7 @@ void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t in
 void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
   //printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = -imm_val;
@@ -172,7 +172,7 @@ mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // printf("reg_index is: %d\n", reg_index);
 
   // TODO: raise error
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
 
   // printf("vm->r[ri]: %d\n",vm->regs[reg_index]);
   // printf("returning type %d\n", vm->regs[reg_index].type);
@@ -185,8 +185,8 @@ void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t dest_reg = next_byte(bytecode, pc_ptr);
   uint8_t src_reg = next_byte(bytecode, pc_ptr);
   //printf("moving. reg %d to %d, intval is %d\n", src_reg, dest_reg, vm->regs[src_reg]);
-  check_reg_idx(dest_reg);
-  check_reg_idx(src_reg);
+  check_reg_idx(dest_reg, vm->irep.nregs);
+  check_reg_idx(src_reg, vm->irep.nregs);
   // TODO: check this assignment is valid with the compiler
   vm->regs[dest_reg] = vm->regs[src_reg];
 }
@@ -194,7 +194,7 @@ void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_add(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
   //printf("adding. reg %d to %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index+1].intval);
   vm->regs[reg_index].intval += vm->regs[reg_index + 1].intval;
 }
@@ -203,7 +203,7 @@ void op_addi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
   //printf("adding. %d to reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval += imm_val;
 }
@@ -211,7 +211,7 @@ void op_addi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_sub(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
   //printf("subtracting. reg %d from %d, values are %d and %d\n", reg_index + 1, reg_index, vm->regs[reg_index + 1].intval, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval -= vm->regs[reg_index + 1].intval;
 }
@@ -220,7 +220,7 @@ void op_subi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
   //printf("subtracting. %d from reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval -= imm_val;
 }
@@ -228,7 +228,7 @@ void op_subi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
   //printf("multiplying. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
   vm->regs[reg_index].intval *= vm->regs[reg_index + 1].intval;
 }
@@ -236,14 +236,14 @@ void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
   //printf("dividing. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
   vm->regs[reg_index].intval /= vm->regs[reg_index + 1].intval;
 }
 
 void op_loadnil(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
   vm->regs[reg_index].type = T_NIL;
 }
 
@@ -273,7 +273,7 @@ void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
 
 void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
 
   uint8_t pool_index = next_byte(bytecode, pc_ptr);
   void* pool_entry_base = mrbz_irep_pool_entry_ptr(vm->irep, pool_index);
@@ -295,7 +295,7 @@ void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // TODO: generic object support
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index);
+  check_reg_idx(reg_index, vm->irep.nregs);
   // Only supports integer for now
   if(vm->regs[reg_index].type == T_INT && vm->regs[reg_index+1].type == T_INT) {
     // TODO: handle freeing... GCing...
@@ -358,20 +358,28 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
 
   // TODO: it's 4 bytes..
   // BUT! uint32_t is not supported?
-  uint16_t section_len = bytecode[pc+3] |
-                 (bytecode[pc+2] << 8) ;
+  uint16_t section_len = bytecode[pc] |
+                 (bytecode[pc+1] << 8) ;
                  // ((uint32_t)bytecode[pc+1] << 16) |
                  // ((uint32_t)bytecode[pc] << 24);
   //printf("length: %d\n", len)
   pc += 4; // skpping 4 bytes for the section length
   pc += 4; // TODO: skipping "0300"
-  uint16_t record_len = bytecode[pc+3] |
-                 (bytecode[pc+2] << 8) ;
+  uint16_t record_len = bytecode[pc] |
+                 (bytecode[pc+1] << 8) ;
   // printf("irep rec len: %d\n", record_len);
   pc += 4; // skipping 4 bytes for irep record size
 
-  // TODO: skipping nlocals, nregs, rlen, clen...
-  pc += 2 + 2 + 2 + 2 ;
+  uint16_t nlocals = (bytecode[pc] << 8) |
+                 bytecode[pc+1];
+  printf("nlocals is %d\n", nlocals);
+  pc += 2;
+  vm->irep.nregs = (bytecode[pc] << 8) |
+                 bytecode[pc+1];
+  printf("nregs is %d\n", vm->irep.nregs);
+  pc += 2;
+  // TODO: rlen, clen...
+  pc += 2 + 2 ;
   // TODO: it's 4 bytes..
   // BUT! uint32_t is not supported?
   uint16_t ilen = bytecode[pc+3] |
