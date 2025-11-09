@@ -1,7 +1,7 @@
 #include "test.h"
 #include "../mrubyz.h"
 
-extern uint8_t gt_int[];
+extern const uint8_t gt_int[];
 
 void test_gt_int() {
   mrbz_val v;

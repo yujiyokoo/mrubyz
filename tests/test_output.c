@@ -2,7 +2,7 @@
 #include "test.h"
 #include "../mrubyz.h"
 
-extern uint8_t puts_str[];
+extern const uint8_t puts_str[];
 
 // TODO: properly check the output. currently it's checked by me visually :(
 int test_puts() {

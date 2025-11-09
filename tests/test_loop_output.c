@@ -1,7 +1,7 @@
 #include "test.h"
 #include "../mrubyz.h"
 
-extern uint8_t puts_in_loop[];
+extern const uint8_t puts_in_loop[];
 
 // TODO: properly test output. Currently checked by me visually
 void test_while_puts() {

@@ -1,7 +1,7 @@
 #include "test.h"
 #include "../mrubyz.h"
 
-extern uint8_t load_literal_str[];
+extern const uint8_t load_literal_str[];
 
 void test_load_literal_str() {
   mrbz_val v;

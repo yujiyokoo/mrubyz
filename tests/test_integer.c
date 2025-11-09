@@ -2,16 +2,16 @@
 #include "../mrubyz.h"
 #include <stdio.h>
 
-extern uint8_t add[];
-extern uint8_t loadi_n[];
-extern uint8_t loadi[];
-extern uint8_t loadineg[];
-extern uint8_t sub[];
-extern uint8_t mul[];
-extern uint8_t div[];
+extern const uint8_t add[];
+extern const uint8_t loadi_n[];
+extern const uint8_t loadi[];
+extern const uint8_t loadineg[];
+extern const uint8_t sub[];
+extern const uint8_t mul[];
+extern const uint8_t div[];
 
-extern uint8_t addi[];
-extern uint8_t subi[];
+extern const uint8_t addi[];
+extern const uint8_t subi[];
 
 void test_integer_loadi_n() {
   mrbz_val v;

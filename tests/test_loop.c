@@ -1,7 +1,7 @@
 #include "test.h"
 #include "../mrubyz.h"
 
-extern uint8_t while_simple[];
+extern const uint8_t while_simple[];
 
 void test_while_simple() {
   mrbz_val v;
