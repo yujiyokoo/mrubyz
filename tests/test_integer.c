@@ -14,6 +14,7 @@ extern const uint8_t addi[];
 extern const uint8_t subi[];
 
 void test_integer_loadi_n() {
+  printf("\n\ntest_integer_loadi_n\n");
   mrbz_val v;
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, loadi_n);
@@ -22,6 +23,7 @@ void test_integer_loadi_n() {
 }
 
 void test_integer_loadi() {
+  printf("\n\ntest_integer_loadi\n");
   mrbz_val v;
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, loadi);
@@ -30,6 +32,7 @@ void test_integer_loadi() {
 }
 
 void test_integer_loadineg() {
+  printf("\n\ntest_integer_loadineg\n");
   mrbz_val v;
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, loadineg);
@@ -38,6 +41,7 @@ void test_integer_loadineg() {
 }
 
 void test_integer_add() {
+  printf("\n\ntest_integer_add\n");
   mrbz_val v;
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, add);
@@ -46,6 +50,7 @@ void test_integer_add() {
 }
 
 void test_integer_addi() {
+  printf("\n\ntest_integer_add\n");
   mrbz_val v;
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, addi);
@@ -54,6 +59,7 @@ void test_integer_addi() {
 }
 
 void test_integer_subi() {
+  printf("\n\ntest_integer_subi\n");
   mrbz_val v;
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, subi);
@@ -62,6 +68,7 @@ void test_integer_subi() {
 }
 
 void test_integer_sub() {
+  printf("\n\ntest_integer_sub\n");
   mrbz_val v;
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, sub);
@@ -70,6 +77,7 @@ void test_integer_sub() {
 }
 
 void test_integer_mul() {
+  printf("\n\ntest_integer_mul\n");
   mrbz_val v;
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, mul);
@@ -78,6 +86,7 @@ void test_integer_mul() {
 }
 
 void test_integer_div() {
+  printf("\n\ntest_integer_div\n");
   mrbz_val v;
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, div);

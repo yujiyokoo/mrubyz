@@ -358,38 +358,94 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
 
   // TODO: it's 4 bytes..
   // BUT! uint32_t is not supported?
-  uint16_t section_len = bytecode[pc] |
-                 (bytecode[pc+1] << 8) ;
+  uint16_t section_len = bytecode[pc+3] |
+                 (bytecode[pc+2] << 8) ;
                  // ((uint32_t)bytecode[pc+1] << 16) |
                  // ((uint32_t)bytecode[pc] << 24);
-  //printf("length: %d\n", len)
-  pc += 4; // skpping 4 bytes for the section length
+  printf("section length: %d / 0x%x\n", section_len, section_len);
+  pc += 4; // 4 bytes for the section length
   pc += 4; // TODO: skipping "0300"
-  uint16_t record_len = bytecode[pc] |
-                 (bytecode[pc+1] << 8) ;
-  // printf("irep rec len: %d\n", record_len);
+  uint16_t record_len = bytecode[pc+3] |
+                 (bytecode[pc+2] << 8) ;
+  printf("irep rec len: %d / 0x%x\n", record_len, record_len);
   pc += 4; // skipping 4 bytes for irep record size
 
   uint16_t nlocals = (bytecode[pc] << 8) |
                  bytecode[pc+1];
-  printf("nlocals is %d\n", nlocals);
+  printf("nlocals is %d / 0x%x\n", nlocals, nlocals);
   pc += 2;
   vm->irep.nregs = (bytecode[pc] << 8) |
                  bytecode[pc+1];
-  printf("nregs is %d\n", vm->irep.nregs);
+  printf("nregs is %d / 0x%x\n", vm->irep.nregs, vm->irep.nregs);
   pc += 2;
   // TODO: rlen, clen...
-  pc += 2 + 2 ;
+  printf("rlen is: %d / 0x%x\n", bytecode[pc], bytecode[pc]);
+  pc += 2 ;
+  printf("clen is: %d / 0x%x\n", bytecode[pc], bytecode[pc]);
+  pc += 2;
   // TODO: it's 4 bytes..
   // BUT! uint32_t is not supported?
   uint16_t ilen = bytecode[pc+3] |
                  (bytecode[pc+2] << 8) ;
                  // ((uint32_t)bytecode[pc+1] << 16) |
                  // ((uint32_t)bytecode[pc] << 24);
-  // printf("ilen: %d\n", ilen);
+  printf("ilen: %d / 0x%x\n", ilen, ilen);
   pc += 4; // skip 4 bytes for the ilen
 
   vm->irep.pool = bytecode + pc + ilen;
+  printf("bytecode ptr: %d / 0x%x\n", (uint16_t)(bytecode), (uint16_t)(bytecode));
+  printf("pc: %d / 0x%x\n", pc, pc);
+  printf("pool ptr: %d / 0x%x\n", (uint16_t)(vm->irep.pool), (uint16_t)(vm->irep.pool));
+
+  const uint8_t *pool_ptr = vm->irep.pool;
+  uint16_t plen_l = (pool_ptr[0] << 8);
+  uint16_t plen_r = pool_ptr[1];
+  printf("plen_l: 0x%x, plen_r: 0x%x\n", plen_l, plen_r );
+  printf("*(pool ptr) << 8: %d / 0x%x\n", (uint16_t)(*pool_ptr << 8), (uint16_t)(*pool_ptr << 8));
+  printf("(pool ptr[0]) << 8: %d / 0x%x\n", (uint16_t)(pool_ptr[0] << 8), (uint16_t)(pool_ptr[0] << 8));
+  printf("(pool ptr[1]): %d / 0x%x\n", (uint16_t)(pool_ptr[1]), (uint16_t)(pool_ptr[1]));
+  //uint16_t plen = (pool_ptr[0] << 8) | pool_ptr[1];
+  uint16_t plen = plen_l | plen_r;
+  pool_ptr += 2;  // skip plen
+  printf("plen is: %d / 0x%x\n", plen, plen);
+
+  // plen by pos
+  uint16_t plen1 = (bytecode[pc+ilen] << 8) | bytecode[pc+ilen+1];
+  printf("plen1 ptr is: %d / 0x%x\n", &(bytecode[pc+ilen]), &(bytecode[pc+ilen]));
+  printf("plen1 is: %d / 0x%x\n", plen1, plen1);
+
+  // bytes
+  printf("*(pool ptr): %d / 0x%x\n", (uint16_t)(pool_ptr[0]), (uint16_t)(pool_ptr[0]));
+  printf("*(plen1 ptr): %d / 0x%x\n", (bytecode[pc+ilen]), (bytecode[pc+ilen]));
+  printf("*(pool ptr+1): %d / 0x%x\n", (uint16_t)(pool_ptr[1]), (uint16_t)(pool_ptr[1]));
+  printf("*(plen1 ptr+1): %d / 0x%x\n", (bytecode[pc+ilen+1]), (bytecode[pc+ilen+1]));
+
+  // Iterate through all pool entries
+  for(uint16_t i = 0; i < plen; i++) {
+    uint16_t str_len;
+    uint8_t pool_type = *pool_ptr;
+    pool_ptr++;  // skip type byte
+  printf("i: %d, type: 0x%x\n", i, pool_type);
+
+    switch(pool_type) {
+      case IREP_TT_STR:
+      case IREP_TT_SSTR:
+        str_len = (*pool_ptr << 8) | *(pool_ptr + 1);
+        pool_ptr += 2;  // skip length bytes
+        pool_ptr += str_len + 1;  // skip string data + null terminator
+        printf("str pool type: %x\n", pool_type);
+        break;
+
+      case IREP_TT_INT32:
+        pool_ptr += 4;  // skip 4 bytes for int32
+        printf("int pool type\n");
+        break;
+
+      default:
+        printf("Unknown pool type: %x\n", pool_type);
+        exit(-1);
+    }
+  }
 
   // printf("bytecode start is: %d, pc (iseq start index) is: %d, iseq length is: %d\n", bytecode, pc, ilen);
 
