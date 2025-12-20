@@ -1,6 +1,8 @@
 #ifndef __MRUBYZ_H__
 #  define __MRUBYZ_H__
 
+#define DEBUG_OUTPUT 1
+
 #include <stdint.h>
 
 typedef enum {
@@ -31,7 +33,7 @@ typedef struct mrbz_value mrbz_val;
 
 struct mrubyz_irep {
   const uint8_t *pool;
-  const uint16_t *syms;
+  const uint8_t *syms;
   uint8_t nregs;
   uint8_t nlocals;
 };
@@ -46,5 +48,7 @@ struct mrbz_virtual_machine {
 typedef struct mrbz_virtual_machine mrbz_vm;
 
 void mrbz_vm_run(mrbz_vm*, mrbz_val*, unsigned char*);
+
+void debug_print(const char* fmt, ...);
 
 #endif

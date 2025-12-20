@@ -413,8 +413,10 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   uint16_t plen_r = (uint16_t)pool_ptr[1];
   printf("plen_l: 0x%x, plen_r: 0x%x\n", plen_l, plen_r );
   uint16_t plen = plen_l | plen_r;
-  pool_ptr += 2;  // skip plen
   printf("plen is: %d / 0x%x\n", plen, plen);
+  printf("*(pool ptr): %d / 0x%x\n", (uint16_t)(pool_ptr[0]), (uint16_t)(pool_ptr[0]));
+  printf("*(pool ptr+1): %d / 0x%x\n", (uint16_t)(pool_ptr[1]), (uint16_t)(pool_ptr[1]));
+  pool_ptr += 2;  // skip plen
 
   // plen by pos
   uint16_t plen1 = (bytecode[pc+ilen] << 8) | bytecode[pc+ilen+1];
@@ -422,9 +424,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   printf("plen1 is: %d / 0x%x\n", plen1, plen1);
 
   // bytes
-  printf("*(pool ptr): %d / 0x%x\n", (uint16_t)(pool_ptr[0]), (uint16_t)(pool_ptr[0]));
   printf("*(plen1 ptr): %d / 0x%x\n", (bytecode[pc+ilen]), (bytecode[pc+ilen]));
-  printf("*(pool ptr+1): %d / 0x%x\n", (uint16_t)(pool_ptr[1]), (uint16_t)(pool_ptr[1]));
   printf("*(plen1 ptr+1): %d / 0x%x\n", (bytecode[pc+ilen+1]), (bytecode[pc+ilen+1]));
 
   // Iterate through all pool entries
@@ -432,13 +432,14 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
     uint16_t str_len;
     uint8_t pool_type = *pool_ptr;
     pool_ptr++;  // skip type byte
-  printf("i: %d, type: 0x%x\n", i, pool_type);
+    printf("i: %d, type: 0x%x\n", i, pool_type);
 
     switch(pool_type) {
       case IREP_TT_STR:
       case IREP_TT_SSTR:
         str_len = (*pool_ptr << 8) | *(pool_ptr + 1);
         pool_ptr += 2;  // skip length bytes
+        printf("str found in pool: %s\n", pool_ptr);
         pool_ptr += str_len + 1;  // skip string data + null terminator
         printf("str pool type: %x\n", pool_type);
         break;
@@ -453,6 +454,22 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
         exit(-1);
     }
   }
+
+	// Save syms section ptr
+	vm->irep.syms = pool_ptr;
+	uint16_t syms_len = ((uint16_t)pool_ptr[0] << 8) | (uint16_t)pool_ptr[1];
+  pool_ptr += 2; // skip syms_len
+  printf("symbol block length: %d\n", syms_len);
+
+	for(uint16_t count = 0; count < syms_len; count++) {
+		uint16_t sym_len = ((uint16_t)pool_ptr[0] << 8) | (uint16_t)pool_ptr[1];
+    printf("symbol length: %d\n", sym_len);
+		pool_ptr += 2; // skip sym_len
+    printf("symbol found: %s\n", pool_ptr);
+		while(*pool_ptr) {
+			pool_ptr++;
+		}
+	}
 
   // printf("bytecode start is: %d, pc (iseq start index) is: %d, iseq length is: %d\n", bytecode, pc, ilen);
 
