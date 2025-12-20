@@ -398,13 +398,20 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   printf("pool ptr: %d / 0x%x\n", (uint16_t)(vm->irep.pool), (uint16_t)(vm->irep.pool));
 
   const uint8_t *pool_ptr = vm->irep.pool;
-  uint16_t plen_l = (pool_ptr[0] << 8);
-  uint16_t plen_r = pool_ptr[1];
-  printf("plen_l: 0x%x, plen_r: 0x%x\n", plen_l, plen_r );
-  printf("*(pool ptr) << 8: %d / 0x%x\n", (uint16_t)(*pool_ptr << 8), (uint16_t)(*pool_ptr << 8));
+  printf("pool_ptr[0] raw value: %d / 0x%x\n", pool_ptr[0], pool_ptr[0]);
+  printf("pool_ptr[1] raw value: %d / 0x%x\n", pool_ptr[1], pool_ptr[1]);
+
+  uint16_t temp = pool_ptr[0];
+  printf("temp (before shift): 0x%x\n", temp);
+  temp = temp << 8;
+  printf("temp (after shift): 0x%x\n", temp);
+
+  uint16_t plen_l = (uint16_t)(pool_ptr[0] << 8);
+  printf("plen_l: 0x%x\n", plen_l);
   printf("(pool ptr[0]) << 8: %d / 0x%x\n", (uint16_t)(pool_ptr[0] << 8), (uint16_t)(pool_ptr[0] << 8));
-  printf("(pool ptr[1]): %d / 0x%x\n", (uint16_t)(pool_ptr[1]), (uint16_t)(pool_ptr[1]));
   //uint16_t plen = (pool_ptr[0] << 8) | pool_ptr[1];
+  uint16_t plen_r = (uint16_t)pool_ptr[1];
+  printf("plen_l: 0x%x, plen_r: 0x%x\n", plen_l, plen_r );
   uint16_t plen = plen_l | plen_r;
   pool_ptr += 2;  // skip plen
   printf("plen is: %d / 0x%x\n", plen, plen);
