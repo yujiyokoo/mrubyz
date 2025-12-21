@@ -34,6 +34,9 @@ typedef struct mrbz_value mrbz_val;
 struct mrubyz_irep {
   const uint8_t *pool;
   const uint8_t *syms;
+  // hold pointers to start of symbols
+	// FIXME: hardcoded length
+  const char* syms_list[64];
   uint8_t nregs;
   uint8_t nlocals;
 };

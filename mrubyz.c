@@ -325,25 +325,40 @@ void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   *pc_ptr += jump_by;
 }
 
+const char* symbol_at(mrbz_vm *vm, uint8_t sym_index) {
+  return (unsigned char*)(vm->irep.syms_list[sym_index]);
+}
+
 void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t sym_index = next_byte(bytecode, pc_ptr);
   uint8_t arg_info = next_byte(bytecode, pc_ptr); // mostly ignored
+  const char* sym;
 
-  // FIXME: right now, shortcutting due to time constraints.
-  // sym index 0 is automatically "puts"
-  if(sym_index != 0) {
-    printf("method call invoked with unsupported symbol index\n");
+	uint16_t syms_len = ((uint16_t)vm->irep.syms[0] << 8) | (uint16_t)vm->irep.syms[1];
+  if(sym_index >= syms_len) {
+    printf("sym_index (%d) out of bounds (%d max)\n", sym_index, syms_len);
+    exit(-1);
+	}
+
+	sym = symbol_at(vm, sym_index);
+
+  if(arg_info > 1) {
+    printf("method %s called with unsupported args\n", sym);
     exit(-1);
   }
-  if(arg_info != 1) {
-    printf("method call invoked with unsupported args\n");
-    exit(-1);
-  }
 
-  // FIXME: even worse, but this will do for now :P
-  // puts is called with R1 as arg, so R[1+1] is the arg sent to puts
-  fprintf(stdout, "%s", vm->regs[reg_index+1].strval);
+  // Hardcoding for now... will fix later
+  if(!strcmp(sym, "puts")) {
+		// puts is called with R1 as arg, so R[1+1] is the arg sent to puts
+		fprintf(stdout, "%s\n", vm->regs[reg_index+1].strval);
+	} else if(!strcmp(sym, "foo")) {
+		fprintf(stdout, "foo called\n");
+	} else {
+    printf("unknown symbol call: %s\n", sym);
+    printf("length: %d\n", strlen(sym));
+    exit(-1);
+	}
 }
 
 void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
@@ -466,9 +481,9 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
     printf("symbol length: %d\n", sym_len);
 		pool_ptr += 2; // skip sym_len
     printf("symbol found: %s\n", pool_ptr);
-		while(*pool_ptr) {
-			pool_ptr++;
-		}
+	  vm->irep.syms_list[count] = pool_ptr;
+		while(*pool_ptr) { pool_ptr++; } // move to null terminator
+		pool_ptr++; // skip the null
 	}
 
   // printf("bytecode start is: %d, pc (iseq start index) is: %d, iseq length is: %d\n", bytecode, pc, ilen);

@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
   res += test_loop();
   res += test_output();
   res += test_loop_output();
+  res += test_method_calls();
 
   return res;
 }
