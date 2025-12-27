@@ -5,6 +5,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+
+// Conditional (only in debug builds)
+#ifdef DEBUG
+  #define debug_out(...) printf(__VA_ARGS__)
+#else
+  #define debug_out(...) ((void)0)  // No-op in release
+#endif
 
 const char* op_names[] = {
   "OP_NOP        = 0x00",
@@ -117,7 +125,7 @@ const char* op_names[] = {
 
 void check_reg_idx(uint8_t idx, uint16_t nregs) {
   if(idx > nregs) {
-    printf("reg index %d(%x) is above the maximum allowed\n", idx, idx);
+    debug_out("reg index %d(%x) is above the maximum allowed\n", idx, idx);
     exit(-1);
   }
 }
@@ -125,15 +133,15 @@ void check_reg_idx(uint8_t idx, uint16_t nregs) {
 void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
   uint8_t imm_val = inst - OP_LOADI_0;
   uint8_t reg_index = bytecode[*pc_ptr];
-  // printf("pc_ptr intval %d\n", *pc_ptr);
+  // debug_out("pc_ptr intval %d\n", *pc_ptr);
 
   // TODO: raise error
   check_reg_idx(reg_index, vm->irep.nregs);
-  // printf("inst %d\n", inst);
-  // printf("imm_val %d\n", imm_val);
-  // printf("bc[pc_ptr] %d\n", bytecode[*pc_ptr]);
-  // printf("OP_LOADI__1 %d\n", OP_LOADI__1);
-  //printf("loading %d to reg %d\n", imm_val, reg_index);
+  // debug_out("inst %d\n", inst);
+  // debug_out("imm_val %d\n", imm_val);
+  // debug_out("bc[pc_ptr] %d\n", bytecode[*pc_ptr]);
+  // debug_out("OP_LOADI__1 %d\n", OP_LOADI__1);
+  //debug_out("loading %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = imm_val;
   *pc_ptr = *pc_ptr + 1;
@@ -153,7 +161,7 @@ void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t in
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
-  //printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
+  //debug_out("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = imm_val;
 }
@@ -162,29 +170,29 @@ void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
-  //printf("loadi-ing %d to reg %d\n", imm_val, reg_index);
+  //debug_out("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].intval = -imm_val;
 }
 
 mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  // printf("reg_index is: %d\n", reg_index);
+  // debug_out("reg_index is: %d\n", reg_index);
 
   // TODO: raise error
   check_reg_idx(reg_index, vm->irep.nregs);
 
-  // printf("vm->r[ri]: %d\n",vm->regs[reg_index]);
-  // printf("returning type %d\n", vm->regs[reg_index].type);
+  // debug_out("vm->r[ri]: %d\n",vm->regs[reg_index]);
+  // debug_out("returning type %d\n", vm->regs[reg_index].type);
   mrbz_val* foo = vm->regs + reg_index;
-  // printf("returning %s\n", foo->strval);
+  // debug_out("returning %s\n", foo->strval);
   return vm->regs + reg_index;
 }
 
 void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t dest_reg = next_byte(bytecode, pc_ptr);
   uint8_t src_reg = next_byte(bytecode, pc_ptr);
-  //printf("moving. reg %d to %d, intval is %d\n", src_reg, dest_reg, vm->regs[src_reg]);
+  //debug_out("moving. reg %d to %d, intval is %d\n", src_reg, dest_reg, vm->regs[src_reg]);
   check_reg_idx(dest_reg, vm->irep.nregs);
   check_reg_idx(src_reg, vm->irep.nregs);
   // TODO: check this assignment is valid with the compiler
@@ -195,7 +203,7 @@ void op_add(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
-  //printf("adding. reg %d to %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index+1].intval);
+  //debug_out("adding. reg %d to %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index+1].intval);
   vm->regs[reg_index].intval += vm->regs[reg_index + 1].intval;
 }
 
@@ -204,7 +212,7 @@ void op_addi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
-  //printf("adding. %d to reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
+  //debug_out("adding. %d to reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval += imm_val;
 }
 
@@ -212,7 +220,7 @@ void op_sub(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
-  //printf("subtracting. reg %d from %d, values are %d and %d\n", reg_index + 1, reg_index, vm->regs[reg_index + 1].intval, vm->regs[reg_index].intval);
+  //debug_out("subtracting. reg %d from %d, values are %d and %d\n", reg_index + 1, reg_index, vm->regs[reg_index + 1].intval, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval -= vm->regs[reg_index + 1].intval;
 }
 
@@ -221,7 +229,7 @@ void op_subi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
-  //printf("subtracting. %d from reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
+  //debug_out("subtracting. %d from reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
   vm->regs[reg_index].intval -= imm_val;
 }
 
@@ -229,7 +237,7 @@ void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
-  //printf("multiplying. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
+  //debug_out("multiplying. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
   vm->regs[reg_index].intval *= vm->regs[reg_index + 1].intval;
 }
 
@@ -237,7 +245,7 @@ void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
-  //printf("dividing. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
+  //debug_out("dividing. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
   vm->regs[reg_index].intval /= vm->regs[reg_index + 1].intval;
 }
 
@@ -249,7 +257,7 @@ void op_loadnil(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 
 void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
   // TODO: pool is in RITE binary. Pool belongs to IREP
-  // printf("mrbz_irep_pool_entry_ptr: %d\n", irep_p->pool+idx);
+  // debug_out("mrbz_irep_pool_entry_ptr: %d\n", irep_p->pool+idx);
   const uint8_t *pool_cpy = irep_p->pool;
   const uint16_t plen = *(uint16_t*)(irep_p->pool);
   pool_cpy += 2; // skip plen
@@ -262,7 +270,7 @@ void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
       pool_cpy += len +1;
       break;
     default:
-      printf("Unsupported IREP_TT in constant pool: %x\n", *irep_p->pool);
+      debug_out("Unsupported IREP_TT in constant pool: %x\n", *irep_p->pool);
       exit(-1);
     };
     idx--;
@@ -285,11 +293,11 @@ void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   //vm->regs[reg_index].strval = malloc(str_len * sizeof(char) + 1);
   vm->regs[reg_index].strval = pool_entry_base + 3;
   // + 1 is there for now to null-terminate the string
-  // printf("copying string: %s\n", pool_entry_base+5);
-  // printf("regs: %x\n", vm->regs);
-  // printf("dest: %x\n", vm->regs[reg_index].strval);
+  // debug_out("copying string: %s\n", pool_entry_base+5);
+  // debug_out("regs: %x\n", vm->regs);
+  // debug_out("dest: %x\n", vm->regs[reg_index].strval);
   // strncpy(vm->regs[reg_index].strval, pool_entry_base + 5, str_len + 1);
-  // printf("copied string: %s\n", vm->regs[reg_index].strval);
+  // debug_out("copied string: %s\n", vm->regs[reg_index].strval);
 }
 
 void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -305,7 +313,7 @@ void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
       vm->regs[reg_index].type = T_FALSE;
     }
   } else {
-    printf("non-integer comparison not supported\n");
+    debug_out("non-integer comparison not supported\n");
     exit(-1);
   }
 }
@@ -335,30 +343,28 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t arg_info = next_byte(bytecode, pc_ptr); // mostly ignored
   const char* sym;
 
-	uint16_t syms_len = ((uint16_t)vm->irep.syms[0] << 8) | (uint16_t)vm->irep.syms[1];
+  uint16_t syms_len = ((uint16_t)vm->irep.syms[0] << 8) | (uint16_t)vm->irep.syms[1];
   if(sym_index >= syms_len) {
-    printf("sym_index (%d) out of bounds (%d max)\n", sym_index, syms_len);
+    debug_out("sym_index (%d) out of bounds (%d max)\n", sym_index, syms_len);
     exit(-1);
-	}
+  }
 
-	sym = symbol_at(vm, sym_index);
+  sym = symbol_at(vm, sym_index);
 
   if(arg_info > 1) {
-    printf("method %s called with unsupported args\n", sym);
+    debug_out("method %s called with unsupported args\n", sym);
     exit(-1);
   }
 
   // Hardcoding for now... will fix later
   if(!strcmp(sym, "puts")) {
-		// puts is called with R1 as arg, so R[1+1] is the arg sent to puts
-		fprintf(stdout, "%s\n", vm->regs[reg_index+1].strval);
-	} else if(!strcmp(sym, "foo")) {
-		fprintf(stdout, "foo called\n");
-	} else {
-    printf("unknown symbol call: %s\n", sym);
-    printf("length: %d\n", strlen(sym));
+    // puts is called with R1 as arg, so R[1+1] is the arg sent to puts
+    // fprintf(stdout, "%s\n", vm->regs[reg_index+1].strval);
+  } else {
+    debug_out("unknown symbol call: %s\n", sym);
+    debug_out("length: %d\n", strlen(sym));
     exit(-1);
-	}
+  }
 }
 
 void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
@@ -367,7 +373,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   uint16_t pc = 20;
   // to view contents
   // for(uint16_t cp = pc; cp < 100; cp ++) {
-    // printf("bytecode at %d: %d\n", cp, bytecode[cp]);
+    // debug_out("bytecode at %d: %d\n", cp, bytecode[cp]);
   // }
   pc += 4; // TODO: skipping "IREP"
 
@@ -377,26 +383,26 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
                  (bytecode[pc+2] << 8) ;
                  // ((uint32_t)bytecode[pc+1] << 16) |
                  // ((uint32_t)bytecode[pc] << 24);
-  printf("section length: %d / 0x%x\n", section_len, section_len);
+  debug_out("section length: %d / 0x%x\n", section_len, section_len);
   pc += 4; // 4 bytes for the section length
   pc += 4; // TODO: skipping "0300"
   uint16_t record_len = bytecode[pc+3] |
                  (bytecode[pc+2] << 8) ;
-  printf("irep rec len: %d / 0x%x\n", record_len, record_len);
+  debug_out("irep rec len: %d / 0x%x\n", record_len, record_len);
   pc += 4; // skipping 4 bytes for irep record size
 
   uint16_t nlocals = (bytecode[pc] << 8) |
                  bytecode[pc+1];
-  printf("nlocals is %d / 0x%x\n", nlocals, nlocals);
+  debug_out("nlocals is %d / 0x%x\n", nlocals, nlocals);
   pc += 2;
   vm->irep.nregs = (bytecode[pc] << 8) |
                  bytecode[pc+1];
-  printf("nregs is %d / 0x%x\n", vm->irep.nregs, vm->irep.nregs);
+  debug_out("nregs is %d / 0x%x\n", vm->irep.nregs, vm->irep.nregs);
   pc += 2;
   // TODO: rlen, clen...
-  printf("rlen is: %d / 0x%x\n", bytecode[pc], bytecode[pc]);
+  debug_out("rlen is: %d / 0x%x\n", bytecode[pc], bytecode[pc]);
   pc += 2 ;
-  printf("clen is: %d / 0x%x\n", bytecode[pc], bytecode[pc]);
+  debug_out("clen is: %d / 0x%x\n", bytecode[pc], bytecode[pc]);
   pc += 2;
   // TODO: it's 4 bytes..
   // BUT! uint32_t is not supported?
@@ -404,89 +410,89 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
                  (bytecode[pc+2] << 8) ;
                  // ((uint32_t)bytecode[pc+1] << 16) |
                  // ((uint32_t)bytecode[pc] << 24);
-  printf("ilen: %d / 0x%x\n", ilen, ilen);
+  debug_out("ilen: %d / 0x%x\n", ilen, ilen);
   pc += 4; // skip 4 bytes for the ilen
 
   vm->irep.pool = bytecode + pc + ilen;
-  printf("bytecode ptr: %d / 0x%x\n", (uint16_t)(bytecode), (uint16_t)(bytecode));
-  printf("pc: %d / 0x%x\n", pc, pc);
-  printf("pool ptr: %d / 0x%x\n", (uint16_t)(vm->irep.pool), (uint16_t)(vm->irep.pool));
+  debug_out("bytecode ptr: %d / 0x%x\n", (uint16_t)(bytecode), (uint16_t)(bytecode));
+  debug_out("pc: %d / 0x%x\n", pc, pc);
+  debug_out("pool ptr: %d / 0x%x\n", (uint16_t)(vm->irep.pool), (uint16_t)(vm->irep.pool));
 
   const uint8_t *pool_ptr = vm->irep.pool;
-  printf("pool_ptr[0] raw value: %d / 0x%x\n", pool_ptr[0], pool_ptr[0]);
-  printf("pool_ptr[1] raw value: %d / 0x%x\n", pool_ptr[1], pool_ptr[1]);
+  debug_out("pool_ptr[0] raw value: %d / 0x%x\n", pool_ptr[0], pool_ptr[0]);
+  debug_out("pool_ptr[1] raw value: %d / 0x%x\n", pool_ptr[1], pool_ptr[1]);
 
   uint16_t temp = pool_ptr[0];
-  printf("temp (before shift): 0x%x\n", temp);
+  debug_out("temp (before shift): 0x%x\n", temp);
   temp = temp << 8;
-  printf("temp (after shift): 0x%x\n", temp);
+  debug_out("temp (after shift): 0x%x\n", temp);
 
   uint16_t plen_l = (uint16_t)(pool_ptr[0] << 8);
-  printf("plen_l: 0x%x\n", plen_l);
-  printf("(pool ptr[0]) << 8: %d / 0x%x\n", (uint16_t)(pool_ptr[0] << 8), (uint16_t)(pool_ptr[0] << 8));
+  debug_out("plen_l: 0x%x\n", plen_l);
+  debug_out("(pool ptr[0]) << 8: %d / 0x%x\n", (uint16_t)(pool_ptr[0] << 8), (uint16_t)(pool_ptr[0] << 8));
   //uint16_t plen = (pool_ptr[0] << 8) | pool_ptr[1];
   uint16_t plen_r = (uint16_t)pool_ptr[1];
-  printf("plen_l: 0x%x, plen_r: 0x%x\n", plen_l, plen_r );
+  debug_out("plen_l: 0x%x, plen_r: 0x%x\n", plen_l, plen_r );
   uint16_t plen = plen_l | plen_r;
-  printf("plen is: %d / 0x%x\n", plen, plen);
-  printf("*(pool ptr): %d / 0x%x\n", (uint16_t)(pool_ptr[0]), (uint16_t)(pool_ptr[0]));
-  printf("*(pool ptr+1): %d / 0x%x\n", (uint16_t)(pool_ptr[1]), (uint16_t)(pool_ptr[1]));
+  debug_out("plen is: %d / 0x%x\n", plen, plen);
+  debug_out("*(pool ptr): %d / 0x%x\n", (uint16_t)(pool_ptr[0]), (uint16_t)(pool_ptr[0]));
+  debug_out("*(pool ptr+1): %d / 0x%x\n", (uint16_t)(pool_ptr[1]), (uint16_t)(pool_ptr[1]));
   pool_ptr += 2;  // skip plen
 
   // plen by pos
   uint16_t plen1 = (bytecode[pc+ilen] << 8) | bytecode[pc+ilen+1];
-  printf("plen1 ptr is: %d / 0x%x\n", &(bytecode[pc+ilen]), &(bytecode[pc+ilen]));
-  printf("plen1 is: %d / 0x%x\n", plen1, plen1);
+  debug_out("plen1 ptr is: %d / 0x%x\n", &(bytecode[pc+ilen]), &(bytecode[pc+ilen]));
+  debug_out("plen1 is: %d / 0x%x\n", plen1, plen1);
 
   // bytes
-  printf("*(plen1 ptr): %d / 0x%x\n", (bytecode[pc+ilen]), (bytecode[pc+ilen]));
-  printf("*(plen1 ptr+1): %d / 0x%x\n", (bytecode[pc+ilen+1]), (bytecode[pc+ilen+1]));
+  debug_out("*(plen1 ptr): %d / 0x%x\n", (bytecode[pc+ilen]), (bytecode[pc+ilen]));
+  debug_out("*(plen1 ptr+1): %d / 0x%x\n", (bytecode[pc+ilen+1]), (bytecode[pc+ilen+1]));
 
   // Iterate through all pool entries
   for(uint16_t i = 0; i < plen; i++) {
     uint16_t str_len;
     uint8_t pool_type = *pool_ptr;
     pool_ptr++;  // skip type byte
-    printf("i: %d, type: 0x%x\n", i, pool_type);
+    debug_out("i: %d, type: 0x%x\n", i, pool_type);
 
     switch(pool_type) {
       case IREP_TT_STR:
       case IREP_TT_SSTR:
         str_len = (*pool_ptr << 8) | *(pool_ptr + 1);
         pool_ptr += 2;  // skip length bytes
-        printf("str found in pool: %s\n", pool_ptr);
+        debug_out("str found in pool: %s\n", pool_ptr);
         pool_ptr += str_len + 1;  // skip string data + null terminator
-        printf("str pool type: %x\n", pool_type);
+        debug_out("str pool type: %x\n", pool_type);
         break;
 
       case IREP_TT_INT32:
         pool_ptr += 4;  // skip 4 bytes for int32
-        printf("int pool type\n");
+        debug_out("int pool type\n");
         break;
 
       default:
-        printf("Unknown pool type: %x\n", pool_type);
+        debug_out("Unknown pool type: %x\n", pool_type);
         exit(-1);
     }
   }
 
-	// Save syms section ptr
-	vm->irep.syms = pool_ptr;
-	uint16_t syms_len = ((uint16_t)pool_ptr[0] << 8) | (uint16_t)pool_ptr[1];
+  // Save syms section ptr
+  vm->irep.syms = pool_ptr;
+  uint16_t syms_len = ((uint16_t)pool_ptr[0] << 8) | (uint16_t)pool_ptr[1];
   pool_ptr += 2; // skip syms_len
-  printf("symbol block length: %d\n", syms_len);
+  debug_out("symbol block length: %d\n", syms_len);
 
-	for(uint16_t count = 0; count < syms_len; count++) {
-		uint16_t sym_len = ((uint16_t)pool_ptr[0] << 8) | (uint16_t)pool_ptr[1];
-    printf("symbol length: %d\n", sym_len);
-		pool_ptr += 2; // skip sym_len
-    printf("symbol found: %s\n", pool_ptr);
-	  vm->irep.syms_list[count] = pool_ptr;
-		while(*pool_ptr) { pool_ptr++; } // move to null terminator
-		pool_ptr++; // skip the null
-	}
+  for(uint16_t count = 0; count < syms_len; count++) {
+    uint16_t sym_len = ((uint16_t)pool_ptr[0] << 8) | (uint16_t)pool_ptr[1];
+    debug_out("symbol length: %d\n", sym_len);
+    pool_ptr += 2; // skip sym_len
+    debug_out("symbol found: %s\n", pool_ptr);
+    vm->irep.syms_list[count] = pool_ptr;
+    while(*pool_ptr) { pool_ptr++; } // move to null terminator
+    pool_ptr++; // skip the null
+  }
 
-  // printf("bytecode start is: %d, pc (iseq start index) is: %d, iseq length is: %d\n", bytecode, pc, ilen);
+  // debug_out("bytecode start is: %d, pc (iseq start index) is: %d, iseq length is: %d\n", bytecode, pc, ilen);
 
   // initialise R0 with an object
   vm->regs[0].type = T_OBJECT;
@@ -498,7 +504,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   while (!exiting) {
     uint8_t instruction;
     instruction = bytecode[pc++];
-    // printf("PC: %d(%x), OP: %s\n", pc, pc, op_names[instruction]);
+    // debug_out("PC: %d(%x), OP: %s\n", pc, pc, op_names[instruction]);
     switch(instruction) {
       case OP_NOP: break;
       case OP_MOVE: op_move(vm, bytecode, &pc); break;
@@ -528,13 +534,13 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_STRING: op_string(vm, bytecode, &pc); break;
       case OP_STOP: exiting = 1; break;
       default:
-        printf("unsupported instruction: 0x%x\n", instruction);
-        printf("OP: %s\n", op_names[instruction]);
+        debug_out("unsupported instruction: 0x%x\n", instruction);
+        debug_out("OP: %s\n", op_names[instruction]);
         break;
     }
   }
 
-  // printf("retval: %d\n", retval);
+  // debug_out("retval: %d\n", retval);
   // set the return val
   if(retval != NULL) {
     rval->type = retval->type;
