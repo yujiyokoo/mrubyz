@@ -9,6 +9,7 @@ int test_foo() {
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, method_calls);
 
+  Assert(v.intval == 5, "Unexpected return value");
 }
 
 int test_method_calls() {

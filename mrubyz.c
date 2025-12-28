@@ -177,15 +177,16 @@ void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t
 
 mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  // debug_out("reg_index is: %d\n", reg_index);
+  debug_out("op_return, reg_index is: %d\n", reg_index);
 
   // TODO: raise error
   check_reg_idx(reg_index, vm->irep.nregs);
 
-  // debug_out("vm->r[ri]: %d\n",vm->regs[reg_index]);
-  // debug_out("returning type %d\n", vm->regs[reg_index].type);
+  debug_out("op_return, vm->r[ri]: %d\n",vm->regs[reg_index]);
+  debug_out("op_return, returning type %d\n", vm->regs[reg_index].type);
   mrbz_val* foo = vm->regs + reg_index;
-  // debug_out("returning %s\n", foo->strval);
+  debug_out("op_return, returning %s (if str)\n", foo->strval);
+  debug_out("op_return, returning %d (if int)\n", foo->intval);
   return vm->regs + reg_index;
 }
 
@@ -359,7 +360,14 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // Hardcoding for now... will fix later
   if(!strcmp(sym, "puts")) {
     // puts is called with R1 as arg, so R[1+1] is the arg sent to puts
-    // fprintf(stdout, "%s\n", vm->regs[reg_index+1].strval);
+    fprintf(stdout, "%s\n", vm->regs[reg_index+1].strval);
+    vm->regs[reg_index].type = T_NIL; // Use reg[reg_index] for return
+  } else if (!strcmp(sym, "foo")) {
+    printf("'foo' called\n");
+    vm->regs[reg_index].type = T_TRUE; // Use reg[reg_index] for return
+  } else if (!strcmp(sym, "bar")) {
+    vm->regs[reg_index].type = T_INT; // Use reg[reg_index] for return
+    vm->regs[reg_index].intval = 5;
   } else {
     debug_out("unknown symbol call: %s\n", sym);
     debug_out("length: %d\n", strlen(sym));
@@ -540,15 +548,17 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
     }
   }
 
-  // debug_out("retval: %d\n", retval);
   // set the return val
   if(retval != NULL) {
+    debug_out("end of vmrun. Type: %d\n", retval->type);
     rval->type = retval->type;
     switch(rval->type) {
       case T_INT:
+        debug_out("intval: %d\n", retval->intval);
         rval->intval = retval->intval;
         break;
       case T_STRING:
+        debug_out("strval: %d\n", retval->strval);
         rval->strval = retval->strval;
         break;
       case T_TRUE:
