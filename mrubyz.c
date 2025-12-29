@@ -366,6 +366,10 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     // puts is called with R1 as arg, so R[1+1] is the arg sent to puts
     fprintf(stdout, "%s\n", vm->regs[reg_index+1].strval);
     vm->regs[reg_index].type = T_NIL; // Use reg[reg_index] for return
+  } else if(!strcmp(sym, "print")) {
+    // TODO: use same implementation b/w puts and print
+    fprintf(stdout, "%s", vm->regs[reg_index+1].strval);
+    vm->regs[reg_index].type = T_NIL; // Use reg[reg_index] for return
   } else if (!strcmp(sym, "read_buttons")) {
     vm->regs[reg_index].type = T_INT;
     vm->regs[reg_index].intval = io_port_dc;
