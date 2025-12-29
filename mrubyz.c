@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <sms.h>
 
 // Conditional (only in debug builds)
 #ifdef DEBUG
@@ -13,6 +14,8 @@
 #else
   #define debug_out(...) ((void)0)  // No-op in release
 #endif
+
+__sfr __at 0xDC io_port_dc;
 
 const char* op_names[] = {
   "OP_NOP        = 0x00",
@@ -343,6 +346,7 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t sym_index = next_byte(bytecode, pc_ptr);
   uint8_t arg_info = next_byte(bytecode, pc_ptr); // mostly ignored
   const char* sym;
+  static uint8_t count = 0;
 
   uint16_t syms_len = ((uint16_t)vm->irep.syms[0] << 8) | (uint16_t)vm->irep.syms[1];
   if(sym_index >= syms_len) {
@@ -362,6 +366,12 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     // puts is called with R1 as arg, so R[1+1] is the arg sent to puts
     fprintf(stdout, "%s\n", vm->regs[reg_index+1].strval);
     vm->regs[reg_index].type = T_NIL; // Use reg[reg_index] for return
+  } else if (!strcmp(sym, "read_buttons")) {
+    vm->regs[reg_index].type = T_INT;
+    vm->regs[reg_index].intval = io_port_dc;
+    gotoxy(10, 10);
+    debug_output("'read_buttons' called: 0x%x\n", vm->regs[reg_index].intval);
+    debug_output("0x%x\n", count++);
   } else if (!strcmp(sym, "foo")) {
     printf("'foo' called\n");
     vm->regs[reg_index].type = T_TRUE; // Use reg[reg_index] for return
