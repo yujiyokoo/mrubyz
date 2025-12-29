@@ -356,11 +356,6 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 
   sym = symbol_at(vm, sym_index);
 
-  if(arg_info > 1) {
-    debug_out("method %s called with unsupported args\n", sym);
-    exit(-1);
-  }
-
   // Hardcoding for now... will fix later
   if(!strcmp(sym, "puts")) {
     // puts is called with R1 as arg, so R[1+1] is the arg sent to puts
@@ -368,14 +363,24 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     vm->regs[reg_index].type = T_NIL; // Use reg[reg_index] for return
   } else if(!strcmp(sym, "print")) {
     // TODO: use same implementation b/w puts and print
-    fprintf(stdout, "%s", vm->regs[reg_index+1].strval);
+    if(vm->regs[reg_index+1].type == T_STRING) {
+      fprintf(stdout, "%s", vm->regs[reg_index+1].strval);
+    } else if(vm->regs[reg_index+1].type == T_INT) {
+      fprintf(stdout, "%d", vm->regs[reg_index+1].intval);
+    }
     vm->regs[reg_index].type = T_NIL; // Use reg[reg_index] for return
   } else if (!strcmp(sym, "read_buttons")) {
     vm->regs[reg_index].type = T_INT;
     vm->regs[reg_index].intval = io_port_dc;
-    gotoxy(10, 10);
-    debug_output("'read_buttons' called: 0x%x\n", vm->regs[reg_index].intval);
-    debug_output("0x%x\n", count++);
+  } else if (!strcmp(sym, "gotoxy")) {
+    if(arg_info != 2) {
+      debug_out("Unexpected argument count\n");
+      exit(-1);
+    }
+    uint8_t x = vm->regs[reg_index + 1].intval;
+    uint8_t y = vm->regs[reg_index + 2].intval;
+    gotoxy(x, y);
+    vm->regs[reg_index].type = T_NIL;
   } else if (!strcmp(sym, "foo")) {
     printf("'foo' called\n");
     vm->regs[reg_index].type = T_TRUE; // Use reg[reg_index] for return
