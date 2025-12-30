@@ -6,13 +6,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <sms.h>
 
 // Conditional (only in debug builds)
 #ifdef DEBUG
   #define debug_out(...) printf(__VA_ARGS__)
 #else
   #define debug_out(...) ((void)0)  // No-op in release
+#endif
+
+#ifdef __SMS__
+#  include <sms.h>
+#endif
+
+// TODO: Put it in another file, like compat.h?
+#ifndef __SMS__
+void gotoxy(uint8_t x, uint8_t y) {
+  debug_out("gotoxy(%d, %d) called, but this is not MSX\n", x, y);
+}
 #endif
 
 __sfr __at 0xDC io_port_dc;
