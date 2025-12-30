@@ -12,6 +12,8 @@ typedef enum {
   T_FALSE  = 3,
   T_NIL  = 4,
   T_OBJECT  = 5,
+  T_TRUE  = 6,
+  T_FALSE  = 7,
 } mrbz_type;
 
 typedef enum irep_const_type {

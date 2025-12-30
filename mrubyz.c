@@ -269,6 +269,18 @@ void op_loadnil(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   vm->regs[reg_index].type = T_NIL;
 }
 
+void op_loadt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  check_reg_idx(reg_index, vm->irep.nregs);
+  vm->regs[reg_index].type = T_TRUE;
+}
+
+void op_loadf(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  check_reg_idx(reg_index, vm->irep.nregs);
+  vm->regs[reg_index].type = T_FALSE;
+}
+
 void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
   // TODO: pool is in RITE binary. Pool belongs to IREP
   // debug_out("mrbz_irep_pool_entry_ptr: %d\n", irep_p->pool+idx);
@@ -556,6 +568,8 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_LOADI_6: // fall through
       case OP_LOADI_7: op_loadi_n(vm, bytecode, &pc, instruction); break;
       case OP_LOADNIL: op_loadnil(vm, bytecode, &pc); break;
+      case OP_LOADT: op_loadt(vm, bytecode, &pc); break;
+      case OP_LOADF: op_loadf(vm, bytecode, &pc); break;
       case OP_JMP: op_jmp(vm, bytecode, &pc); break;
       case OP_JMPNOT: op_jmpnot(vm, bytecode, &pc); break;
       case OP_SSEND: op_ssend(vm, bytecode, &pc); break;
