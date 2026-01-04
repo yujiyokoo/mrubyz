@@ -381,7 +381,7 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // Hardcoding for now... will fix later
   if(!strcmp(sym, "puts")) {
     // puts is called with R1 as arg, so R[1+1] is the arg sent to puts
-    fprintf(stdout, "%s\n", vm->regs[reg_index+1].strval);
+    fprintf(stdout, "%s\r", vm->regs[reg_index+1].strval);
     vm->regs[reg_index].type = T_NIL; // Use reg[reg_index] for return
   } else if(!strcmp(sym, "print")) {
     // TODO: use same implementation b/w puts and print
@@ -404,7 +404,7 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     gotoxy(x, y);
     vm->regs[reg_index].type = T_NIL;
   } else if (!strcmp(sym, "foo")) {
-    printf("'foo' called\n");
+    printf("'foo' called\r");
     vm->regs[reg_index].type = T_TRUE; // Use reg[reg_index] for return
   } else if (!strcmp(sym, "bar")) {
     vm->regs[reg_index].type = T_INT; // Use reg[reg_index] for return
