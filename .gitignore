@@ -6,3 +6,4 @@
 *.map
 *.ruby.c
 /tests/ruby/*.mrb
+/demo/*.mrb
