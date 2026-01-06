@@ -9,7 +9,7 @@ void test_simple_array() {
   mrbz_vm_run(&vm, &v, simple_array);
 
   Assert(T_INT == v.type, "array returned unexpected type");
-  Assert(2 == v.intval, "array returned unexpected value");
+  Assert(3 == v.intval, "array returned unexpected value");
 }
 
 int test_arrays()

@@ -366,12 +366,19 @@ void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 }
 
 void op_jmpnot(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
-  uint8_t reg_index = next_byte(bytecode,  pc_ptr);
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
   int16_t jump_by = next_word(bytecode, pc_ptr);
 
   if(vm->regs[reg_index].type == T_NIL || vm->regs[reg_index].type == T_FALSE) {
     *pc_ptr += jump_by;
   }
+}
+
+void op_getidx(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+
+  // TODO: check vm->regs[reg_index] is array and vm->regs[reg_index+1] is int
+  vm->regs[reg_index] = vm->regs[reg_index].arrval[vm->regs[reg_index+1].intval];
 }
 
 void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -591,6 +598,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_LOADNIL: op_loadnil(vm, bytecode, &pc); break;
       case OP_LOADT: op_loadt(vm, bytecode, &pc); break;
       case OP_LOADF: op_loadf(vm, bytecode, &pc); break;
+      case OP_GETIDX: op_getidx(vm, bytecode, &pc); break;
       case OP_JMP: op_jmp(vm, bytecode, &pc); break;
       case OP_JMPNOT: op_jmpnot(vm, bytecode, &pc); break;
       case OP_SSEND: op_ssend(vm, bytecode, &pc); break;
