@@ -6,6 +6,7 @@
 #include "test_loop_output.h"
 #include "test_method_calls.h"
 #include "test_conditionals.h"
+#include "test_arrays.h"
 
 int main(int argc, char *argv[])
 {
@@ -19,6 +20,7 @@ int main(int argc, char *argv[])
   res += test_loop_output();
   res += test_method_calls();
   res += test_conditionals();
+  res += test_arrays();
 
   return res;
 }

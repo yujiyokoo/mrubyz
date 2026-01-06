@@ -281,6 +281,27 @@ void op_loadf(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   vm->regs[reg_index].type = T_FALSE;
 }
 
+void op_array2(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  // BBB, R[a] = array containing R[b..b+c]
+  uint8_t dest_index = next_byte(bytecode, pc_ptr);
+  uint8_t arr_start_index = next_byte(bytecode, pc_ptr);
+  uint8_t arr_len = next_byte(bytecode, pc_ptr);
+  check_reg_idx(arr_start_index + arr_len, vm->irep.nregs);
+  mrbz_val* arr = (mrbz_val*)malloc(sizeof(mrbz_val) * arr_len);
+
+  if (arr == NULL) {
+    printf("malloc of len %d failed. Out of memory maybe", arr_len);
+    exit(-1);
+  }
+
+  for (uint8_t i = 0; i < arr_len; i++) {
+    arr[i] = vm->regs[arr_start_index + i];
+  }
+
+  vm->regs[dest_index].type = T_ARRAY;
+  vm->regs[dest_index].arrval = arr;
+}
+
 void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
   // TODO: pool is in RITE binary. Pool belongs to IREP
   // debug_out("mrbz_irep_pool_entry_ptr: %d\n", irep_p->pool+idx);
@@ -310,7 +331,7 @@ void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   check_reg_idx(reg_index, vm->irep.nregs);
 
   uint8_t pool_index = next_byte(bytecode, pc_ptr);
-  void* pool_entry_base = mrbz_irep_pool_entry_ptr(vm->irep, pool_index);
+  void* pool_entry_base = mrbz_irep_pool_entry_ptr(&(vm->irep), pool_index);
   vm->regs[reg_index].type = T_STRING;
 
   // TODO: Add length to mrbz value, and copy length
@@ -582,11 +603,12 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_MUL: op_mul(vm, bytecode, &pc); break;
       case OP_DIV: op_div(vm, bytecode, &pc); break;
       case OP_GT: op_gt(vm, bytecode, &pc); break;
+      case OP_ARRAY2: op_array2(vm, bytecode, &pc); break;
       case OP_STRING: op_string(vm, bytecode, &pc); break;
       case OP_STOP: exiting = 1; break;
       default:
-        debug_out("unsupported instruction: 0x%x\n", instruction);
-        debug_out("OP: %s\n", op_names[instruction]);
+        printf("unsupported instruction: 0x%x\r", instruction);
+        printf("OP: %s\r", op_names[instruction]);
         break;
     }
   }
