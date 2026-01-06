@@ -8,7 +8,7 @@ void test_branching() {
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, branching);
 
-  Assert(T_INT == v.type, "branching with if returned unexpected value");
+  Assert(T_INT == v.type, "branching with if returned unexpected type");
   Assert(2 == v.intval, "branching with if returned unexpected value");
 }
 
