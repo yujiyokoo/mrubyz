@@ -10,7 +10,7 @@ void test_while_puts() {
   mrbz_vm_run(&vm, &v, puts_in_loop);
 
   Assert(T_INT == v.type, "loop-output did not rutern int");
-  Assert(1 == v.intval, "loop-output did not rutern 1");
+  Assert(1 == v.u.intval, "loop-output did not rutern 1");
 }
 
 int test_loop_output() {

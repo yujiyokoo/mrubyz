@@ -9,7 +9,7 @@ void test_load_literal_str() {
   mrbz_vm_run(&vm, &v, load_literal_str);
 
   Assert(T_STRING == v.type, "type is not string");
-  Assert(strcmp(v.strval, "hello") == 0, "literal string load failed");
+  Assert(strcmp(v.u.strval, "hello") == 0, "literal string load failed");
 }
 
 int test_string()

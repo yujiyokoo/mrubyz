@@ -9,7 +9,7 @@ void test_while_simple() {
   mrbz_vm_run(&vm, &v, while_simple);
 
   Assert(T_INT == v.type, "while example did not rutern int");
-  Assert(1 == v.intval, "while example did not rutern 1");
+  Assert(1 == v.u.intval, "while example did not rutern 1");
 }
 
 int test_loop() {

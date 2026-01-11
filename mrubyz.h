@@ -22,14 +22,19 @@ typedef enum irep_const_type {
   IREP_TT_INT64 = 3,
 } const_type;
 
+typedef struct {
+  struct mrbz_value *data;
+  uint8_t len;
+} mrbz_array;
+
 struct mrbz_value {
   mrbz_type type;
   // TODO: support any mrbz type
   union {
     int16_t intval;
     char* strval;
-    struct mrbz_value* arrval;
-  };
+    mrbz_array arrval;
+  } u;
 };
 typedef struct mrbz_value mrbz_val;
 

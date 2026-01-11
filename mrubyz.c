@@ -156,7 +156,7 @@ void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t 
   // debug_out("OP_LOADI__1 %d\n", OP_LOADI__1);
   //debug_out("loading %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
-  vm->regs[reg_index].intval = imm_val;
+  vm->regs[reg_index].u.intval = imm_val;
   *pc_ptr = *pc_ptr + 1;
 }
 
@@ -176,7 +176,7 @@ void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t in
   check_reg_idx(reg_index, vm->irep.nregs);
   //debug_out("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
-  vm->regs[reg_index].intval = imm_val;
+  vm->regs[reg_index].u.intval = imm_val;
 }
 
 void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
@@ -185,7 +185,7 @@ void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t
   check_reg_idx(reg_index, vm->irep.nregs);
   //debug_out("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
-  vm->regs[reg_index].intval = -imm_val;
+  vm->regs[reg_index].u.intval = -imm_val;
 }
 
 mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -199,7 +199,7 @@ mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   debug_out("op_return, returning type %d\n", vm->regs[reg_index].type);
   mrbz_val* foo = vm->regs + reg_index;
   debug_out("op_return, returning %s (if str)\n", foo->strval);
-  debug_out("op_return, returning %d (if int)\n", foo->intval);
+  debug_out("op_return, returning %d (if int)\n", foo->u.intval);
   return vm->regs + reg_index;
 }
 
@@ -218,7 +218,7 @@ void op_add(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
   //debug_out("adding. reg %d to %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index+1].intval);
-  vm->regs[reg_index].intval += vm->regs[reg_index + 1].intval;
+  vm->regs[reg_index].u.intval += vm->regs[reg_index + 1].u.intval;
 }
 
 void op_addi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -227,7 +227,7 @@ void op_addi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
   //debug_out("adding. %d to reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
-  vm->regs[reg_index].intval += imm_val;
+  vm->regs[reg_index].u.intval += imm_val;
 }
 
 void op_sub(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -235,7 +235,7 @@ void op_sub(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
   //debug_out("subtracting. reg %d from %d, values are %d and %d\n", reg_index + 1, reg_index, vm->regs[reg_index + 1].intval, vm->regs[reg_index].intval);
-  vm->regs[reg_index].intval -= vm->regs[reg_index + 1].intval;
+  vm->regs[reg_index].u.intval -= vm->regs[reg_index + 1].u.intval;
 }
 
 void op_subi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -244,7 +244,7 @@ void op_subi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
   //debug_out("subtracting. %d from reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
-  vm->regs[reg_index].intval -= imm_val;
+  vm->regs[reg_index].u.intval -= imm_val;
 }
 
 void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -252,7 +252,7 @@ void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
   //debug_out("multiplying. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
-  vm->regs[reg_index].intval *= vm->regs[reg_index + 1].intval;
+  vm->regs[reg_index].u.intval *= vm->regs[reg_index + 1].u.intval;
 }
 
 void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -260,7 +260,7 @@ void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->irep.nregs);
   //debug_out("dividing. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
-  vm->regs[reg_index].intval /= vm->regs[reg_index + 1].intval;
+  vm->regs[reg_index].u.intval /= vm->regs[reg_index + 1].u.intval;
 }
 
 void op_loadnil(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -287,19 +287,23 @@ void op_array2(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t arr_start_index = next_byte(bytecode, pc_ptr);
   uint8_t arr_len = next_byte(bytecode, pc_ptr);
   check_reg_idx(arr_start_index + arr_len, vm->irep.nregs);
-  mrbz_val* arr = (mrbz_val*)malloc(sizeof(mrbz_val) * arr_len);
+  mrbz_val* content = (mrbz_val*)malloc(sizeof(mrbz_val) * (arr_len+1)); // add one for the NULL
 
-  if (arr == NULL) {
+  if (content == NULL) {
     printf("malloc of len %d failed. Out of memory maybe", arr_len);
     exit(-1);
   }
 
   for (uint8_t i = 0; i < arr_len; i++) {
-    arr[i] = vm->regs[arr_start_index + i];
+    content[i] = vm->regs[arr_start_index + i];
   }
 
+  mrbz_array arr;
+  arr.data = content;
+  arr.len = arr_len;
+
   vm->regs[dest_index].type = T_ARRAY;
-  vm->regs[dest_index].arrval = arr;
+  vm->regs[dest_index].u.arrval = arr;
 }
 
 void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
@@ -337,14 +341,14 @@ void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // TODO: Add length to mrbz value, and copy length
   uint16_t str_len = (uint16_t)pool_entry_base[1];
   // TODO: seems like my demo runs out of RAM? Let's point this to static str...
-  //vm->regs[reg_index].strval = malloc(str_len * sizeof(char) + 1);
-  vm->regs[reg_index].strval = pool_entry_base + 3;
+  //vm->regs[reg_index].u.strval = malloc(str_len * sizeof(char) + 1);
+  vm->regs[reg_index].u.strval = pool_entry_base + 3;
   // + 1 is there for now to null-terminate the string
   // debug_out("copying string: %s\n", pool_entry_base+5);
   // debug_out("regs: %x\n", vm->regs);
-  // debug_out("dest: %x\n", vm->regs[reg_index].strval);
-  // strncpy(vm->regs[reg_index].strval, pool_entry_base + 5, str_len + 1);
-  // debug_out("copied string: %s\n", vm->regs[reg_index].strval);
+  // debug_out("dest: %x\n", vm->regs[reg_index].u.strval);
+  // strncpy(vm->regs[reg_index].u.strval, pool_entry_base + 5, str_len + 1);
+  // debug_out("copied string: %s\n", vm->regs[reg_index].u.strval);
 }
 
 void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -354,7 +358,7 @@ void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // Only supports integer for now
   if(vm->regs[reg_index].type == T_INT && vm->regs[reg_index+1].type == T_INT) {
     // TODO: handle freeing... GCing...
-    if(vm->regs[reg_index].intval > vm->regs[reg_index+1].intval) {
+    if(vm->regs[reg_index].u.intval > vm->regs[reg_index+1].u.intval) {
       vm->regs[reg_index].type = T_TRUE;
     } else {
       vm->regs[reg_index].type = T_FALSE;
@@ -378,7 +382,7 @@ void op_getidx(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
 
   // TODO: check vm->regs[reg_index] is array and vm->regs[reg_index+1] is int
-  vm->regs[reg_index] = vm->regs[reg_index].arrval[vm->regs[reg_index+1].intval];
+  vm->regs[reg_index] = vm->regs[reg_index].u.arrval.data[vm->regs[reg_index+1].u.intval];
 }
 
 void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -409,26 +413,26 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // Hardcoding for now... will fix later
   if(!strcmp(sym, "puts")) {
     // puts is called with R1 as arg, so R[1+1] is the arg sent to puts
-    fprintf(stdout, "%s\r", vm->regs[reg_index+1].strval);
+    fprintf(stdout, "%s\r", vm->regs[reg_index+1].u.strval);
     vm->regs[reg_index].type = T_NIL; // Use reg[reg_index] for return
   } else if(!strcmp(sym, "print")) {
     // TODO: use same implementation b/w puts and print
     if(vm->regs[reg_index+1].type == T_STRING) {
-      fprintf(stdout, "%s", vm->regs[reg_index+1].strval);
+      fprintf(stdout, "%s", vm->regs[reg_index+1].u.strval);
     } else if(vm->regs[reg_index+1].type == T_INT) {
-      fprintf(stdout, "%d", vm->regs[reg_index+1].intval);
+      fprintf(stdout, "%d", vm->regs[reg_index+1].u.intval);
     }
     vm->regs[reg_index].type = T_NIL; // Use reg[reg_index] for return
   } else if (!strcmp(sym, "read_buttons")) {
     vm->regs[reg_index].type = T_INT;
-    vm->regs[reg_index].intval = io_port_dc;
+    vm->regs[reg_index].u.intval = io_port_dc;
   } else if (!strcmp(sym, "gotoxy")) {
     if(arg_info != 2) {
       debug_out("Unexpected argument count\n");
       exit(-1);
     }
-    uint8_t x = vm->regs[reg_index + 1].intval;
-    uint8_t y = vm->regs[reg_index + 2].intval;
+    uint8_t x = vm->regs[reg_index + 1].u.intval;
+    uint8_t y = vm->regs[reg_index + 2].u.intval;
     gotoxy(x, y);
     vm->regs[reg_index].type = T_NIL;
   } else if (!strcmp(sym, "foo")) {
@@ -436,7 +440,7 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     vm->regs[reg_index].type = T_TRUE; // Use reg[reg_index] for return
   } else if (!strcmp(sym, "bar")) {
     vm->regs[reg_index].type = T_INT; // Use reg[reg_index] for return
-    vm->regs[reg_index].intval = 5;
+    vm->regs[reg_index].u.intval = 5;
   } else {
     debug_out("unknown symbol call: %s\n", sym);
     debug_out("length: %d\n", strlen(sym));
@@ -627,12 +631,12 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
     rval->type = retval->type;
     switch(rval->type) {
       case T_INT:
-        debug_out("intval: %d\n", retval->intval);
-        rval->intval = retval->intval;
+        debug_out("intval: %d\n", retval->u.intval);
+        rval->u.intval = retval->u.intval;
         break;
       case T_STRING:
         debug_out("strval: %d\n", retval->strval);
-        rval->strval = retval->strval;
+        rval->u.strval = retval->u.strval;
         break;
       case T_TRUE:
       case T_FALSE:
