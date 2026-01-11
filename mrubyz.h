@@ -1,8 +1,6 @@
 #ifndef __MRUBYZ_H__
 #  define __MRUBYZ_H__
 
-#define DEBUG_OUTPUT 1
-
 #include <stdint.h>
 
 typedef enum {

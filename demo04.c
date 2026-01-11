@@ -13,8 +13,6 @@ const unsigned char pal2[] = {0x00, 0x03, 0x08, 0x28, 0x02, 0x22, 0x0A, 0x2A,
 
 extern const uint8_t demo04_bytecode[];
 void main() {
-  int y = 0;
-
   sbrk(&_heap, 4096);  // Register 4KB starting at _heap
 
   SMS_VRAMmemset(0x0000, 0x00, 16384);
@@ -23,7 +21,7 @@ void main() {
   SMS_loadSpritePalette(pal2);
   SMS_displayOn();
 
-  printf("loading presentation..\r");
+  printf("presentation demo\r");
 
   mrbz_val v;
   mrbz_vm vm;

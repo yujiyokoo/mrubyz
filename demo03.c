@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include "mrubyz.h"
 
+long _heap;
+
 const unsigned char pal1[] = {0x00, 0x3F, 0x08, 0x28, 0x02, 0x22, 0x0A, 0x2A,
   0x15, 0x35, 0x1D, 0x3D, 0x17, 0x37, 0x1F, 0x3F};
 
@@ -13,7 +15,7 @@ const unsigned char my_tile[] = {0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00,0x00};
 
 extern const uint8_t demo03_bytecode[];
 void main() {
-  int y = 0;
+  sbrk(&_heap, 4096);  // Register 4KB starting at _heap
 
   SMS_VRAMmemset(0x0000, 0x00, 16384);
   // Can't get this working... It's probably the 1bpp issue... let's stay with load_tiles :/
@@ -27,7 +29,8 @@ void main() {
 
   printf("\rmruby demo 03 on Master System\r\r");
 
-  SMS_setTileatXY(10, 3, 256);
+  // Displaying custom tile graphic
+  // SMS_setTileatXY(10, 3, 256);
 
   mrbz_val v;
   mrbz_vm vm;

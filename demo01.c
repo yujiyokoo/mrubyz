@@ -14,7 +14,7 @@ long _heap;
 void check_heap() {
   unsigned int total, largest;
   mallinfo(&total, &largest);
-  printf("Heap: %u total, %u largest\n", total, largest);
+  printf("Heap: %u total, %u largest\r", total, largest);
 }
 
 extern const uint8_t bytecode[];
@@ -32,13 +32,13 @@ void main() {
   set_vdp_reg(VDP_REG_FLAGS1, VDP_REG_FLAGS1_BIT7 | VDP_REG_FLAGS1_SCREEN);
   check_heap();
 
-  printf("\nmruby on Sega Master System\n\n");
-  printf("      demo 01\n\n");
-  printf("calling mruby bytecode from C:\n\n");
-  printf("a = 2\nb = 4\nc = a + b\nreturn c\n");
+  printf("\rmruby on Sega Master System\r\r");
+  printf("      demo 01\r\r");
+  printf("calling mruby bytecode from C:\r\r");
+  printf("a = 2\rb = 4\rc = a + b\rreturn c\r");
 
   char *test = malloc(10);
-  printf("test is: 0x%x\n", test);
+  printf("test is: 0x%x\r", test);
 
   check_heap();
 
@@ -47,9 +47,9 @@ void main() {
   mrbz_vm_run(&vm, &v, bytecode);
   check_heap();
 
-  printf("\n");
-  printf("returned num: %d\n", v.intval);
-  printf("\n");
+  printf("\r");
+  printf("returned num: %d\r", v.u.intval);
+  printf("\r");
 
   for (;;) {
     wait_vblank_noint();
