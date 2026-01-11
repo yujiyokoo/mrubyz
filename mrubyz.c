@@ -356,6 +356,27 @@ void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // debug_out("copied string: %s\n", vm->regs[reg_index].u.strval);
 }
 
+void op_eq(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  if(vm->regs[reg_index].type == T_INT && vm->regs[reg_index+1].type == T_INT) {
+    if(vm->regs[reg_index].u.intval == vm->regs[reg_index+1].u.intval) {
+      vm->regs[reg_index].type = T_TRUE;
+    } else {
+      vm->regs[reg_index].type = T_FALSE;
+    }
+  } else if(vm->regs[reg_index].type == T_STRING && vm->regs[reg_index+1].type == T_STRING) {
+    if(strcmp(vm->regs[reg_index].u.strval, vm->regs[reg_index+1].u.strval) == 0) {
+      vm->regs[reg_index].type = T_TRUE;
+    } else {
+      vm->regs[reg_index].type = T_FALSE;
+    }
+  } else {
+    printf("unsupported eq types: %d == %d\r", vm->regs[reg_index].type, vm->regs[reg_index+1].type);
+    // Crash for now
+    exit(-1);
+  }
+}
+
 void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // TODO: generic object support
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
@@ -692,6 +713,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_SUBI: op_subi(vm, bytecode, &pc); break;
       case OP_MUL: op_mul(vm, bytecode, &pc); break;
       case OP_DIV: op_div(vm, bytecode, &pc); break;
+      case OP_EQ: op_eq(vm, bytecode, &pc); break;
       case OP_GT: op_gt(vm, bytecode, &pc); break;
       case OP_ARRAY2: op_array2(vm, bytecode, &pc); break;
       case OP_STRING: op_string(vm, bytecode, &pc); break;
