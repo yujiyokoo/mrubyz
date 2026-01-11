@@ -51,8 +51,8 @@ struct mrubyz_irep {
 typedef struct mrubyz_irep mrbz_irep;
 
 struct mrbz_virtual_machine {
-  // FIXME: fixed to 5
-  mrbz_val regs[5];
+  // dynamically allocated. Maybe simpler to set it to a larger fixed number?
+  mrbz_val *regs;
   mrbz_irep irep;
 };
 typedef struct mrbz_virtual_machine mrbz_vm;

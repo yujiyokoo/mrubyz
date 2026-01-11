@@ -198,7 +198,7 @@ mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   debug_out("op_return, vm->r[ri]: %d\n",vm->regs[reg_index]);
   debug_out("op_return, returning type %d\n", vm->regs[reg_index].type);
   mrbz_val* foo = vm->regs + reg_index;
-  debug_out("op_return, returning %s (if str)\n", foo->strval);
+  debug_out("op_return, returning %s (if str)\n", foo->u.strval);
   debug_out("op_return, returning %d (if int)\n", foo->u.intval);
   return vm->regs + reg_index;
 }
@@ -395,6 +395,66 @@ const char* symbol_at(mrbz_vm *vm, uint8_t sym_index) {
   return (unsigned char*)(vm->irep.syms_list[sym_index]);
 }
 
+void dispatch_array_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, const char *sym, uint8_t arg_count) {
+  if (!strcmp(sym, "size")) {
+    vm->regs[reg_index].type = T_INT;
+    vm->regs[reg_index].u.intval = receiver->u.arrval.len;
+  } else {
+    debug_out("Unknown array method: %s\n", sym);
+    exit(-1);
+  }
+}
+
+void dispatch_int_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, const char *sym, uint8_t arg_count) {
+  if (!strcmp(sym, "&")) {
+    if (vm->regs[reg_index + 1].type != T_INT) {
+      debug_out("Unexpected argument type for `&`\n");
+      exit(-1);
+    }
+    vm->regs[reg_index].type = T_INT;
+    vm->regs[reg_index].u.intval = receiver->u.intval & vm->regs[reg_index + 1].u.intval;
+  } else if (!strcmp(sym, "!=")) {
+    if (vm->regs[reg_index + 1].type != T_INT) {
+      debug_out("Unexpected argument type for `!=`\n");
+      exit(-1);
+    }
+    vm->regs[reg_index].type = (receiver->u.intval != vm->regs[reg_index + 1].u.intval) ? T_TRUE : T_FALSE;
+  } else {
+    debug_out("Unknown int method: %s\n", sym);
+    exit(-1);
+  }
+}
+
+void op_send(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  uint8_t sym_index = next_byte(bytecode, pc_ptr);
+  // No support for keyword arguments for now (& 0x0F -> lower 4 bits)
+  uint8_t arg_count = next_byte(bytecode, pc_ptr) & 0x0F;
+
+  uint16_t syms_len = ((uint16_t)vm->irep.syms[0] << 8) | (uint16_t)vm->irep.syms[1];
+  if(sym_index >= syms_len) {
+    debug_out("sym_index (%d) out of bounds (%d max)\n", sym_index, syms_len);
+    exit(-1);
+  }
+
+  const char* sym = symbol_at(vm, sym_index);
+
+  mrbz_val *receiver = &vm->regs[reg_index];
+
+  // Currently supports integers and strings
+  switch(receiver->type) {
+    case T_ARRAY:
+      dispatch_array_method(vm, receiver, reg_index, sym, arg_count);
+      break;
+    case T_INT:
+      dispatch_int_method(vm, receiver, reg_index, sym, arg_count);
+      break;
+    default:
+      debug_out("OP_SEND not supported for type %d\n", receiver->type);
+      exit(-1);
+  }
+}
+
 void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t sym_index = next_byte(bytecode, pc_ptr);
@@ -480,6 +540,16 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
                  bytecode[pc+1];
   debug_out("nregs is %d / 0x%x\n", vm->irep.nregs, vm->irep.nregs);
   pc += 2;
+  // Allocate registers
+  vm->regs = (mrbz_val*)malloc(sizeof(mrbz_val) * vm->irep.nregs);
+  if (vm->regs == NULL) {
+    debug_out("Failed to allocate %d registers\n", vm->irep.nregs);
+    exit(-1);
+  }
+  // Initialize all registers to nil
+  for (uint8_t i = 0; i < vm->irep.nregs; i++) {
+    vm->regs[i].type = T_NIL;
+  }
   // TODO: rlen, clen...
   debug_out("rlen is: %d / 0x%x\n", bytecode[pc], bytecode[pc]);
   pc += 2 ;
@@ -605,6 +675,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_GETIDX: op_getidx(vm, bytecode, &pc); break;
       case OP_JMP: op_jmp(vm, bytecode, &pc); break;
       case OP_JMPNOT: op_jmpnot(vm, bytecode, &pc); break;
+      case OP_SEND: op_send(vm, bytecode, &pc); break;
       case OP_SSEND: op_ssend(vm, bytecode, &pc); break;
       // FIXME: Currently this return exits from any level...
       case OP_RETURN: retval = op_return(vm, bytecode, &pc); exiting = 1; break;
@@ -635,7 +706,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
         rval->u.intval = retval->u.intval;
         break;
       case T_STRING:
-        debug_out("strval: %d\n", retval->strval);
+        debug_out("strval: %d\n", retval->u.strval);
         rval->u.strval = retval->u.strval;
         break;
       case T_TRUE:
