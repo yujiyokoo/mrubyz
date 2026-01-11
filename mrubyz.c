@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <SMSlib.h>
 
 // Conditional (only in debug builds)
 #ifdef DEBUG
@@ -501,8 +502,10 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   } else if (!strcmp(sym, "bar")) {
     vm->regs[reg_index].type = T_INT; // Use reg[reg_index] for return
     vm->regs[reg_index].u.intval = 5;
+  } else if (!strcmp(sym, "clear_screen")) {
+    SMS_VRAMmemset(0x3800, 0x00, 32*28*2);
   } else {
-    debug_out("unknown symbol call: %s\n", sym);
+    printf("unknown symbol call: %s\r", sym);
     debug_out("length: %d\n", strlen(sym));
     exit(-1);
   }
