@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <SMSlib.h>
 
 // Conditional (only in debug builds)
 #ifdef DEBUG
@@ -17,12 +16,17 @@
 
 #ifdef __SMS__
 #  include <sms.h>
+#  include <SMSlib.h>
 #endif
 
 // TODO: Put it in another file, like compat.h?
 #ifndef __SMS__
 void gotoxy(uint8_t x, uint8_t y) {
-  debug_out("gotoxy(%d, %d) called, but this is not MSX\n", x, y);
+  debug_out("gotoxy(%d, %d) called, but this is not SMS\n", x, y);
+}
+
+void SMS_VRAMmemset(uint16_t a, uint8_t b, uint16_t c) {
+  debug_out("SMS_VRAMmemset(%d, %d, %d) called, but this is not SMS\n", a, b, c);
 }
 #endif
 
@@ -695,7 +699,8 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       default:
         printf("unsupported instruction: 0x%x\r", instruction);
         printf("OP: %s\r", op_names[instruction]);
-        break;
+        // Crash on unsupported instruction
+        exit(-1);
     }
   }
 
