@@ -451,6 +451,24 @@ void dispatch_int_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, con
   }
 }
 
+void dispatch_true_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, const char *sym, uint8_t arg_count) {
+  if (!strcmp(sym, "!")) {
+    vm->regs[reg_index].type = T_FALSE;
+  } else {
+    debug_out("Unknown int method: %s\n", sym);
+    exit(-1);
+  }
+}
+
+void dispatch_false_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, const char *sym, uint8_t arg_count) {
+  if (!strcmp(sym, "!")) {
+    vm->regs[reg_index].type = T_TRUE;
+  } else {
+    debug_out("Unknown int method: %s\n", sym);
+    exit(-1);
+  }
+}
+
 void op_send(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t sym_index = next_byte(bytecode, pc_ptr);
@@ -474,6 +492,12 @@ void op_send(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
       break;
     case T_INT:
       dispatch_int_method(vm, receiver, reg_index, sym, arg_count);
+      break;
+    case T_TRUE:
+      dispatch_true_method(vm, receiver, reg_index, sym, arg_count);
+      break;
+    case T_FALSE:
+      dispatch_false_method(vm, receiver, reg_index, sym, arg_count);
       break;
     default:
       debug_out("OP_SEND not supported for type %d\n", receiver->type);
