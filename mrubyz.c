@@ -154,7 +154,7 @@ void check_reg_idx(uint8_t idx, uint16_t nregs) {
 }
 
 void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
-  uint8_t imm_val = inst - OP_LOADI_0;
+  int16_t imm_val = inst - OP_LOADI_0;
   uint8_t reg_index = bytecode[*pc_ptr];
   // debug_out("pc_ptr intval %d\n", *pc_ptr);
 
@@ -395,7 +395,7 @@ void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
       vm->regs[reg_index].type = T_FALSE;
     }
   } else {
-    debug_out("non-integer comparison not supported\n");
+    printf("non-integer comparison not supported\r");
     exit(-1);
   }
 }
@@ -404,7 +404,18 @@ void op_jmpnot(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   int16_t jump_by = next_word(bytecode, pc_ptr);
 
+  // TODO: optimise by ordering NIL, FALSE before everything else
   if(vm->regs[reg_index].type == T_NIL || vm->regs[reg_index].type == T_FALSE) {
+    *pc_ptr += jump_by;
+  }
+}
+
+void op_jmpif(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  int16_t jump_by = next_word(bytecode, pc_ptr);
+
+  // TODO: optimise by ordering NIL, FALSE before everything else
+  if(vm->regs[reg_index].type != T_NIL && vm->regs[reg_index].type != T_FALSE) {
     *pc_ptr += jump_by;
   }
 }
@@ -431,7 +442,7 @@ void dispatch_array_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, c
     vm->regs[reg_index].type = T_INT;
     vm->regs[reg_index].u.intval = receiver->u.arrval.len;
   } else {
-    debug_out("Unknown array method: %s\n", sym);
+    printf("Unknown array method: %s\r", sym);
     exit(-1);
   }
 }
@@ -439,38 +450,29 @@ void dispatch_array_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, c
 void dispatch_int_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, const char *sym, uint8_t arg_count) {
   if (!strcmp(sym, "&")) {
     if (vm->regs[reg_index + 1].type != T_INT) {
-      debug_out("Unexpected argument type for `&`\n");
+      printf("Unexpected argument type for `&`\r");
       exit(-1);
     }
     vm->regs[reg_index].type = T_INT;
     vm->regs[reg_index].u.intval = receiver->u.intval & vm->regs[reg_index + 1].u.intval;
   } else if (!strcmp(sym, "!=")) {
     if (vm->regs[reg_index + 1].type != T_INT) {
-      debug_out("Unexpected argument type for `!=`\n");
+      printf("Unexpected argument type for `!=`\r");
       exit(-1);
     }
     vm->regs[reg_index].type = (receiver->u.intval != vm->regs[reg_index + 1].u.intval) ? T_TRUE : T_FALSE;
   } else {
-    debug_out("Unknown int method: %s\n", sym);
+    printf("Unknown int method: %s\r", sym);
     exit(-1);
   }
 }
 
-void dispatch_true_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, const char *sym, uint8_t arg_count) {
-  if (!strcmp(sym, "!")) {
-    vm->regs[reg_index].type = T_FALSE;
-  } else {
-    debug_out("Unknown int method: %s\n", sym);
-    exit(-1);
-  }
-}
-
-void dispatch_false_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, const char *sym, uint8_t arg_count) {
-  if (!strcmp(sym, "!")) {
+// special case for bang (!)
+void dispatch_bang(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, const char *sym, uint8_t arg_count) {
+  if(receiver->type == T_FALSE || receiver->type == T_NIL) {
     vm->regs[reg_index].type = T_TRUE;
   } else {
-    debug_out("Unknown int method: %s\n", sym);
-    exit(-1);
+    vm->regs[reg_index].type = T_FALSE;
   }
 }
 
@@ -482,7 +484,7 @@ void op_send(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 
   uint16_t syms_len = ((uint16_t)vm->irep.syms[0] << 8) | (uint16_t)vm->irep.syms[1];
   if(sym_index >= syms_len) {
-    debug_out("sym_index (%d) out of bounds (%d max)\n", sym_index, syms_len);
+    printf("sym_index (%d) out of bounds (%d max)\r", sym_index, syms_len);
     exit(-1);
   }
 
@@ -490,7 +492,12 @@ void op_send(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 
   mrbz_val *receiver = &vm->regs[reg_index];
 
-  // Currently supports integers and strings
+  // Special case for bang (!) method
+  if(!strcmp(sym, "!")) {
+    dispatch_bang(vm, receiver, reg_index, sym, arg_count);
+    return;
+  }
+  
   switch(receiver->type) {
     case T_ARRAY:
       dispatch_array_method(vm, receiver, reg_index, sym, arg_count);
@@ -498,14 +505,8 @@ void op_send(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     case T_INT:
       dispatch_int_method(vm, receiver, reg_index, sym, arg_count);
       break;
-    case T_TRUE:
-      dispatch_true_method(vm, receiver, reg_index, sym, arg_count);
-      break;
-    case T_FALSE:
-      dispatch_false_method(vm, receiver, reg_index, sym, arg_count);
-      break;
     default:
-      debug_out("OP_SEND not supported for type %d\n", receiver->type);
+      printf("OP_SEND not supported for type %d\r", receiver->type);
       exit(-1);
   }
 }
@@ -519,7 +520,7 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 
   uint16_t syms_len = ((uint16_t)vm->irep.syms[0] << 8) | (uint16_t)vm->irep.syms[1];
   if(sym_index >= syms_len) {
-    debug_out("sym_index (%d) out of bounds (%d max)\n", sym_index, syms_len);
+    printf("sym_index (%d) out of bounds (%d max)\r", sym_index, syms_len);
     exit(-1);
   }
 
@@ -543,7 +544,7 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     vm->regs[reg_index].u.intval = io_port_dc;
   } else if (!strcmp(sym, "gotoxy")) {
     if(arg_info != 2) {
-      debug_out("Unexpected argument count\n");
+      printf("Unexpected argument count\r");
       exit(-1);
     }
     uint8_t x = vm->regs[reg_index + 1].u.intval;
@@ -563,7 +564,6 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     wait_vblank_noint();
   } else {
     printf("unknown symbol call: %s\r", sym);
-    debug_out("length: %d\n", strlen(sym));
     exit(-1);
   }
 }
@@ -721,6 +721,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_MOVE: op_move(vm, bytecode, &pc); break;
       case OP_LOADI: op_loadi(vm, bytecode, &pc, instruction); break;
       case OP_LOADINEG: op_loadineg(vm, bytecode, &pc, instruction); break;
+      case OP_LOADI__1: // fall through
       case OP_LOADI_0: // fall through
       case OP_LOADI_1: // fall through
       case OP_LOADI_2: // fall through
@@ -734,6 +735,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_LOADF: op_loadf(vm, bytecode, &pc); break;
       case OP_GETIDX: op_getidx(vm, bytecode, &pc); break;
       case OP_JMP: op_jmp(vm, bytecode, &pc); break;
+      case OP_JMPIF: op_jmpif(vm, bytecode, &pc); break;
       case OP_JMPNOT: op_jmpnot(vm, bytecode, &pc); break;
       case OP_SEND: op_send(vm, bytecode, &pc); break;
       case OP_SSEND: op_ssend(vm, bytecode, &pc); break;
