@@ -28,6 +28,11 @@ void gotoxy(uint8_t x, uint8_t y) {
 void SMS_VRAMmemset(uint16_t a, uint8_t b, uint16_t c) {
   debug_out("SMS_VRAMmemset(%d, %d, %d) called, but this is not SMS\n", a, b, c);
 }
+
+void wait_vblank_noint() {
+  debug_out("wait_vblank_noint() called, but this is not SMS\n");
+}
+
 #endif
 
 __sfr __at 0xDC io_port_dc;
@@ -553,6 +558,9 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     vm->regs[reg_index].u.intval = 5;
   } else if (!strcmp(sym, "clear_screen")) {
     SMS_VRAMmemset(0x3800, 0x00, 32*28*2);
+  } else if (!strcmp(sym, "wait_vblank")) {
+    // XXX: SMS_waitForVBlank() does not seem to work?
+    wait_vblank_noint();
   } else {
     printf("unknown symbol call: %s\r", sym);
     debug_out("length: %d\n", strlen(sym));
