@@ -1,7 +1,7 @@
 pres_data = [
 "\r\r\r   Minimal presentation\r\r     - Yuji Yokoo, 2026\r",
-"\r\r\r   Now I can write my\r   presentation in Ruby\r",
-"\r\r\r   Watch this space\r    for further\r     development!\r",
+"\r\r\r   Now I can write my\r\r   presentation in Ruby\r\r\r   and, run it on\r\r     Sega Master System!!!",
+"\r\r\r   More features will be\r\r            added soon!\r",
 "\r\r\r   Thank you!!!\r",
 ]
 
