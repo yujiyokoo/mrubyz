@@ -9,6 +9,19 @@ The current focus is Sega Master System but the intention is there to port it to
 
 There are some sample programs in Ruby and C under the `demo/` directory.
 
+## Videos
+
+There are a couple of very short screen recordings of the demo programs.
+
+### Demo 05 (minimal game)
+
+https://ruby.social/@yujiyokoo/115909334138258782
+
+
+### Demo 04 (minimal presentation)
+
+https://ruby.social/@yujiyokoo/115909361556444300
+
 ## Build
 
 To build the sample programs (for Sega Master System) run,
