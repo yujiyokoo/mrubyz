@@ -11,6 +11,7 @@ typedef enum {
   T_NIL  = 4,
   T_OBJECT  = 5,
   T_ARRAY  = 6,
+  T_CLASS = 7,
 } mrbz_type;
 
 typedef enum irep_const_type {
@@ -25,18 +26,22 @@ typedef struct {
   uint8_t len;
 } mrbz_array;
 
-struct mrbz_value {
+typedef struct mrbz_cls {
+  const char* name;
+} mrbz_class;
+
+typedef struct mrbz_value {
   mrbz_type type;
   // TODO: support any mrbz type
   union {
     int16_t intval;
     char* strval;
     mrbz_array arrval;
+    mrbz_class *clsval_ptr;
   } u;
-};
-typedef struct mrbz_value mrbz_val;
+} mrbz_val;
 
-struct mrubyz_irep {
+typedef struct mrubyz_irep {
   const uint8_t *pool;
   const uint8_t *syms;
   // hold pointers to start of symbols
@@ -44,16 +49,17 @@ struct mrubyz_irep {
   const char* syms_list[64];
   uint8_t nregs;
   uint8_t nlocals;
-};
+} mrbz_irep;
 
-typedef struct mrubyz_irep mrbz_irep;
-
-struct mrbz_virtual_machine {
+typedef struct mrbz_virtual_machine {
+  mrbz_class object_class;
+  mrbz_class* target_class;
   // dynamically allocated. Maybe simpler to set it to a larger fixed number?
   mrbz_val *regs;
-  mrbz_irep irep;
-};
-typedef struct mrbz_virtual_machine mrbz_vm;
+  mrbz_irep *ireps;
+  uint8_t ireps_len;
+  uint8_t current_irep;
+} mrbz_vm;
 
 void mrbz_vm_run(mrbz_vm*, mrbz_val*, unsigned char*);
 
