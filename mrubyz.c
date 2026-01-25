@@ -9,9 +9,15 @@
 
 // Conditional (only in debug builds)
 #ifdef DEBUG
-  #define debug_out(...) printf(__VA_ARGS__)
+#  define debug_out(...) printf(__VA_ARGS__)
 #else
-  #define debug_out(...) ((void)0)  // No-op in release
+#  define debug_out(...) ((void)0)  // No-op in release
+#endif
+
+#ifdef DEBUG
+#  define ASSERT(cond) do { if (!(cond)) { printf("ASSERT: %s:%d\r", __FILE__, __LINE__); exit(-1); } } while(0)
+#else
+#  define ASSERT(cond) ((void)0)
 #endif
 
 #ifdef __SMS__
@@ -365,7 +371,8 @@ void op_method(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t irep_index = next_byte(bytecode, pc_ptr);
 
-  // mrbz_val proc = create_proc(vm, child_irep, 
+  vm->regs[reg_index].type = T_PROC;
+  vm->regs[reg_index].u.proc_index = irep_index;
 }
 
 void op_tclass(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -510,7 +517,7 @@ void op_send(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     dispatch_bang(vm, receiver, reg_index, sym, arg_count);
     return;
   }
-  
+
   switch(receiver->type) {
     case T_ARRAY:
       dispatch_array_method(vm, receiver, reg_index, sym, arg_count);
@@ -582,17 +589,20 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 }
 
 void parse_irep(mrbz_vm **vm, unsigned char *bytecode, uint16_t *pc) {
-  *pc += 4; // TODO: skipping "IREP"
+  ASSERT(strncmp(bytecode+*pc, "IREP", 4) == 0);
+  *pc += 4; // skipping over "IREP"
 
-  // TODO: it's 4 bytes..
-  // BUT! uint32_t is not supported?
+  // TODO: Ignoring upper 2 bytes as we currently only support 16 bits
+  // Perhaps error if upper bits are not zero?
   uint16_t section_len = bytecode[*pc+3] |
                  (bytecode[*pc+2] << 8) ;
                  // ((uint32_t)bytecode[*pc+1] << 16) |
                  // ((uint32_t)bytecode[*pc] << 24);
   debug_out("section length: %d / 0x%x\n", section_len, section_len);
   *pc += 4; // 4 bytes for the section length
-  *pc += 4; // TODO: skipping "0300"
+
+  ASSERT(strncmp(bytecode+*pc, "0300", 4) == 0);
+  *pc += 4; // skipping over "0300"
   uint16_t record_len = bytecode[*pc+3] |
                  (bytecode[*pc+2] << 8) ;
   debug_out("irep rec len: %d / 0x%x\n", record_len, record_len);
@@ -602,11 +612,22 @@ void parse_irep(mrbz_vm **vm, unsigned char *bytecode, uint16_t *pc) {
                  bytecode[*pc+1];
   debug_out("nlocals is %d / 0x%x\n", nlocals, nlocals);
   *pc += 2;
-  (*vm)->ireps = calloc(1, sizeof(mrbz_irep));
-  (*vm)->ireps[0].nregs = (bytecode[*pc] << 8) |
-                 bytecode[*pc+1];
-  debug_out("nregs is %d / 0x%x\n", (*vm)->ireps[0].nregs, (*vm)->ireps[0].nregs);
+  uint16_t nregs = (bytecode[*pc] << 8) | bytecode[*pc+1];
   *pc += 2;
+
+  uint16_t rlen = (bytecode[*pc] << 8) |
+                 bytecode[*pc+1];
+  *pc += 2 ;
+
+  // Currently, no nested IREPs supported
+  (*vm)->ireps = calloc(rlen+1, sizeof(mrbz_irep));
+  (*vm)->ireps[0].nlocals = nlocals;
+  (*vm)->ireps[0].nregs = nregs;
+  (*vm)->ireps[0].rlen = rlen;
+  debug_out("nregs is %d / 0x%x\n", nregs, nregs);
+  debug_out("rlen is: %d / 0x%x\n", rlen, rlen);
+  debug_out("ireps addr: %d / 0x%x\n", (*vm)->ireps, (*vm)->ireps);
+
   // Allocate registers
   (*vm)->regs = (mrbz_val*)malloc(sizeof(mrbz_val) * (*vm)->ireps[0].nregs);
   if ((*vm)->regs == NULL) {
@@ -617,13 +638,12 @@ void parse_irep(mrbz_vm **vm, unsigned char *bytecode, uint16_t *pc) {
   for (uint8_t i = 0; i < (*vm)->ireps[0].nregs; i++) {
     (*vm)->regs[i].type = T_NIL;
   }
-  // TODO: rlen, clen...
-  debug_out("rlen is: %d / 0x%x\n", bytecode[*pc], bytecode[*pc]);
-  *pc += 2 ;
+
+
   debug_out("clen is: %d / 0x%x\n", bytecode[*pc], bytecode[*pc]);
   *pc += 2;
-  // TODO: it's 4 bytes..
-  // BUT! uint32_t is not supported?
+  // TODO: Ignoring upper 2 bytes as we currently only support 16 bits
+  // Perhaps error if upper bits are not zero?
   uint16_t ilen = bytecode[*pc+3] |
                  (bytecode[*pc+2] << 8) ;
                  // ((uint32_t)bytecode[*pc+1] << 16) |

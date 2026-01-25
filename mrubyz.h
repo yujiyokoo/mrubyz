@@ -12,6 +12,7 @@ typedef enum {
   T_OBJECT  = 5,
   T_ARRAY  = 6,
   T_CLASS = 7,
+  T_PROC = 8,
 } mrbz_type;
 
 typedef enum irep_const_type {
@@ -38,6 +39,7 @@ typedef struct mrbz_value {
     char* strval;
     mrbz_array arrval;
     mrbz_class *clsval_ptr;
+    uint8_t proc_index;
   } u;
 } mrbz_val;
 
@@ -47,8 +49,9 @@ typedef struct mrubyz_irep {
   // hold pointers to start of symbols
 	// FIXME: hardcoded length
   const char* syms_list[64];
-  uint8_t nregs;
-  uint8_t nlocals;
+  uint16_t nregs;
+  uint16_t nlocals;
+  uint16_t rlen;
 } mrbz_irep;
 
 typedef struct mrbz_virtual_machine {
@@ -57,7 +60,6 @@ typedef struct mrbz_virtual_machine {
   // dynamically allocated. Maybe simpler to set it to a larger fixed number?
   mrbz_val *regs;
   mrbz_irep *ireps;
-  uint8_t ireps_len;
   uint8_t current_irep;
 } mrbz_vm;
 
