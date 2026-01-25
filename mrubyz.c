@@ -588,23 +588,11 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   }
 }
 
-void parse_irep(mrbz_vm **vm, unsigned char *bytecode, uint16_t *pc) {
-  ASSERT(strncmp(bytecode+*pc, "IREP", 4) == 0);
-  *pc += 4; // skipping over "IREP"
-
+void parse_irep_record(mrbz_irep *irep, unsigned char *bytecode, uint16_t *pc) {
+  uint16_t record_start = *pc;
   // TODO: Ignoring upper 2 bytes as we currently only support 16 bits
   // Perhaps error if upper bits are not zero?
-  uint16_t section_len = bytecode[*pc+3] |
-                 (bytecode[*pc+2] << 8) ;
-                 // ((uint32_t)bytecode[*pc+1] << 16) |
-                 // ((uint32_t)bytecode[*pc] << 24);
-  debug_out("section length: %d / 0x%x\n", section_len, section_len);
-  *pc += 4; // 4 bytes for the section length
-
-  ASSERT(strncmp(bytecode+*pc, "0300", 4) == 0);
-  *pc += 4; // skipping over "0300"
-  uint16_t record_len = bytecode[*pc+3] |
-                 (bytecode[*pc+2] << 8) ;
+  uint16_t record_len = bytecode[*pc+3] | (bytecode[*pc+2] << 8) ;
   debug_out("irep rec len: %d / 0x%x\n", record_len, record_len);
   *pc += 4; // skipping 4 bytes for irep record size
 
@@ -619,26 +607,17 @@ void parse_irep(mrbz_vm **vm, unsigned char *bytecode, uint16_t *pc) {
                  bytecode[*pc+1];
   *pc += 2 ;
 
-  // Currently, no nested IREPs supported
-  (*vm)->ireps = calloc(rlen+1, sizeof(mrbz_irep));
-  (*vm)->ireps[0].nlocals = nlocals;
-  (*vm)->ireps[0].nregs = nregs;
-  (*vm)->ireps[0].rlen = rlen;
+  irep->nlocals = nlocals;
+  irep->nregs = nregs;
+  irep->rlen = rlen;
   debug_out("nregs is %d / 0x%x\n", nregs, nregs);
   debug_out("rlen is: %d / 0x%x\n", rlen, rlen);
-  debug_out("ireps addr: %d / 0x%x\n", (*vm)->ireps, (*vm)->ireps);
 
-  // Allocate registers
-  (*vm)->regs = (mrbz_val*)malloc(sizeof(mrbz_val) * (*vm)->ireps[0].nregs);
-  if ((*vm)->regs == NULL) {
-    debug_out("Failed to allocate %d registers\n", (*vm)->ireps[0].nregs);
+  // FIXME: this only makes sense when there is no method dispatch
+  if (irep->nregs > 16) {
+    printf("IREP needs %d regs, max is %d\r", irep->nregs, 16);
     exit(-1);
   }
-  // Initialize all registers to nil
-  for (uint8_t i = 0; i < (*vm)->ireps[0].nregs; i++) {
-    (*vm)->regs[i].type = T_NIL;
-  }
-
 
   debug_out("clen is: %d / 0x%x\n", bytecode[*pc], bytecode[*pc]);
   *pc += 2;
@@ -651,12 +630,12 @@ void parse_irep(mrbz_vm **vm, unsigned char *bytecode, uint16_t *pc) {
   debug_out("ilen: %d / 0x%x\n", ilen, ilen);
   *pc += 4; // skip 4 bytes for the ilen
 
-  (*vm)->ireps[0].pool = bytecode + *pc + ilen;
+  irep->pool = bytecode + *pc + ilen;
   debug_out("bytecode ptr: %d / 0x%x\n", (uint16_t)(bytecode), (uint16_t)(bytecode));
   debug_out("*pc: %d / 0x%x\n", *pc, *pc);
-  debug_out("pool ptr: %d / 0x%x\n", (uint16_t)((*vm)->ireps[0].pool), (uint16_t)((*vm)->ireps[0].pool));
+  debug_out("pool ptr: %d / 0x%x\n", (uint16_t)(irep->pool), (uint16_t)(irep->pool));
 
-  const uint8_t *pool_ptr = (*vm)->ireps[0].pool;
+  const uint8_t *pool_ptr = irep->pool;
   debug_out("pool_ptr[0] raw value: %d / 0x%x\n", pool_ptr[0], pool_ptr[0]);
   debug_out("pool_ptr[1] raw value: %d / 0x%x\n", pool_ptr[1], pool_ptr[1]);
 
@@ -715,7 +694,7 @@ void parse_irep(mrbz_vm **vm, unsigned char *bytecode, uint16_t *pc) {
   }
 
   // Save syms section ptr
-  (*vm)->ireps[0].syms = pool_ptr;
+  irep->syms = pool_ptr;
   uint16_t syms_len = ((uint16_t)pool_ptr[0] << 8) | (uint16_t)pool_ptr[1];
   pool_ptr += 2; // skip syms_len
   debug_out("symbol block length: %d\n", syms_len);
@@ -725,9 +704,39 @@ void parse_irep(mrbz_vm **vm, unsigned char *bytecode, uint16_t *pc) {
     debug_out("symbol length: %d\n", sym_len);
     pool_ptr += 2; // skip sym_len
     debug_out("symbol found: %s\n", pool_ptr);
-    (*vm)->ireps[0].syms_list[count] = pool_ptr;
+    irep->syms_list[count] = pool_ptr;
     while(*pool_ptr) { pool_ptr++; } // move to null terminator
     pool_ptr++; // skip the null
+  }
+
+  *pc = record_start + record_len; // move to the next IREP
+}
+
+void parse_ireps(mrbz_vm **vm, unsigned char *bytecode, uint16_t *pc) {
+  ASSERT(strncmp(bytecode+*pc, "IREP", 4) == 0);
+  *pc += 4; // skipping over "IREP"
+
+  // TODO: Ignoring upper 2 bytes as we currently only support 16 bits
+  // Perhaps error if upper bits are not zero?
+  uint16_t section_len = bytecode[*pc+3] |
+                 (bytecode[*pc+2] << 8) ;
+                 // ((uint32_t)bytecode[*pc+1] << 16) |
+                 // ((uint32_t)bytecode[*pc] << 24);
+  debug_out("section length: %d / 0x%x\n", section_len, section_len);
+  *pc += 4; // 4 bytes for the section length
+
+  ASSERT(strncmp(bytecode+*pc, "0300", 4) == 0);
+  *pc += 4; // skipping over "0300"
+
+  // TODO: currently we only support top IREP + its children, no nesting
+  // So we check the rlen here and allocate space
+
+  // Skip record_len (4) + nlocals (2) + nregs (2) -> 8 bytes
+  uint16_t rlen = (bytecode[*pc+8] << 8) | bytecode[*pc+9];
+  (*vm)->ireps = calloc(rlen+1, sizeof(mrbz_irep));
+
+  for (uint16_t i = 0; i < rlen+1; i++) {
+    parse_irep_record(&(*vm)->ireps[i], bytecode, pc);
   }
 }
 
@@ -742,7 +751,19 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   // for(uint16_t cp = pc; cp < 100; cp ++) {
     // debug_out("bytecode at %d: %d\n", cp, bytecode[cp]);
   // }
-  parse_irep(&vm, bytecode, &pc);
+  parse_ireps(&vm, bytecode, &pc);
+
+  // Allocate registers - fixed to 16 for now
+  vm->regs = (mrbz_val*)malloc(sizeof(mrbz_val) * 16);
+  if (vm->regs == NULL) {
+    debug_out("Failed to allocate %d registers\n", 16);
+    exit(-1);
+  }
+  // Initialize all registers to nil
+  for (uint8_t i = 0; i < 16; i++) {
+    vm->regs[i].type = T_NIL;
+  }
+
 
   // debug_out("bytecode start is: %d, pc (iseq start index) is: %d, iseq length is: %d\n", bytecode, pc, ilen);
 
