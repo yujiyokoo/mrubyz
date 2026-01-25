@@ -48,10 +48,12 @@ typedef struct mrubyz_irep {
   const uint8_t *syms;
   // hold pointers to start of symbols
 	// FIXME: hardcoded length
-  const char* syms_list[64];
+  const char* syms_list[32];
   uint16_t nregs;
   uint16_t nlocals;
   uint16_t rlen;
+  // pointer to the IREP's instructions start
+  const unsigned char* iseq;
 } mrbz_irep;
 
 typedef struct mrbz_virtual_machine {

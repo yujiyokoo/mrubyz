@@ -152,6 +152,8 @@ const char* op_names[] = {
   "OP_STOP       = 0x69"
 };
 
+uint8_t MRBZ_REGS_MAX = 24;
+
 void check_reg_idx(uint8_t idx, uint16_t nregs) {
   if(idx > nregs) {
     debug_out("reg index %d(%x) is above the maximum allowed\n", idx, idx);
@@ -614,8 +616,8 @@ void parse_irep_record(mrbz_irep *irep, unsigned char *bytecode, uint16_t *pc) {
   debug_out("rlen is: %d / 0x%x\n", rlen, rlen);
 
   // FIXME: this only makes sense when there is no method dispatch
-  if (irep->nregs > 16) {
-    printf("IREP needs %d regs, max is %d\r", irep->nregs, 16);
+  if (irep->nregs > MRBZ_REGS_MAX) {
+    printf("IREP needs %d regs, max is %d\r", irep->nregs, MRBZ_REGS_MAX);
     exit(-1);
   }
 
@@ -629,6 +631,7 @@ void parse_irep_record(mrbz_irep *irep, unsigned char *bytecode, uint16_t *pc) {
                  // ((uint32_t)bytecode[*pc] << 24);
   debug_out("ilen: %d / 0x%x\n", ilen, ilen);
   *pc += 4; // skip 4 bytes for the ilen
+  irep->iseq = bytecode + *pc;
 
   irep->pool = bytecode + *pc + ilen;
   debug_out("bytecode ptr: %d / 0x%x\n", (uint16_t)(bytecode), (uint16_t)(bytecode));
@@ -738,6 +741,9 @@ void parse_ireps(mrbz_vm **vm, unsigned char *bytecode, uint16_t *pc) {
   for (uint16_t i = 0; i < rlen+1; i++) {
     parse_irep_record(&(*vm)->ireps[i], bytecode, pc);
   }
+
+  // TODO: this is a bit hacky. More consistent handling of pointer wanted
+  *pc = (*vm)->ireps[0].iseq - bytecode;
 }
 
 void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
@@ -753,14 +759,14 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   // }
   parse_ireps(&vm, bytecode, &pc);
 
-  // Allocate registers - fixed to 16 for now
-  vm->regs = (mrbz_val*)malloc(sizeof(mrbz_val) * 16);
+  // Allocate registers - fixed to MRBZ_REGS_MAX for now
+  vm->regs = (mrbz_val*)malloc(sizeof(mrbz_val) * MRBZ_REGS_MAX);
   if (vm->regs == NULL) {
-    debug_out("Failed to allocate %d registers\n", 16);
+    debug_out("Failed to allocate %d registers\n", MRBZ_REGS_MAX);
     exit(-1);
   }
   // Initialize all registers to nil
-  for (uint8_t i = 0; i < 16; i++) {
+  for (uint8_t i = 0; i < MRBZ_REGS_MAX; i++) {
     vm->regs[i].type = T_NIL;
   }
 
