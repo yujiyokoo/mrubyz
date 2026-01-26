@@ -26,8 +26,4 @@ void main() {
   mrbz_val v;
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, demo04_bytecode);
-
-  for (;;) {
-    SMS_waitForVBlank();
-  }
 }
