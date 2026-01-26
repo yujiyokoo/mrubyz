@@ -12,7 +12,7 @@ SOURCES += ../mrubyz.c
 OBJECTS := $(SOURCES:.c=.o) $(BYTECODE_C_FILES:.ruby.c=.ruby.o)
 
 # Add -DDEBUG to enable verbose output in tests
-CFLAGS += -DNO_LOG_RUNNING -DNO_LOG_PASSED -DAMALLOC # -DDEBUG
+CFLAGS += -DNO_LOG_RUNNING -DNO_LOG_PASSED -DAMALLOC -DDEBUG
 
 RUBY_FILES := $(wildcard ruby/*.rb)
 BYTECODE_C_FILES := $(RUBY_FILES:.rb=.ruby.c)

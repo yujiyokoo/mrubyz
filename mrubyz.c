@@ -27,16 +27,32 @@
 
 // TODO: Put it in another file, like compat.h?
 #ifndef __SMS__
-void gotoxy(uint8_t x, uint8_t y) {
+static void gotoxy(uint8_t x, uint8_t y) {
   debug_out("gotoxy(%d, %d) called, but this is not SMS\n", x, y);
 }
 
-void SMS_VRAMmemset(uint16_t a, uint8_t b, uint16_t c) {
+static void SMS_VRAMmemset(uint16_t a, uint8_t b, uint16_t c) {
   debug_out("SMS_VRAMmemset(%d, %d, %d) called, but this is not SMS\n", a, b, c);
 }
 
-void wait_vblank_noint() {
+static void wait_vblank_noint() {
   debug_out("wait_vblank_noint() called, but this is not SMS\n");
+}
+
+static void SMS_addSprite(uint16_t a, uint16_t b, uint16_t c) {
+  debug_out("SMS_addSprit(%d, %d, %d) called, but this is not SMS\n", a, b, c);
+}
+
+static void SMS_initSprites() {
+  debug_out("SMS_initSprites() called, but this is not SMS\n");
+}
+
+static void SMS_finalizeSprites() {
+  debug_out("SMS_finalizeSprites() called, but this is not SMS\n");
+}
+
+static void SMS_copySpritestoSAT() {
+  debug_out("SMS_copySpritestoSAT() called, but this is not SMS\n");
 }
 
 #endif
@@ -185,6 +201,13 @@ uint8_t next_byte(unsigned char* bytecode, uint16_t *pc_ptr) {
 // returns the 16-bit word at the current CP, and advances the CP by 2
 uint16_t next_word(unsigned char* bytecode, uint16_t *pc_ptr) {
   return (bytecode[(*pc_ptr)++] << 8) | (bytecode[(*pc_ptr)++]);
+}
+
+void op_loadi_16(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  int16_t val = next_word(bytecode, pc_ptr);
+  vm->regs[reg_index].type = T_INT;
+  vm->regs[reg_index].u.intval = val;
 }
 
 void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
@@ -813,6 +836,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_LOADI_5: // fall through
       case OP_LOADI_6: // fall through
       case OP_LOADI_7: op_loadi_n(vm, bytecode, &pc, instruction); break;
+      case OP_LOADI16: op_loadi_16(vm, bytecode, &pc); break;
       case OP_LOADNIL: op_loadnil(vm, bytecode, &pc); break;
       case OP_LOADT: op_loadt(vm, bytecode, &pc); break;
       case OP_LOADF: op_loadf(vm, bytecode, &pc); break;

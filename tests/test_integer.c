@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 extern const uint8_t add[];
+extern const uint8_t loadi16[];
 extern const uint8_t loadi_n[];
 extern const uint8_t loadi[];
 extern const uint8_t loadineg[];
@@ -13,13 +14,22 @@ extern const uint8_t div[];
 extern const uint8_t addi[];
 extern const uint8_t subi[];
 
+void test_integer_loadi16() {
+  printf("\n\ntest_integer_loadi16\n");
+  mrbz_val v;
+  mrbz_vm vm;
+  mrbz_vm_run(&vm, &v, loadi16);
+
+  Assert(v.u.intval == 5, "integer loadi16 failed");
+}
+
 void test_integer_loadi_n() {
   printf("\n\ntest_integer_loadi_n\n");
   mrbz_val v;
   mrbz_vm vm;
   mrbz_vm_run(&vm, &v, loadi_n);
 
-  Assert(v.u.intval == 5, "integer load failed");
+  Assert(v.u.intval == 5, "integer loadi_n failed");
 }
 
 void test_integer_loadi() {
