@@ -166,7 +166,6 @@ void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t 
   uint8_t reg_index = bytecode[*pc_ptr];
   // debug_out("pc_ptr intval %d\n", *pc_ptr);
 
-  // TODO: raise error
   check_reg_idx(reg_index, vm->ireps[0].nregs);
   // debug_out("inst %d\n", inst);
   // debug_out("imm_val %d\n", imm_val);
@@ -584,6 +583,19 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   } else if (!strcmp(sym, "wait_vblank")) {
     // XXX: SMS_waitForVBlank() does not seem to work?
     wait_vblank_noint();
+  } else if (!strcmp(sym, "put_sprite")) {
+    uint8_t x = vm->regs[reg_index + 1].u.intval;
+    uint8_t y = vm->regs[reg_index + 2].u.intval;
+    uint8_t tile = vm->regs[reg_index + 3].u.intval;
+    SMS_addSprite(x, y, tile);
+    vm->regs[reg_index].type = T_NIL;
+  } else if (!strcmp(sym, "init_sprites")) {
+    SMS_initSprites();
+    vm->regs[reg_index].type = T_NIL;
+  } else if (!strcmp(sym, "render_sprites")) {
+    SMS_finalizeSprites();
+    SMS_copySpritestoSAT();
+    vm->regs[reg_index].type = T_NIL;
   } else {
     printf("unknown symbol call: %s\r", sym);
     exit(-1);

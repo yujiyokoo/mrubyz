@@ -14,10 +14,11 @@ while true
   game_on = true
 
   while game_on
-    gotoxy(player_x-1, 22) # -1 for the left space (' A ')
-    print ' A '
-    gotoxy(enemy_x-1, enemy_y)
-    print ' V '
+    init_sprites
+
+    put_sprite(player_x* 8, 22 * 8, 1)
+    put_sprite(enemy_x * 8, enemy_y * 8, 2)
+
     btns = read_buttons
 
     # check btns & 0x20 == 0 if you wanna check for B
@@ -30,16 +31,10 @@ while true
 
     if bullet_x && bullet_y
       if bullet_x == enemy_x && bullet_y == enemy_y
-        gotoxy(bullet_x, bullet_y)
-        print '*'
+        put_sprite(bullet_x * 8, bullet_y * 8, 4)
         game_on = false
       elsif bullet_y > -1
-        gotoxy(bullet_x, bullet_y)
-        print '|'
-      end
-      unless bullet_y == 21
-        gotoxy(bullet_x, bullet_y+1)
-        print ' '
+        put_sprite(bullet_x * 8, bullet_y * 8, 3)
       end
     end
 
@@ -76,7 +71,15 @@ while true
     end
 
     wait_vblank
+    render_sprites
   end
+
+  # redraw screen when finished
+  init_sprites
+  put_sprite(player_x * 8, 22 * 8, 1)
+  put_sprite(enemy_x * 8, enemy_y * 8, 4)
+  wait_vblank
+  render_sprites
 
   gotoxy(7, 11)
   puts "Press A to restart"
