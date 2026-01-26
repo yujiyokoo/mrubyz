@@ -321,6 +321,30 @@ void op_loadf(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   vm->regs[reg_index].type = T_FALSE;
 }
 
+void op_array(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  // BB, R[a] = ary_new(R[a],R[a+1]..R[a+b])
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  uint8_t arr_len = next_byte(bytecode, pc_ptr);
+  check_reg_idx(reg_index + arr_len, vm->ireps[0].nregs);
+  mrbz_val* content = (mrbz_val*)malloc(sizeof(mrbz_val) * (arr_len)); // Do I really need NULL?
+
+  if (content == NULL) {
+    printf("malloc of len %d failed. Out of memory maybe", arr_len);
+    exit(-1);
+  }
+
+  for (uint8_t i = 0; i < arr_len; i++) {
+    content[i] = vm->regs[reg_index + i];
+  }
+
+  mrbz_array arr;
+  arr.data = content;
+  arr.len = arr_len;
+
+  vm->regs[reg_index].type = T_ARRAY;
+  vm->regs[reg_index].u.arrval = arr;
+}
+
 void op_array2(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // BBB, R[a] = array containing R[b..b+c]
   uint8_t dest_index = next_byte(bytecode, pc_ptr);
@@ -856,6 +880,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_DIV: op_div(vm, bytecode, &pc); break;
       case OP_EQ: op_eq(vm, bytecode, &pc); break;
       case OP_GT: op_gt(vm, bytecode, &pc); break;
+      case OP_ARRAY: op_array(vm, bytecode, &pc); break;
       case OP_ARRAY2: op_array2(vm, bytecode, &pc); break;
       case OP_STRING: op_string(vm, bytecode, &pc); break;
       case OP_METHOD: op_method(vm, bytecode, &pc); break;
