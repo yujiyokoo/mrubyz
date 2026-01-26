@@ -77,7 +77,7 @@ while true
   # redraw screen when finished
   init_sprites
   put_sprite(player_x * 8, 22 * 8, 1)
-  put_sprite(enemy_x * 8, enemy_y * 8, 4)
+  put_sprite(bullet_x * 8, enemy_y * 8, 4)
   wait_vblank
   render_sprites
 
