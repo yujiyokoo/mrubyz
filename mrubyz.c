@@ -490,9 +490,13 @@ void op_jmpif(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 
 void op_getidx(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  uint16_t arr_index = vm->regs[reg_index+1].u.intval;
 
-  // TODO: check vm->regs[reg_index] is array and vm->regs[reg_index+1] is int
-  vm->regs[reg_index] = vm->regs[reg_index].u.arrval.data[vm->regs[reg_index+1].u.intval];
+  if (arr_index < 0 || arr_index > vm->regs[reg_index].u.arrval.len) {
+    printf("Array index out of bounds: %d\r", arr_index);
+  }
+
+  vm->regs[reg_index] = vm->regs[reg_index].u.arrval.data[arr_index];
 }
 
 void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -502,7 +506,7 @@ void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 }
 
 const char* symbol_at(mrbz_vm *vm, uint8_t sym_index) {
-  return (unsigned char*)(vm->ireps[0].syms_list[sym_index]);
+  return (const char*)(vm->ireps[0].syms_list[sym_index]);
 }
 
 void dispatch_array_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, const char *sym, uint8_t arg_count) {
