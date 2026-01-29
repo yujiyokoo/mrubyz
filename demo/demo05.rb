@@ -27,6 +27,7 @@ while true
         bullet_x = player_x
         bullet_y = 21
         bullet_type = 0
+        start_shoot_sfx
       end
     end
 
@@ -35,6 +36,7 @@ while true
         bullet_x = player_x
         bullet_y = 21
         bullet_type = 1
+        start_shoot_sfx
       end
     end
 
@@ -83,6 +85,7 @@ while true
       end
     end
 
+		sfx_update
     wait_vblank
     render_sprites
   end
@@ -93,6 +96,7 @@ while true
   put_sprite(enemy_x * 8, enemy_y * 8, 4)
   wait_vblank
   render_sprites
+	play_end_sfx
 
   gotoxy(7, 11)
   puts "Press A to restart"

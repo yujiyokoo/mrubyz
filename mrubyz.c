@@ -57,6 +57,40 @@ static void SMS_copySpritestoSAT() {
 
 #endif
 
+__sfr __at 0x7F PSGPort;
+#define PSG_setVolume(chan, vol)  (PSGPort = 0x90 | ((chan & 3) << 5) | (vol & 0xF))
+#define PSG_setNoise(type, freq)  (PSGPort = 0xE0 | ((type & 1) << 2) | (freq & 0x3))
+
+// Sound state
+int sfx_freq;
+unsigned char sfx_active;
+
+void start_shoot_sfx() {
+		sfx_freq = 40;
+		sfx_active = 1;
+}
+
+void sfx_update() {
+	if (!sfx_active) return;
+
+	set_sound_freq(2, sfx_freq);
+	PSG_setVolume(2, 0);
+
+	sfx_freq += 20;
+
+	if (sfx_freq >= 120) {
+		PSG_setVolume(2, 15);
+		sfx_active = 0;
+	}
+}
+
+void play_end_sfx() {
+  PSG_setNoise(1, 2);
+  PSG_setVolume(3, 0);  // 0 = loudest
+  for (int i = 0; i < 20; i++) wait_vblank_noint();
+  PSG_setVolume(3, 15); // 15 = silent
+}
+
 __sfr __at 0xDC io_port_dc;
 
 const char* op_names[] = {
@@ -647,6 +681,12 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     SMS_finalizeSprites();
     SMS_copySpritestoSAT();
     vm->regs[reg_index].type = T_NIL;
+  } else if (!strcmp(sym, "start_shoot_sfx")) {
+    start_shoot_sfx();
+  } else if (!strcmp(sym, "sfx_update")) {
+		sfx_update();
+  } else if (!strcmp(sym, "play_end_sfx")) {
+		play_end_sfx();
   } else {
     printf("unknown symbol call: %s\r", sym);
     exit(-1);
