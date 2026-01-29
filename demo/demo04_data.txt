@@ -76,7 +76,12 @@
 
 :---  Bytecode usage
 :  mrbc can produce bytecode
-  in C-compatible integer arary
+  in C-compatible integer array
+:  const uint8_t eq_int[] = {
+0x52,0x49,0x54,0x45,0x30,0x33,
+0x30,0x30,0x00,0x00,0x00,0x45,
+0x4d,0x41,0x54,0x5a,0x30,0x30,
+...
 :  include in your C source
 :  read from your vm
 
@@ -155,17 +160,17 @@
  micro ruby
 
  https://github.com/kishima/
-     micro_mruby_for_arduino_uno
+    micro_mruby_for_arduino_uno
 :
  nesruby
 
  https://github.com/
-     yhara/nesruby
+    yhara/nesruby
 :
  ruby-gameboy
 
  https://github.com/
-  khasinski/ruby-gameboy
+    khasinski/ruby-gameboy
 
 :---  About this app
 :
