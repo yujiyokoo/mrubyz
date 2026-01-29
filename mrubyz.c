@@ -168,7 +168,7 @@ const char* op_names[] = {
   "OP_STOP       = 0x69"
 };
 
-uint8_t MRBZ_REGS_MAX = 32;
+uint8_t MRBZ_REGS_MAX = 48;
 
 void check_reg_idx(uint8_t idx, uint16_t nregs) {
   if(idx > nregs) {
