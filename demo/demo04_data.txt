@@ -7,6 +7,9 @@
 
      - Yuji Yokoo, 2026
 
+
+     Press A to start
+
 :---  Who is this?
 :
   Yuji Yokoo
@@ -113,7 +116,7 @@
       switching
 :
   * 16KB VRAM, 256x192px
-    Tile based, with palettes
+    Tiles, sprites, and palettes
 :
   * Mega Drive can run
     Master System games
