@@ -9,6 +9,7 @@ while true
   enemy_wait = 3
   bullet_x = nil
   bullet_y = nil
+  bullet_type = 0
 
   clear_screen
   game_on = true
@@ -21,20 +22,32 @@ while true
 
     btns = read_buttons
 
-    # check btns & 0x20 == 0 if you wanna check for B
     if btns & 0x10 == 0 && prev_btns & 0x10 != 0 # A just pushed
       if !bullet_x && !bullet_y
         bullet_x = player_x
         bullet_y = 21
+        bullet_type = 0
+      end
+    end
+
+    if btns & 0x20 == 0 && prev_btns & 0x20 != 0 # B just pushed
+      if !bullet_x && !bullet_y
+        bullet_x = player_x
+        bullet_y = 21
+        bullet_type = 1
       end
     end
 
     if bullet_x && bullet_y
-      if bullet_x == enemy_x && bullet_y == enemy_y
-        put_sprite(bullet_x * 8, bullet_y * 8, 4)
+      if bullet_y == enemy_y && (bullet_x == enemy_x || (bullet_type == 1 && (enemy_x == bullet_x - 1 || enemy_x == bullet_x + 1)))
+        put_sprite(enemy_x * 8, enemy_y * 8, 4)
         game_on = false
       elsif bullet_y > -1
         put_sprite(bullet_x * 8, bullet_y * 8, 3)
+        if bullet_type == 1
+          put_sprite((bullet_x - 1) * 8, bullet_y * 8, 3)
+          put_sprite((bullet_x + 1) * 8, bullet_y * 8, 3)
+        end
       end
     end
 
