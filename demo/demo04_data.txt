@@ -1,0 +1,281 @@
+:---
+
+   mrubyz, a minimal mruby VM
+
+      for Zilog Z80
+
+
+     - Yuji Yokoo, 2026
+
+:---  Who is this?
+:
+  Yuji Yokoo
+:
+    based in Tokyo, Japan
+:
+  Fediverse
+:
+    @yujiyokoo@ruby.social
+:
+  Programmer @ CipherStash
+
+:---  What is this project about???
+:
+
+   Running mruby bytecode
+
+    on a VM for Zilog Z80
+
+:---  What is mruby?
+:
+  * smaller, embeddable
+    Ruby implementation
+:
+  * suitable for small
+    environments
+
+:---  What is Ruby VM
+:
+  * Virtual Machine
+    a machine inside a machine
+:
+  * When Ruby is run, the
+    source is compiled into
+    VM instructions first
+:
+  * The VM runs the bytecode
+
+:---  What is bytecode?
+:
+  * VM instructions
+:
+  * Simple instructions
+:
+  * Register-level ops
+    for mruby
+
+:---  Bytecode example
+
+  Ruby:
+:
+    return 3 == 2
+:
+  Bytecode:
+:
+  1 000 LOADI_3    R1
+  1 002 LOADI_2    R2
+  1 004 EQ         R1    R2
+  1 006 RETURN     R1
+  1 008 STOP
+
+:---  Bytecode usage
+:  mrbc can produce bytecode
+  in C-compatible integer arary
+:  include in your C source
+:  read from your vm
+
+:---  What is mruby/c
+:
+  * Smaller mruby, VM-only
+:
+  * /c for compact, or
+    concurrent
+:
+  * Inspiration for
+    mrubyz
+
+:---  What is Z80?
+:
+  * Popular processor from the
+    80s
+:
+  * Primarily 8-bit
+:
+  * Used for many platforms
+
+    * Sega Master System
+
+    * Sega Game Gear
+
+    * Sinclair ZX Spectrum
+
+    * Many more
+
+:---  What is Master System?
+:
+  * Sega's Z80 console
+:
+  * Z80 at 3.5MHz
+:
+  * 8KB RAM
+    * with 64KB space
+    * 32KB ROM without bank
+      switching
+:
+  * 16KB VRAM, 256x192px
+    Tile based, with palettes
+:
+  * Mega Drive can run
+    Master System games
+
+:---  What is a minimal VM?
+:
+  A program that reads and
+
+  executes bytecode subsets
+
+:---  Why write your own?
+:
+  I wanted to run mruby code
+:
+  Couldn't build mruby/c
+:
+  No gcc or clang.
+
+  Using z88dk
+    zcc frontend,
+    with sdcc or sccz80
+
+:---  Why write your own?
+:
+  Rather than starting with a
+  big project with possibly
+  many bugs I can introduce,
+  start small
+:  with fewer bugs and features
+
+:---  Existing work on 8-bit
+:
+ micro ruby
+
+ https://github.com/kishima/
+     micro_mruby_for_arduino_uno
+:
+ nesruby
+
+ https://github.com/
+     yhara/nesruby
+:
+ ruby-gameboy
+
+ https://github.com/
+  khasinski/ruby-gameboy
+
+:---  About this app
+:
+  * demo04
+:    (SMSPresent)
+:
+  * Running on mrubyz VM
+:
+  * Text only
+
+:---  What is supported in this VM?
+
+:  * Built-in functions
+:  * Assignment
+:  * strings
+:  * Add, sub, multi, div (int)
+:  * Branching with if-else
+:  * while loop
+:  * equality comparison
+:  * greater than (>)
+:  * arrays
+:  * Many more!
+
+:---  What is not supported?
+:  * most things
+:  * less than (<), etc.
+:  * garbage collection
+:  * string manipulation
+:  * exceptions
+:unsupported instruction: 0x12
+OP: OP_MODULE     = 0x5D
+
+:---  What is not supported?
+
+  * most things
+
+  * less than (<), etc.
+
+  * garbage collection
+
+  * string manipulation
+
+  * exceptions
+:  * class
+:  * proc
+:  * function definitions
+:  * lots more!
+
+:---  What can be written?
+:
+  This presentation tool!
+:
+  i = 0
+
+  while pages.size > i
+
+    if btn_a_pressed?
+
+      puts pages[i]
+
+      i += 1
+
+    end
+
+  end
+
+:---  What's the dev process like?
+:
+  * Write some Ruby
+:
+  * use mrbc to generate
+    bytecode
+:
+  * load it and run
+    see it crash
+:
+  * add support, or give up
+
+:---  Limitations and workaround
+:
+  * Limited memory
+    Reduce allocation
+:
+  * No native 32-bit int
+:
+  * Slow, but not unusable
+
+:---  Demo game
+:
+  ...or, summary before that
+
+:---  Summary
+:
+  * even a small subset of Ruby
+    can be used to write useful
+    apps
+:
+    "useful" may be doing a lot
+    of heavy lifting here
+:
+  * Conscious decisions about
+    what not to support helps
+:
+  * Writing your own VM is not
+    that hard
+:
+    What is "VM" here may be
+    loosely defined here
+
+:--- Thanks
+:
+  * mruby and mruby/c developers
+:
+  * z88dk, sdcc, SMSLib
+    developers
+:
+  * RubyConf TH
+
+:---  Demo (finally)!
