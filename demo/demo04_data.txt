@@ -181,7 +181,7 @@
 
 :---  Existing work on 8-bit
 :
- micro ruby
+ micro mruby
 
  https://github.com/kishima/
     micro_mruby_for_arduino_uno
@@ -304,12 +304,9 @@ OP: OP_MODULE     = 0x5D
 
 :---  Summary
 :
-  * If you implement your VM,
-    that's where mruby runs
-
-    You can make any environment
-    support mruby by implementing
-    your own VM.
+    You can make any platform
+    support mruby by making
+    your own VM
 
 :---  Summary
 
