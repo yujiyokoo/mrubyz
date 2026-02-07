@@ -149,7 +149,19 @@
   * Mega Drive can run
     Master System games
 
-:---  What is a minimal VM?
+:---  What is this project about???
+:
+
+  Running mruby bytecode
+
+    on a VM for Zilog Z80
+
+
+
+  URL: https://codeberg.org/
+            yujiyokoo/mrubyz
+
+:---  What is a 'minimal' VM?
 :
   A program that reads and
 
@@ -314,8 +326,8 @@ OP: OP_MODULE     = 0x5D
 
 :
   Or, make whatever you want!
-
-  It's entirely up to you!
+:
+  Never mind the trend!
 
 :--- Thanks
 :
