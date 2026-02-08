@@ -639,20 +639,9 @@ void op_send(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   }
 }
 
-void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
-  uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  uint8_t sym_index = next_byte(bytecode, pc_ptr);
-  uint8_t arg_info = next_byte(bytecode, pc_ptr); // mostly ignored
-  const char* sym;
-  static uint8_t count = 0;
-
-  uint16_t syms_len = ((uint16_t)vm->ireps[0].syms[0] << 8) | (uint16_t)vm->ireps[0].syms[1];
-  if(sym_index >= syms_len) {
-    printf("sym_index (%d) out of bounds (%d max)\r", sym_index, syms_len);
-    exit(-1);
-  }
-
-  sym = symbol_at(vm, sym_index);
+// "builtin" method handler. Returns 1 if handled here, 0 otherwise
+uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t arg_info) {
+  uint8_t rval = 1;
 
   // Hardcoding for now... will fix later
   if(!strcmp(sym, "puts")) {
@@ -710,9 +699,35 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   } else if (!strcmp(sym, "play_end_sfx")) {
 		play_end_sfx();
   } else {
+    // not "handled". Returning 0
+    rval = 0;
+  }
+
+  return rval;
+}
+
+void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  uint8_t sym_index = next_byte(bytecode, pc_ptr);
+  uint8_t arg_info = next_byte(bytecode, pc_ptr); // mostly ignored
+  const char* sym;
+  static uint8_t count = 0;
+
+  uint16_t syms_len = ((uint16_t)vm->ireps[0].syms[0] << 8) | (uint16_t)vm->ireps[0].syms[1];
+  if(sym_index >= syms_len) {
+    printf("sym_index (%d) out of bounds (%d max)\r", sym_index, syms_len);
+    exit(-1);
+  }
+
+  sym = symbol_at(vm, sym_index);
+
+  uint8_t handled = call_builtin(vm, sym, reg_index, arg_info);
+
+  if(!handled) {
     printf("unknown symbol call: %s\r", sym);
     exit(-1);
   }
+
 }
 
 void parse_irep_record(mrbz_irep *irep, unsigned char *bytecode, uint16_t *pc) {
