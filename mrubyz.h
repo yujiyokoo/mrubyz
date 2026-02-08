@@ -27,8 +27,18 @@ typedef struct {
   uint8_t len;
 } mrbz_array;
 
+typedef struct {
+  const char* name;
+  uint8_t irep_index;
+} mrbz_method;
+
+// FIXME: hardcoded method limit
+#define METHOD_MAX 8
+
 typedef struct mrbz_cls {
   const char* name;
+  mrbz_method methods[METHOD_MAX];
+  uint8_t method_count;
 } mrbz_class;
 
 typedef struct mrbz_value {

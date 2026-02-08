@@ -55,6 +55,10 @@ static void SMS_copySpritestoSAT() {
   debug_out("SMS_copySpritestoSAT() called, but this is not SMS\n");
 }
 
+static void set_sound_freq(uint16_t a, uint16_t b) {
+  debug_out("set_sound_freq() called, but this is not SMS\n");
+}
+
 #endif
 
 __sfr __at 0x7F PSGPort;
@@ -461,6 +465,24 @@ void op_tclass(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   vm->regs[reg_index].type = T_CLASS;
   vm->regs[reg_index].u.clsval_ptr = vm->target_class;
+}
+
+static void op_def(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t reg_index = next_byte(bytecode, pc_ptr);
+  uint8_t sym_index = next_byte(bytecode, pc_ptr);
+
+  ASSERT(vm->regs[reg_index].type == T_CLASS);
+  ASSERT(vm->regs[reg_index+1].type == T_PROC);
+
+  mrbz_class *cls_ptr = vm->regs[reg_index].u.clsval_ptr;
+  if(cls_ptr->method_count >= METHOD_MAX) {
+    printf("Maximum method count (%d) exceeded\r", METHOD_MAX);
+    exit(-1);
+  }
+  // TODO: switch to dynamic allocation to support non-hardcoded numeber of methods
+  cls_ptr->methods[cls_ptr->method_count].name = vm->ireps[vm->current_irep].syms_list[sym_index];
+  cls_ptr->methods[cls_ptr->method_count].irep_index = vm->regs[reg_index+1].u.proc_index;
+  cls_ptr->method_count += 1;
 }
 
 void op_eq(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -879,10 +901,13 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   // initialise R0 with an object
   vm->regs[0].type = T_OBJECT;
 
-  // Initialise object_class
+  // Initialise obect_class
+  vm->object_class.name = "Object";
+  vm->object_class.method_count = 0;
+
   // Initialise current class
 
-  // while instructions are left
+  // Main execution loop
   int exiting = 0;
   mrbz_val *retval = NULL;
 
@@ -929,6 +954,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_STRING: op_string(vm, bytecode, &pc); break;
       case OP_METHOD: op_method(vm, bytecode, &pc); break;
       case OP_TCLASS: op_tclass(vm, bytecode, &pc); break;
+      case OP_DEF: op_def(vm, bytecode, &pc); break;
       case OP_STOP: exiting = 1; break;
       default:
         printf("unsupported instruction: 0x%x\r", instruction);
