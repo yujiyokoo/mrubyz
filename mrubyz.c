@@ -480,7 +480,7 @@ static void op_def(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     exit(-1);
   }
   // TODO: switch to dynamic allocation to support non-hardcoded numeber of methods
-  cls_ptr->methods[cls_ptr->method_count].name = vm->ireps[vm->current_irep].syms_list[sym_index];
+  cls_ptr->methods[cls_ptr->method_count].name = vm->ireps[vm->frames[vm->curr_frm_idx].irep_idx].syms_list[sym_index];
   cls_ptr->methods[cls_ptr->method_count].irep_index = vm->regs[reg_index+1].u.proc_index;
   cls_ptr->method_count += 1;
 }
@@ -640,7 +640,7 @@ void op_send(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 }
 
 // "builtin" method handler. Returns 1 if handled here, 0 otherwise
-uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t arg_info) {
+uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t arg_count) {
   uint8_t rval = 1;
 
   // Hardcoding for now... will fix later
@@ -660,7 +660,7 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     vm->regs[reg_index].type = T_INT;
     vm->regs[reg_index].u.intval = io_port_dc;
   } else if (!strcmp(sym, "gotoxy")) {
-    if(arg_info != 2) {
+    if(arg_count != 2) {
       printf("Unexpected argument count\r");
       exit(-1);
     }
@@ -699,17 +699,27 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
   } else if (!strcmp(sym, "play_end_sfx")) {
 		play_end_sfx();
   } else {
-    // not "handled". Returning 0
+    // not handled by this built-in only function. Returning 0
     rval = 0;
   }
 
   return rval;
 }
 
+// Returns a pointer to mrbz_method
+int8_t find_method(mrbz_class* cls, const char* sym) {
+  for(int8_t i = 0; i < cls->method_count; i++) {
+    if(strcmp(cls->methods[i].name, sym) == 0) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t sym_index = next_byte(bytecode, pc_ptr);
-  uint8_t arg_info = next_byte(bytecode, pc_ptr); // mostly ignored
+  uint8_t arg_count = next_byte(bytecode, pc_ptr) & 0x0F; // no keyword argument supported
   const char* sym;
   static uint8_t count = 0;
 
@@ -721,13 +731,31 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 
   sym = symbol_at(vm, sym_index);
 
-  uint8_t handled = call_builtin(vm, sym, reg_index, arg_info);
+  uint8_t handled = call_builtin(vm, sym, reg_index, arg_count);
 
   if(!handled) {
-    printf("unknown symbol call: %s\r", sym);
-    exit(-1);
-  }
+    mrbz_val *receiver = &vm->regs[reg_index];
 
+    // find method
+    int8_t mthd_irep_idx = find_method(&vm->object_class, sym);
+    if(mthd_irep_idx < 0) { // not found
+      printf("method not found in class %s: %s\r", vm->object_class.name, sym);
+      exit(-1);
+    }
+
+    uint8_t caller_reg_base = vm->frames[vm->curr_frm_idx].reg_base_idx;
+
+    // dispatch method
+    vm->curr_frm_idx++;
+    if(vm->curr_frm_idx >= FRAME_MAX) {
+      printf("Call frame max exceeded: %d\r", FRAME_MAX);
+      exit(-1);
+    }
+    vm->frames[vm->curr_frm_idx].return_pc = *pc_ptr;
+    vm->frames[vm->curr_frm_idx].irep_idx = mthd_irep_idx;
+    vm->frames[vm->curr_frm_idx].reg_base_idx = caller_reg_base + reg_index;
+    *pc_ptr = vm->ireps[mthd_irep_idx].iseq - bytecode;
+  }
 }
 
 void parse_irep_record(mrbz_irep *irep, unsigned char *bytecode, uint16_t *pc) {
@@ -876,7 +904,7 @@ void parse_ireps(mrbz_vm **vm, unsigned char *bytecode, uint16_t *pc) {
 
   // Skip record_len (4) + nlocals (2) + nregs (2) -> 8 bytes
   uint16_t rlen = (bytecode[*pc+8] << 8) | bytecode[*pc+9];
-  (*vm)->ireps = calloc(rlen+1, sizeof(mrbz_irep));
+  (*vm)->ireps = malloc((rlen+1) * sizeof(mrbz_irep));
 
   for (uint16_t i = 0; i < rlen+1; i++) {
     parse_irep_record(&(*vm)->ireps[i], bytecode, pc);
@@ -891,7 +919,14 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   // we know header length is 20, so skip for now
   vm->object_class.name = "Object";
   vm->target_class = &(vm->object_class);
-  vm->current_irep = 0;
+
+  // Init the root frame
+  vm->curr_frm_idx = 0;
+  vm->frames[vm->curr_frm_idx].return_pc = 0;
+  vm->frames[vm->curr_frm_idx].irep_idx = 0;
+  vm->frames[vm->curr_frm_idx].reg_base_idx = 0;
+  vm->frames[vm->curr_frm_idx].prev = NULL;
+
   uint16_t pc = 20;
   // to view contents
   // for(uint16_t cp = pc; cp < 100; cp ++) {

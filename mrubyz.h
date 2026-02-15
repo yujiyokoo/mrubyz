@@ -32,7 +32,8 @@ typedef struct {
   uint8_t irep_index;
 } mrbz_method;
 
-// FIXME: hardcoded method limit
+// FIXME: hardcoded method limit per class
+// Note dispatch handling code uses int8_t - max 127
 #define METHOD_MAX 8
 
 typedef struct mrbz_cls {
@@ -66,13 +67,23 @@ typedef struct mrubyz_irep {
   const unsigned char* iseq;
 } mrbz_irep;
 
-typedef struct mrbz_virtual_machine {
+typedef struct mrubyz_frame {
+  uint16_t return_pc;
+  uint8_t irep_idx;
+  uint8_t reg_base_idx;
+  struct mrubyz_frame *prev;
+} mrbz_frame;
+
+#define FRAME_MAX 16
+
+typedef struct mrubyz_virtual_machine {
   mrbz_class object_class;
   mrbz_class* target_class;
   // dynamically allocated. Maybe simpler to set it to a larger fixed number?
   mrbz_val *regs;
   mrbz_irep *ireps;
-  uint8_t current_irep;
+  uint8_t curr_frm_idx;
+  mrbz_frame frames[FRAME_MAX];
 } mrbz_vm;
 
 void mrbz_vm_run(mrbz_vm*, mrbz_val*, unsigned char*);
