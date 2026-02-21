@@ -584,7 +584,7 @@ void op_send(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // No support for keyword arguments for now (& 0x0F -> lower 4 bits)
   uint8_t arg_count = next_byte(bytecode, pc_ptr) & 0x0F;
 
-  uint16_t syms_len = ((uint16_t)vm->ireps[0].syms[0] << 8) | (uint16_t)vm->ireps[0].syms[1];
+  uint16_t syms_len = ((uint16_t)vm->ireps[vm->frames[vm->frame_top].irep_idx].syms[0] << 8) | (uint16_t)vm->ireps[vm->frames[vm->frame_top].irep_idx].syms[1];
   if(sym_index >= syms_len) {
     printf("sym_index (%d) out of bounds (%d max)\r", sym_index, syms_len);
     exit(-1);
@@ -697,7 +697,7 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   const char* sym;
   static uint8_t count = 0;
 
-  uint16_t syms_len = ((uint16_t)vm->ireps[0].syms[0] << 8) | (uint16_t)vm->ireps[0].syms[1];
+  uint16_t syms_len = ((uint16_t)vm->ireps[vm->frames[vm->frame_top].irep_idx].syms[0] << 8) | (uint16_t)vm->ireps[vm->frames[vm->frame_top].irep_idx].syms[1];
   if(sym_index >= syms_len) {
     printf("sym_index (%d) out of bounds (%d max)\r", sym_index, syms_len);
     exit(-1);
