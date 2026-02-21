@@ -7,6 +7,7 @@
 #include "test_method_calls.h"
 #include "test_conditionals.h"
 #include "test_arrays.h"
+#include "test_func_call.h"
 
 int main(int argc, char *argv[])
 {
@@ -21,6 +22,7 @@ int main(int argc, char *argv[])
   res += test_method_calls();
   res += test_conditionals();
   res += test_arrays();
+  res += test_func_call();
 
   return res;
 }

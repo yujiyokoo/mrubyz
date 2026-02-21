@@ -71,7 +71,7 @@ typedef struct mrubyz_frame {
   uint16_t return_pc;
   uint8_t irep_idx;
   uint8_t reg_base_idx;
-  struct mrubyz_frame *prev;
+  // uint8_t prev_idx;
 } mrbz_frame;
 
 #define FRAME_MAX 16
@@ -81,8 +81,9 @@ typedef struct mrubyz_virtual_machine {
   mrbz_class* target_class;
   // dynamically allocated. Maybe simpler to set it to a larger fixed number?
   mrbz_val *regs;
+  mrbz_val *regs_pool;
   mrbz_irep *ireps;
-  uint8_t curr_frm_idx;
+  uint8_t frame_top;
   mrbz_frame frames[FRAME_MAX];
 } mrbz_vm;
 

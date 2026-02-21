@@ -9,7 +9,7 @@
 
 // Conditional (only in debug builds)
 #ifdef DEBUG
-#  define debug_out(...) printf(__VA_ARGS__)
+#  define debug_out(...) do { printf(__VA_ARGS__); } while(0)
 #else
 #  define debug_out(...) ((void)0)  // No-op in release
 #endif
@@ -284,7 +284,7 @@ mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t dest_reg = next_byte(bytecode, pc_ptr);
   uint8_t src_reg = next_byte(bytecode, pc_ptr);
-  //debug_out("moving. reg %d to %d, intval is %d\n", src_reg, dest_reg, vm->regs[src_reg]);
+  debug_out("moving. reg %d to %d, types are %d, %d, (if reg%d is int, %d)\n", src_reg, dest_reg, vm->regs[src_reg].type, vm->regs[dest_reg].type, src_reg, vm->regs[src_reg].u.intval);
   check_reg_idx(dest_reg, vm->ireps[0].nregs);
   check_reg_idx(src_reg, vm->ireps[0].nregs);
   // TODO: check this assignment is valid with the compiler
@@ -295,7 +295,7 @@ void op_add(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   check_reg_idx(reg_index, vm->ireps[0].nregs);
-  //debug_out("adding. reg %d to %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index+1].intval);
+  debug_out("adding. reg %d = reg %d + reg %d, values are %d and %d\n", reg_index, reg_index, reg_index + 1, vm->regs[reg_index].u.intval, vm->regs[reg_index+1].u.intval);
   vm->regs[reg_index].u.intval += vm->regs[reg_index + 1].u.intval;
 }
 
@@ -480,7 +480,7 @@ static void op_def(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     exit(-1);
   }
   // TODO: switch to dynamic allocation to support non-hardcoded numeber of methods
-  cls_ptr->methods[cls_ptr->method_count].name = vm->ireps[vm->frames[vm->curr_frm_idx].irep_idx].syms_list[sym_index];
+  cls_ptr->methods[cls_ptr->method_count].name = vm->ireps[vm->frames[vm->frame_top].irep_idx].syms_list[sym_index];
   cls_ptr->methods[cls_ptr->method_count].irep_index = vm->regs[reg_index+1].u.proc_index;
   cls_ptr->method_count += 1;
 }
@@ -562,7 +562,9 @@ void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 }
 
 const char* symbol_at(mrbz_vm *vm, uint8_t sym_index) {
-  return (const char*)(vm->ireps[0].syms_list[sym_index]);
+  debug_out("symbol_at called. vm->frames[vm->frame_top].irep_idx is %d\n", vm->frames[vm->frame_top].irep_idx);
+  debug_out("symbol_at called. frame_top is %d\n", vm->frame_top);
+  return (const char*)(vm->ireps[vm->frames[vm->frame_top].irep_idx].syms_list[sym_index]);
 }
 
 void dispatch_array_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, const char *sym, uint8_t arg_count) {
@@ -731,31 +733,66 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 
   sym = symbol_at(vm, sym_index);
 
+  debug_out("looking for sym at %d, found %s\n", sym_index, sym);
+
   uint8_t handled = call_builtin(vm, sym, reg_index, arg_count);
 
   if(!handled) {
     mrbz_val *receiver = &vm->regs[reg_index];
 
     // find method
-    int8_t mthd_irep_idx = find_method(&vm->object_class, sym);
-    if(mthd_irep_idx < 0) { // not found
+    int8_t mthd_idx = find_method(&vm->object_class, sym);
+    if(mthd_idx < 0) { // not found
       printf("method not found in class %s: %s\r", vm->object_class.name, sym);
       exit(-1);
     }
 
-    uint8_t caller_reg_base = vm->frames[vm->curr_frm_idx].reg_base_idx;
+    // uint8_t caller_reg_base = vm->frames[vm->frame_top-1].reg_base_idx;
+    uint16_t caller_reg_base = vm->regs - vm->regs_pool;
 
     // dispatch method
-    vm->curr_frm_idx++;
-    if(vm->curr_frm_idx >= FRAME_MAX) {
+    if(vm->frame_top >= FRAME_MAX) {
       printf("Call frame max exceeded: %d\r", FRAME_MAX);
       exit(-1);
     }
-    vm->frames[vm->curr_frm_idx].return_pc = *pc_ptr;
-    vm->frames[vm->curr_frm_idx].irep_idx = mthd_irep_idx;
-    vm->frames[vm->curr_frm_idx].reg_base_idx = caller_reg_base + reg_index;
-    *pc_ptr = vm->ireps[mthd_irep_idx].iseq - bytecode;
+
+    debug_out("calling %s, pc before jump is %d\n", sym, *pc_ptr);
+
+    vm->frame_top++;
+    vm->frames[vm->frame_top].return_pc = *pc_ptr;
+    // vm->frames[vm->frame_top].irep_idx = mthd_irep_idx;
+    uint8_t callee_irep_idx = vm->object_class.methods[mthd_idx].irep_index + 1;
+    vm->frames[vm->frame_top].irep_idx = callee_irep_idx;
+    vm->frames[vm->frame_top].reg_base_idx = caller_reg_base;
+    // vm->frames[vm->frame_top].prev_idx = prev;
+    vm->regs = vm->regs_pool + caller_reg_base + reg_index;
+    // vm->current_irep = callee_irep_index;
+    // *pc_ptr = vm->ireps[mthd_irep_idx].iseq - bytecode;
+    *pc_ptr = vm->ireps[callee_irep_idx].iseq - bytecode;
+    // debug_out("pc destination is %d\n", *pc_ptr);
   }
+}
+
+void op_enter(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
+  uint8_t byte0 = next_byte(bytecode, pc_ptr);
+  uint8_t byte1 = next_byte(bytecode, pc_ptr);
+  uint8_t byte2 = next_byte(bytecode, pc_ptr);
+
+  if(byte0 & 0x03 || byte1 || byte2) {
+    printf("unsupported flags: %d, %d, %d\r", byte0, byte1, byte2);
+    exit(-1);
+  }
+
+  uint8_t param_count = byte0 >> 2;
+  debug_out("param count is: %d\n", param_count);
+
+  // check the register count does not exceed max
+  uint8_t regs_required = vm->frames[vm->frame_top].reg_base_idx + vm->ireps[vm->frames[vm->frame_top].irep_idx].nregs;
+  if(regs_required >= MRBZ_REGS_MAX) {
+    printf("Too many registers required: %d, max: %d\r", regs_required, MRBZ_REGS_MAX);
+    exit(-1);
+  }
+
 }
 
 void parse_irep_record(mrbz_irep *irep, unsigned char *bytecode, uint16_t *pc) {
@@ -921,11 +958,11 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   vm->target_class = &(vm->object_class);
 
   // Init the root frame
-  vm->curr_frm_idx = 0;
-  vm->frames[vm->curr_frm_idx].return_pc = 0;
-  vm->frames[vm->curr_frm_idx].irep_idx = 0;
-  vm->frames[vm->curr_frm_idx].reg_base_idx = 0;
-  vm->frames[vm->curr_frm_idx].prev = NULL;
+  vm->frame_top = 0;
+  vm->frames[vm->frame_top].return_pc = 0;
+  vm->frames[vm->frame_top].irep_idx = 0;
+  vm->frames[vm->frame_top].reg_base_idx = 0;
+  // vm->frames[vm->frame_top].prev_idx = 0;
 
   uint16_t pc = 20;
   // to view contents
@@ -935,7 +972,8 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   parse_ireps(&vm, bytecode, &pc);
 
   // Allocate registers - fixed to MRBZ_REGS_MAX for now
-  vm->regs = (mrbz_val*)malloc(sizeof(mrbz_val) * MRBZ_REGS_MAX);
+  vm->regs_pool = (mrbz_val*)malloc(sizeof(mrbz_val) * MRBZ_REGS_MAX);
+  vm->regs = vm->regs_pool;  // frame 0 starts at base 0
   if (vm->regs == NULL) {
     debug_out("Failed to allocate %d registers\n", MRBZ_REGS_MAX);
     exit(-1);
@@ -964,7 +1002,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
   while (!exiting) {
     uint8_t instruction;
     instruction = bytecode[pc++];
-    // debug_out("PC: %d(%x), OP: %s\n", pc, pc, op_names[instruction]);
+    debug_out("PC: %d(0x%x), OP: %s\n", (pc-1), (pc-1), op_names[instruction]);
     switch(instruction) {
       case OP_NOP: break;
       case OP_MOVE: op_move(vm, bytecode, &pc); break;
@@ -989,8 +1027,25 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_JMPNOT: op_jmpnot(vm, bytecode, &pc); break;
       case OP_SEND: op_send(vm, bytecode, &pc); break;
       case OP_SSEND: op_ssend(vm, bytecode, &pc); break;
+      case OP_ENTER: op_enter(vm, bytecode, &pc); break;
       // FIXME: Currently this return exits from any level...
-      case OP_RETURN: retval = op_return(vm, bytecode, &pc); exiting = 1; break;
+      case OP_RETURN:
+      {
+        uint8_t reg_index = next_byte(bytecode, &pc);
+        // check if we're at root frame
+				if (vm->frame_top == 0) {
+          retval = &vm->regs[reg_index];
+          exiting = 1;
+				} else {
+          vm->regs[0] = vm->regs[reg_index];
+          uint16_t regs_base = vm->frames[vm->frame_top].reg_base_idx;
+          pc = vm->frames[vm->frame_top].return_pc;
+          debug_out("returning type %d (%d if type 0), pc is now set to %d\n", vm->regs[0].type, vm->regs[0].u.intval, pc);
+          vm->frame_top--;
+          vm->regs = vm->regs_pool + regs_base;
+        }
+        break;
+      }
       case OP_ADD: op_add(vm, bytecode, &pc); break;
       case OP_ADDI: op_addi(vm, bytecode, &pc); break;
       case OP_SUB: op_sub(vm, bytecode, &pc); break;
