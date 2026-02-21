@@ -230,7 +230,8 @@ uint8_t next_byte(unsigned char* bytecode, uint16_t *pc_ptr) {
 
 // returns the 16-bit word at the current CP, and advances the CP by 2
 uint16_t next_word(unsigned char* bytecode, uint16_t *pc_ptr) {
-  return (bytecode[(*pc_ptr)++] << 8) | (bytecode[(*pc_ptr)++]);
+  uint16_t hi = (uint16_t)bytecode[(*pc_ptr)++] << 8;
+  return hi | (bytecode[(*pc_ptr)++]);
 }
 
 void op_loadi_16(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -260,7 +261,6 @@ mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   debug_out("op_return, reg_index is: %d\n", reg_index);
 
-  debug_out("op_return, vm->r[ri]: %d\n",vm->regs[reg_index]);
   debug_out("op_return, returning type %d\n", vm->regs[reg_index].type);
   mrbz_val* foo = vm->regs + reg_index;
   debug_out("op_return, returning %s (if str)\n", foo->u.strval);
@@ -520,8 +520,9 @@ void op_getidx(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint16_t arr_index = vm->regs[reg_index+1].u.intval;
 
-  if (arr_index < 0 || arr_index > vm->regs[reg_index].u.arrval.len) {
+  if (arr_index > vm->regs[reg_index].u.arrval.len) {
     printf("Array index out of bounds: %d\r", arr_index);
+    exit(-1);
   }
 
   vm->regs[reg_index] = vm->regs[reg_index].u.arrval.data[arr_index];
