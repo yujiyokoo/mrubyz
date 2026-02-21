@@ -208,19 +208,11 @@ const char* op_names[] = {
 
 uint8_t MRBZ_REGS_MAX = 48;
 
-void check_reg_idx(uint8_t idx, uint16_t nregs) {
-  if(idx > nregs) {
-    debug_out("reg index %d(%x) is above the maximum allowed\n", idx, idx);
-    exit(-1);
-  }
-}
-
 void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
   int16_t imm_val = inst - OP_LOADI_0;
   uint8_t reg_index = bytecode[*pc_ptr];
   // debug_out("pc_ptr intval %d\n", *pc_ptr);
 
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   // debug_out("inst %d\n", inst);
   // debug_out("imm_val %d\n", imm_val);
   // debug_out("bc[pc_ptr] %d\n", bytecode[*pc_ptr]);
@@ -251,7 +243,6 @@ void op_loadi_16(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   //debug_out("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].u.intval = imm_val;
@@ -260,7 +251,6 @@ void op_loadi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t in
 void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   //debug_out("loadi-ing %d to reg %d\n", imm_val, reg_index);
   vm->regs[reg_index].type = T_INT;
   vm->regs[reg_index].u.intval = -imm_val;
@@ -269,9 +259,6 @@ void op_loadineg(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t
 mrbz_val *op_return(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   debug_out("op_return, reg_index is: %d\n", reg_index);
-
-  // TODO: raise error
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
 
   debug_out("op_return, vm->r[ri]: %d\n",vm->regs[reg_index]);
   debug_out("op_return, returning type %d\n", vm->regs[reg_index].type);
@@ -285,8 +272,6 @@ void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t dest_reg = next_byte(bytecode, pc_ptr);
   uint8_t src_reg = next_byte(bytecode, pc_ptr);
   debug_out("moving. reg %d to %d, types are %d, %d, (if reg%d is int, %d)\n", src_reg, dest_reg, vm->regs[src_reg].type, vm->regs[dest_reg].type, src_reg, vm->regs[src_reg].u.intval);
-  check_reg_idx(dest_reg, vm->ireps[0].nregs);
-  check_reg_idx(src_reg, vm->ireps[0].nregs);
   // TODO: check this assignment is valid with the compiler
   vm->regs[dest_reg] = vm->regs[src_reg];
 }
@@ -294,7 +279,6 @@ void op_move(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_add(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   debug_out("adding. reg %d = reg %d + reg %d, values are %d and %d\n", reg_index, reg_index, reg_index + 1, vm->regs[reg_index].u.intval, vm->regs[reg_index+1].u.intval);
   vm->regs[reg_index].u.intval += vm->regs[reg_index + 1].u.intval;
 }
@@ -303,7 +287,6 @@ void op_addi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   //debug_out("adding. %d to reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
   vm->regs[reg_index].u.intval += imm_val;
 }
@@ -311,7 +294,6 @@ void op_addi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_sub(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   //debug_out("subtracting. reg %d from %d, values are %d and %d\n", reg_index + 1, reg_index, vm->regs[reg_index + 1].intval, vm->regs[reg_index].intval);
   vm->regs[reg_index].u.intval -= vm->regs[reg_index + 1].u.intval;
 }
@@ -320,7 +302,6 @@ void op_subi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t imm_val = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   //debug_out("subtracting. %d from reg %d, reg intval is %d\n", imm_val, reg_index, vm->regs[reg_index].intval);
   vm->regs[reg_index].u.intval -= imm_val;
 }
@@ -328,7 +309,6 @@ void op_subi(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   //debug_out("multiplying. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
   vm->regs[reg_index].u.intval *= vm->regs[reg_index + 1].u.intval;
 }
@@ -336,26 +316,22 @@ void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   //debug_out("dividing. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
   vm->regs[reg_index].u.intval /= vm->regs[reg_index + 1].u.intval;
 }
 
 void op_loadnil(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   vm->regs[reg_index].type = T_NIL;
 }
 
 void op_loadt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   vm->regs[reg_index].type = T_TRUE;
 }
 
 void op_loadf(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   vm->regs[reg_index].type = T_FALSE;
 }
 
@@ -363,7 +339,6 @@ void op_array(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // BB, R[a] = ary_new(R[a],R[a+1]..R[a+b])
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   uint8_t arr_len = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index + arr_len, vm->ireps[0].nregs);
   mrbz_val* content = (mrbz_val*)malloc(sizeof(mrbz_val) * (arr_len)); // Do I really need NULL?
 
   if (content == NULL) {
@@ -388,7 +363,6 @@ void op_array2(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t dest_index = next_byte(bytecode, pc_ptr);
   uint8_t arr_start_index = next_byte(bytecode, pc_ptr);
   uint8_t arr_len = next_byte(bytecode, pc_ptr);
-  check_reg_idx(arr_start_index + arr_len, vm->ireps[0].nregs);
   mrbz_val* content = (mrbz_val*)malloc(sizeof(mrbz_val) * (arr_len+1)); // add one for the NULL
 
   if (content == NULL) {
@@ -434,7 +408,6 @@ void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
 
 void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
 
   uint8_t pool_index = next_byte(bytecode, pc_ptr);
   void* pool_entry_base = mrbz_irep_pool_entry_ptr(&(vm->ireps[0]), pool_index);
@@ -509,7 +482,6 @@ void op_eq(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // TODO: generic object support
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  check_reg_idx(reg_index, vm->ireps[0].nregs);
   // Only supports integer for now
   if(vm->regs[reg_index].type == T_INT && vm->regs[reg_index+1].type == T_INT) {
     // TODO: handle freeing... GCing...
@@ -769,7 +741,7 @@ void op_ssend(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
     // vm->current_irep = callee_irep_index;
     // *pc_ptr = vm->ireps[mthd_irep_idx].iseq - bytecode;
     *pc_ptr = vm->ireps[callee_irep_idx].iseq - bytecode;
-    // debug_out("pc destination is %d\n", *pc_ptr);
+    debug_out("pc destination is %d\n", *pc_ptr);
   }
 }
 
@@ -788,6 +760,8 @@ void op_enter(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 
   // check the register count does not exceed max
   uint8_t regs_required = vm->frames[vm->frame_top].reg_base_idx + vm->ireps[vm->frames[vm->frame_top].irep_idx].nregs;
+  debug_out("reg_base_idx: %d, nregs: %d\n", vm->frames[vm->frame_top].reg_base_idx, vm->ireps[vm->frames[vm->frame_top].irep_idx].nregs);
+  debug_out("regs_required: %d\n", regs_required);
   if(regs_required >= MRBZ_REGS_MAX) {
     printf("Too many registers required: %d, max: %d\r", regs_required, MRBZ_REGS_MAX);
     exit(-1);
