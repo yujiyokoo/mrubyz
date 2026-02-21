@@ -10,15 +10,14 @@ while true
   bullet_x = nil
   bullet_y = nil
   bullet_type = 0
+  enemy_bullet_x = nil
+  enemy_bullet_y = nil
 
   clear_screen
-  game_on = true
+  player_hit = enemy_hit = false
 
-  while game_on
+  while !player_hit && !enemy_hit
     init_sprites
-
-    put_sprite(player_x* 8, 22 * 8, 1)
-    put_sprite(enemy_x * 8, enemy_y * 8, 2)
 
     btns = read_buttons
 
@@ -43,7 +42,7 @@ while true
     if bullet_x && bullet_y
       if bullet_y == enemy_y && (bullet_x == enemy_x || (bullet_type == 1 && (enemy_x == bullet_x - 1 || enemy_x == bullet_x + 1)))
         put_sprite(enemy_x * 8, enemy_y * 8, 4)
-        game_on = false
+        enemy_hit = true
       elsif bullet_y > -1
         put_sprite(bullet_x * 8, bullet_y * 8, 3)
         if bullet_type == 1
@@ -52,6 +51,21 @@ while true
         end
       end
     end
+
+    if enemy_bullet_x && enemy_bullet_y
+      if enemy_bullet_y == 22 && (enemy_bullet_x == player_x)
+        put_sprite(player_x * 8, 22 * 8, 4)
+        player_hit = true
+      elsif 24 > enemy_bullet_y
+        put_sprite(enemy_bullet_x * 8, enemy_bullet_y * 8, 3)
+      end
+    else
+      enemy_bullet_x = enemy_x
+      enemy_bullet_y = enemy_y + 1
+    end
+
+    put_sprite(player_x* 8, 22 * 8, 1) unless player_hit
+    put_sprite(enemy_x * 8, enemy_y * 8, 2) unless enemy_hit
 
     prev_btns = btns
 
@@ -73,7 +87,7 @@ while true
 
     enemy_wait -= 1
     if enemy_wait == 0
-      enemy_x += enemy_direction if game_on
+      enemy_x += enemy_direction if !player_hit && !enemy_hit
       enemy_wait = 3
     end
 
@@ -85,26 +99,28 @@ while true
       end
     end
 
+    if enemy_bullet_x && enemy_bullet_y
+      if enemy_bullet_y == 24
+        enemy_bullet_x = enemy_bullet_y = nil
+      else
+        enemy_bullet_y += 1
+      end
+    end
+
 		sfx_update
     wait_vblank
     render_sprites
   end
 
-  # redraw screen when finished
-  init_sprites
-  put_sprite(player_x * 8, 22 * 8, 1)
-  put_sprite(enemy_x * 8, enemy_y * 8, 4)
-  wait_vblank
-  render_sprites
 	play_end_sfx
 
   gotoxy(7, 11)
   puts "Press A to restart"
 
-  while !game_on
+  while player_hit || enemy_hit
     btns = read_buttons
     if btns & 0x10 == 0 && prev_btns & 0x10 != 0
-      game_on = true
+      player_hit = enemy_hit = false
     end
     prev_btns = btns
     player_x = 15
