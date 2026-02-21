@@ -410,7 +410,7 @@ void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
 
   uint8_t pool_index = next_byte(bytecode, pc_ptr);
-  void* pool_entry_base = mrbz_irep_pool_entry_ptr(&(vm->ireps[0]), pool_index);
+  void* pool_entry_base = mrbz_irep_pool_entry_ptr(&(vm->ireps[vm->frames[vm->frame_top].irep_idx]), pool_index);
   vm->regs[reg_index].type = T_STRING;
 
   // TODO: Add length to mrbz value, and copy length
