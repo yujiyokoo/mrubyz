@@ -26,7 +26,7 @@ while true
         bullet_x = player_x
         bullet_y = 21
         bullet_type = 0
-        start_shoot_sfx
+        start_sfx2
       end
     end
 
@@ -35,7 +35,7 @@ while true
         bullet_x = player_x
         bullet_y = 21
         bullet_type = 1
-        start_shoot_sfx
+        start_sfx2
       end
     end
 
@@ -62,6 +62,7 @@ while true
     else
       enemy_bullet_x = enemy_x
       enemy_bullet_y = enemy_y + 1
+      start_sfx1
     end
 
     put_sprite(player_x* 8, 22 * 8, 1) unless player_hit

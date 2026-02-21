@@ -66,26 +66,44 @@ __sfr __at 0x7F PSGPort;
 #define PSG_setNoise(type, freq)  (PSGPort = 0xE0 | ((type & 1) << 2) | (freq & 0x3))
 
 // Sound state
-int sfx_freq;
-unsigned char sfx_active;
+int sfx2_freq;
+unsigned char sfx2_active;
+int sfx1_freq;
+unsigned char sfx1_active;
 
-void start_shoot_sfx() {
-		sfx_freq = 40;
-		sfx_active = 1;
+void start_sfx1() {
+  sfx1_freq = 500;
+  sfx1_active = 1;
+}
+
+void start_sfx2() {
+		sfx2_freq = 40;
+		sfx2_active = 1;
 }
 
 void sfx_update() {
-	if (!sfx_active) return;
+	if(sfx2_active) {
+    set_sound_freq(2, sfx2_freq);
+    PSG_setVolume(2, 0);
 
-	set_sound_freq(2, sfx_freq);
-	PSG_setVolume(2, 0);
+    sfx2_freq += 20;
 
-	sfx_freq += 20;
+    if (sfx2_freq >= 120) {
+      PSG_setVolume(2, 15);
+      sfx2_active = 0;
+    }
+  }
+  if(sfx1_active) {
+    set_sound_freq(1, sfx1_freq);
+    PSG_setVolume(1, 0);
 
-	if (sfx_freq >= 120) {
-		PSG_setVolume(2, 15);
-		sfx_active = 0;
-	}
+    sfx1_freq -= 180;
+
+    if (sfx1_freq <= 100) {
+      PSG_setVolume(1, 15);
+      sfx1_active = 0;
+    }
+  }
 }
 
 void play_end_sfx() {
@@ -667,8 +685,10 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     SMS_finalizeSprites();
     SMS_copySpritestoSAT();
     vm->regs[reg_index].type = T_NIL;
-  } else if (!strcmp(sym, "start_shoot_sfx")) {
-    start_shoot_sfx();
+  } else if (!strcmp(sym, "start_sfx2")) {
+    start_sfx2();
+  } else if (!strcmp(sym, "start_sfx1")) {
+    start_sfx1();
   } else if (!strcmp(sym, "sfx_update")) {
 		sfx_update();
   } else if (!strcmp(sym, "play_end_sfx")) {
