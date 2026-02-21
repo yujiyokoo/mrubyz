@@ -1059,6 +1059,8 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case T_TRUE:
       case T_FALSE:
         // these types don't have values - only types. Fall through
+      case T_ARRAY:
+        rval->u.arrval = retval->u.arrval;
       default:
         // FIXME: unknown / unhandled type
         break;
