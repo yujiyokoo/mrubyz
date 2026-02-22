@@ -77,12 +77,12 @@ void start_sfx1() {
 }
 
 void start_sfx2() {
-		sfx2_freq = 40;
-		sfx2_active = 1;
+    sfx2_freq = 40;
+    sfx2_active = 1;
 }
 
 void sfx_update() {
-	if(sfx2_active) {
+  if(sfx2_active) {
     set_sound_freq(2, sfx2_freq);
     PSG_setVolume(2, 0);
 
@@ -107,11 +107,16 @@ void sfx_update() {
 }
 
 void play_end_sfx() {
+  PSG_setVolume(1, 15); // stop enemy sound
+  PSG_setVolume(2, 15); // stop player sound
   PSG_setNoise(1, 2);
   PSG_setVolume(3, 0);  // 0 = loudest
   for (int i = 0; i < 20; i++) wait_vblank_noint();
   PSG_setVolume(3, 15); // 15 = silent
 }
+
+// Scroll state
+uint8_t scroll_y = 0;
 
 __sfr __at 0xDC io_port_dc;
 
@@ -669,6 +674,22 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     vm->regs[reg_index].u.intval = 5;
   } else if (!strcmp(sym, "clear_screen")) {
     SMS_VRAMmemset(0x3800, 0x00, 32*28*2);
+
+    // TODO: this is demo05's bg. Should live somewhere else
+    int row_data[32];
+    srand(123);
+    for(uint8_t y = 0; y < 28; y++) {
+      for (uint8_t x = 0; x < 32; x++) {
+        if (rand() % 13 == 0) {
+          // make the 4 less likely
+          row_data[x] = 201 + (rand() % 4 + rand() % 4) / 2;
+        } else {
+          row_data[x] = 0; // empty
+        }
+      }
+      set_bkg_map(row_data, 0, y, 32, 1);
+      scroll_bkg(0, 0);
+    }
   } else if (!strcmp(sym, "wait_vblank")) {
     // XXX: SMS_waitForVBlank() does not seem to work?
     wait_vblank_noint();
@@ -685,14 +706,19 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     SMS_finalizeSprites();
     SMS_copySpritestoSAT();
     vm->regs[reg_index].type = T_NIL;
+  } else if (!strcmp(sym, "bg_scroll")) {
+    scroll_y -= 1;
+    scroll_bkg(0, scroll_y);
+  } else if (!strcmp(sym, "bg_reset")) {
+    scroll_bkg(0, 0);
   } else if (!strcmp(sym, "start_sfx2")) {
     start_sfx2();
   } else if (!strcmp(sym, "start_sfx1")) {
     start_sfx1();
   } else if (!strcmp(sym, "sfx_update")) {
-		sfx_update();
+    sfx_update();
   } else if (!strcmp(sym, "play_end_sfx")) {
-		play_end_sfx();
+    play_end_sfx();
   } else {
     // not handled by this built-in only function. Returning 0
     rval = 0;
@@ -1028,10 +1054,10 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       {
         uint8_t reg_index = next_byte(bytecode, &pc);
         // check if we're at root frame
-				if (vm->frame_top == 0) {
+        if (vm->frame_top == 0) {
           retval = &vm->regs[reg_index];
           exiting = 1;
-				} else {
+        } else {
           vm->regs[0] = vm->regs[reg_index];
           uint16_t regs_base = vm->frames[vm->frame_top].reg_base_idx;
           pc = vm->frames[vm->frame_top].return_pc;

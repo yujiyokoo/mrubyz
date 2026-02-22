@@ -108,12 +108,15 @@ while true
       end
     end
 
-		sfx_update
+    sfx_update
     wait_vblank
     render_sprites
+    bg_scroll
   end
 
-	play_end_sfx
+  play_end_sfx
+  wait_vblank
+  bg_reset
 
   gotoxy(7, 11)
   puts "Press A to restart"
