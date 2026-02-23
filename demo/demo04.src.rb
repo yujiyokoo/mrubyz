@@ -1,3 +1,18 @@
+# Title screen
+prev_btns = 0xFF
+waiting = true
+show_title_page
+while waiting
+  btns = read_buttons
+  # Check A button
+  if btns & 0x10 == 0 && prev_btns & 0x10 != 0
+    waiting = false
+  end
+  prev_btns = btns
+end
+
+
+# Main presentation
 i = 0
 prev_btns = 0xFF
 while true

@@ -7,6 +7,9 @@
 #include <string.h>
 #include <stdarg.h>
 
+// FIXME: Hack to just get it working! Remove!
+extern const unsigned char logo_map[];
+
 // Conditional (only in debug builds)
 #ifdef DEBUG
 #  define debug_out(...) do { printf(__VA_ARGS__); } while(0)
@@ -674,7 +677,7 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     vm->regs[reg_index].u.intval = 5;
   } else if (!strcmp(sym, "clear_screen")) {
     SMS_VRAMmemset(0x3800, 0x00, 32*28*2);
-
+  } else if (!strcmp(sym, "set_background")) {
     // TODO: this is demo05's bg. Should live somewhere else
     int row_data[32];
     srand(123);
@@ -690,6 +693,9 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
       set_bkg_map(row_data, 0, y, 32, 1);
       scroll_bkg(0, 0);
     }
+  } else if (!strcmp(sym, "show_title_page")) {
+    // TODO: this is demo04's title. Should live somewhere else
+    set_bkg_map(logo_map, 1, 2, 30, 14);
   } else if (!strcmp(sym, "wait_vblank")) {
     // XXX: SMS_waitForVBlank() does not seem to work?
     wait_vblank_noint();
