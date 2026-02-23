@@ -14,6 +14,7 @@ while true
   enemy_bullet_y = nil
 
   clear_screen
+  set_background
   player_hit = enemy_hit = false
 
   while !player_hit && !enemy_hit
