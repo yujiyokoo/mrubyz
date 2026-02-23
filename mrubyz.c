@@ -614,6 +614,21 @@ void dispatch_int_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, con
   }
 }
 
+void dispatch_str_method(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, const char *sym, uint8_t arg_count) {
+  if (!strcmp(sym, "eql?")) {
+    if(vm->regs[reg_index + 1].type == T_STRING && strcmp(vm->regs[reg_index].u.strval, vm->regs[reg_index + 1].u.strval) == 0){
+      vm->regs[reg_index].type = T_TRUE;
+      return;
+    }
+    vm->regs[reg_index].u.intval = receiver->u.intval & vm->regs[reg_index + 1].u.intval;
+
+    vm->regs[reg_index].type = T_FALSE;
+  } else {
+    printf("Unknown string method: %s\r", sym);
+    exit(-1);
+  }
+}
+
 // special case for bang (!)
 void dispatch_bang(mrbz_vm *vm, mrbz_val *receiver, uint8_t reg_index, const char *sym, uint8_t arg_count) {
   if(receiver->type == T_FALSE || receiver->type == T_NIL) {
@@ -651,6 +666,9 @@ void op_send(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
       break;
     case T_INT:
       dispatch_int_method(vm, receiver, reg_index, sym, arg_count);
+      break;
+    case T_STRING:
+      dispatch_str_method(vm, receiver, reg_index, sym, arg_count);
       break;
     default:
       printf("OP_SEND not supported for type %d\r", receiver->type);
