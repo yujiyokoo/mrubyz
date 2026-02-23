@@ -9,6 +9,8 @@
 
 // FIXME: Hack to just get it working! Remove!
 extern const unsigned char logo_map[];
+extern const unsigned char pal1[];
+extern const unsigned char pal2[];
 
 // Conditional (only in debug builds)
 #ifdef DEBUG
@@ -657,12 +659,23 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
       fprintf(stdout, "%d", vm->regs[reg_index+1].u.intval);
     }
     vm->regs[reg_index].type = T_NIL; // Use reg[reg_index] for return
+  } else if (!strcmp(sym, "txt_col")) {
+    if(arg_count != 1) {
+      printf("Unexpected argument count for txt_col\r");
+      exit(-1);
+    }
+    uint8_t i = vm->regs[reg_index + 1].u.intval;
+    if(i == 0) {
+      SMS_loadBGPalette(pal1);
+    } else {
+      SMS_loadBGPalette(pal2);
+    }
   } else if (!strcmp(sym, "read_buttons")) {
     vm->regs[reg_index].type = T_INT;
     vm->regs[reg_index].u.intval = io_port_dc;
   } else if (!strcmp(sym, "gotoxy")) {
     if(arg_count != 2) {
-      printf("Unexpected argument count\r");
+      printf("Unexpected argument count for gotoxy\r");
       exit(-1);
     }
     uint8_t x = vm->regs[reg_index + 1].u.intval;

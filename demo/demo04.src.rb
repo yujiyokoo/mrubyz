@@ -11,7 +11,6 @@ while waiting
   prev_btns = btns
 end
 
-
 # Main presentation
 i = 0
 prev_btns = 0xFF
