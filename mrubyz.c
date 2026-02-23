@@ -64,6 +64,22 @@ static void set_sound_freq(uint16_t a, uint16_t b) {
   debug_out("set_sound_freq() called, but this is not SMS\n");
 }
 
+static void scroll_bkg(void* a, void* b) {
+  debug_out("scroll_bkg() called, but this is not SMS\n");
+}
+
+static void set_bkg_map(void* a, void* b, void* c, void* d, void* e) {
+  debug_out("set_bkg_map() called, but this is not SMS\n");
+}
+
+static void SMS_loadBGPalette(void* a) {
+  debug_out("SMS_loadBGPalette() called, but this is not SMS\n");
+}
+
+const unsigned char logo_map[] = {};
+const unsigned char pal1[] = {};
+const unsigned char pal2[] = {};
+
 #endif
 
 __sfr __at 0x7F PSGPort;
