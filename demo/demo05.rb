@@ -66,7 +66,7 @@ while true
       start_sfx1
     end
 
-    put_sprite(player_x* 8, 22 * 8, 1) unless player_hit
+    put_sprite(player_x * 8, 22 * 8, 1) unless player_hit
     put_sprite(enemy_x * 8, enemy_y * 8, 2) unless enemy_hit
 
     prev_btns = btns
