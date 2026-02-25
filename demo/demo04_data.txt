@@ -20,6 +20,9 @@
   * Running on mrubyz VM
 :
   * Text only
+:-colour1-
+:
+  * Text colour (whole page)
 
 :---  Who is this?
 :
