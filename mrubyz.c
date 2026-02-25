@@ -28,10 +28,14 @@ extern const unsigned char pal2[];
 #ifdef __SMS__
 #  include <sms.h>
 #  include <SMSlib.h>
+
+extern volatile uint16_t timer;
 #endif
 
 // TODO: Put it in another file, like compat.h?
 #ifndef __SMS__
+uint16_t timer = 0;
+
 static void gotoxy(uint8_t x, uint8_t y) {
   debug_out("gotoxy(%d, %d) called, but this is not SMS\n", x, y);
 }
@@ -68,7 +72,7 @@ static void scroll_bkg(void* a, void* b) {
   debug_out("scroll_bkg() called, but this is not SMS\n");
 }
 
-static void set_bkg_map(void* a, void* b, void* c, void* d, void* e) {
+static void set_bkg_map(const unsigned char* a, void* b, void* c, void* d, void* e) {
   debug_out("set_bkg_map() called, but this is not SMS\n");
 }
 
@@ -360,7 +364,7 @@ void op_mul(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   // register(a)'s intval + register(a+1)'s intval in register(a)
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
-  //debug_out("dividing. reg %d by %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].intval, vm->regs[reg_index + 1].intval);
+  // debug_out("dividing. reg %d by %d, types are %d and %d, values are %d and %d\n", reg_index, reg_index + 1, vm->regs[reg_index].type, vm->regs[reg_index + 1].type, vm->regs[reg_index].u.intval, vm->regs[reg_index + 1].u.intval);
   vm->regs[reg_index].u.intval /= vm->regs[reg_index + 1].u.intval;
 }
 
@@ -535,7 +539,7 @@ void op_gt(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
       vm->regs[reg_index].type = T_FALSE;
     }
   } else {
-    printf("non-integer comparison not supported\r");
+    printf("non-integer comparison (%d and %d) not supported\r", vm->regs[reg_index].type, vm->regs[reg_index+1].type);
     exit(-1);
   }
 }
@@ -747,6 +751,7 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     // XXX: SMS_waitForVBlank() does not seem to work?
     wait_vblank_noint();
   } else if (!strcmp(sym, "put_sprite")) {
+    // resolution and sprite index never go above 255. So uint8_t is fine
     uint8_t x = vm->regs[reg_index + 1].u.intval;
     uint8_t y = vm->regs[reg_index + 2].u.intval;
     uint8_t tile = vm->regs[reg_index + 3].u.intval;
@@ -772,6 +777,12 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     sfx_update();
   } else if (!strcmp(sym, "play_end_sfx")) {
     play_end_sfx();
+  } else if (!strcmp(sym, "system_timer")) {
+    vm->regs[reg_index].type = T_INT;
+    vm->regs[reg_index].u.intval = timer;
+  } else if (!strcmp(sym, "dbg")) {
+		printf("type is: %d\r", vm->regs[reg_index].type);
+		printf("intval is: %d\r", vm->regs[reg_index].u.intval);
   } else {
     // not handled by this built-in only function. Returning 0
     rval = 0;
