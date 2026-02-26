@@ -7,3 +7,6 @@
 *.ruby.c
 /tests/ruby/*.mrb
 /demo/*.mrb
+/demo/demo04.rb
+/encoding_map.rb
+/font_data.h
