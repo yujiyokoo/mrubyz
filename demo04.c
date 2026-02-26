@@ -4,6 +4,7 @@
 #include "mrubyz.h"
 #include "logo_tiles.h"
 #include "logo_map.h"
+#include "font_data.h"
 
 long _heap;
 
@@ -42,7 +43,7 @@ void main() {
   sbrk(&_heap, 4096);  // Register 4KB starting at _heap
 
   SMS_VRAMmemset(0x0000, 0x00, 16384);
-  load_tiles(standard_font, 0, 255, 1);
+  load_tiles(demo04_font, 1, DEMO04_FONT_TILE_COUNT, 1);
   load_tiles(logo_tiles, 256, 114, 4);
   SMS_loadBGPalette(pal1);
   SMS_loadSpritePalette(pal2);
@@ -55,8 +56,6 @@ void main() {
   SMS_copySpritestoSAT();
 
   SMS_displayOn();
-
-  printf("presentation demo\r");
 
   mrbz_val v;
   mrbz_vm vm;

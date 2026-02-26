@@ -23,6 +23,8 @@
 :-colour1-
 :
   * Text colour (whole page)
+:
+  * 日本語サポート！
 
 :---  Who is this?
 :
