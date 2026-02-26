@@ -746,7 +746,7 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     }
   } else if (!strcmp(sym, "show_title_page")) {
     // TODO: this is demo04's title. Should live somewhere else
-    set_bkg_map(logo_map, 1, 2, 30, 14);
+    set_bkg_map(logo_map, 5, 3, 22, 12);
   } else if (!strcmp(sym, "wait_vblank")) {
     // XXX: SMS_waitForVBlank() does not seem to work?
     wait_vblank_noint();
