@@ -2,6 +2,7 @@
 #include <sms.h>
 #include <stdio.h>
 #include "mrubyz.h"
+#include "logo_map.h"
 
 long _heap;
 
@@ -131,6 +132,8 @@ void main() {
   SMS_loadTiles(enemy_tile, 258, 32);
   SMS_loadTiles(bullet_tile, 259, 32);
   SMS_loadTiles(explosion_tile, 260, 32);
+  SMS_loadTiles(player_tile_A, 261, 32);
+  SMS_loadTiles(enemy_tile_V, 262, 32);
   load_tiles(bg_tiles, 201, 4, 4);
 
   SMS_displayOn();
