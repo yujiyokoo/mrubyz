@@ -64,18 +64,15 @@ while true
     if btns & 0x10 == 0 && prev_btns & 0x10 != 0
       # Don't try to display if we've gone past the end
       # We just wanted to wait for the keypress
-
-      # handle special commands
-      if pres_data[i].size > j && pres_data[i][j].eql?("-colour1-\r")
-        txt_col(1)
-        j += 1
-      elsif pres_data[i].size > j && pres_data[i][j].eql?("-colour0-\r")
-        txt_col(0)
-        j += 1
-      end
-
       puts pres_data[i][j] if pres_data[i].size > j
       j += 1
+    end
+
+    # If Up pressed
+    if btns & 0x01 == 0
+      txt_col(1)
+    else
+      txt_col(0)
     end
 
     # B button
