@@ -1,4 +1,3 @@
-# Title screen
 prev_btns = 0xFF
 waiting = true
 show_title_page
@@ -31,6 +30,8 @@ def render_time_progress(current_s)
   x = 31 if x > 31
 
   put_sprite x * 8, 23 * 8, 190
+
+  current_s
 end
 
 # Main presentation
@@ -46,7 +47,7 @@ while true
   init_sprites
 
   render_page_progress(i, pres_data.size)
-  render_time_progress(current_secs)
+  current_secs = render_time_progress(current_secs)
 
   wait_vblank
   render_sprites
