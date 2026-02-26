@@ -62,8 +62,8 @@ if __FILE__ == $0
     # Encode all display strings; pass command strings through as raw ASCII
     encoded_pages = pages.map do |page|
       page.map do |item|
-        if Converter.command_string?(item)
-          item.inspect  # emit as a normal Ruby string literal
+        if Converter.command_string?(item.strip)
+          (item.strip + "\r").inspect  # emit as a normal Ruby string literal
         else
           Converter.format_string(Converter.encode_string(item))
         end
