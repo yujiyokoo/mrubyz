@@ -56,6 +56,7 @@ void main() {
   SMS_copySpritestoSAT();
 
   SMS_displayOn();
+  SMS_setBackdropColor(0);
 
   mrbz_val v;
   mrbz_vm vm;

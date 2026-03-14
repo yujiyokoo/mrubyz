@@ -137,6 +137,7 @@ void main() {
   load_tiles(bg_tiles, 201, 4, 4);
 
   SMS_displayOn();
+  SMS_setBackdropColor(0);
 
   printf("game demo\r");
 
