@@ -50,9 +50,9 @@ if __FILE__ == $0
     current_page = []
 
     items.each do |item|
-      if item.start_with?("---")
+      if item.start_with?("=")
         pages.push current_page unless current_page.empty?
-        current_page = [item.sub(/^---/, "")]
+        current_page = [item.sub(/^=/, "")]
       else
         current_page.push(item)
       end
