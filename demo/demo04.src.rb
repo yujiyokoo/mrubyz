@@ -16,40 +16,32 @@ def render_page_progress(idx, total)
   put_sprite x, 23 * 8, 191
 end
 
-def render_time_progress(current_s)
-  total_s = 25 * 60 # 25 min
-  timer_s = system_timer / 60
+def render_time_progress(start_time)
+  secs_per_tile = 1500 / 31 # 25 min
+  timer_s = system_timer
   # NOTE: This only supports 2 laps of the timer (16 bit)
-  current_s = if current_s > timer_s # timer wrapped after 65535
-    timer_s + 1092 # approximate. Wrong by 0.25
-  else
-    timer_s
-  end
 
-  x = current_s * 31 / total_s
+  x = (timer_s - start_time) / secs_per_tile
   x = 31 if x > 31
 
   put_sprite x * 8, 23 * 8, 190
-
-  current_s
 end
 
 # Main presentation
 i = 0
 prev_btns = 0xFF
-current_secs = 0
+start_time = system_timer
 while true
   j = 0
-  clear_screen
-  gotoxy(0, 0)
-  txt_col(0) # change the colour back in case it's changed
-
   init_sprites
 
   render_page_progress(i, pres_data.size)
-  current_secs = render_time_progress(current_secs)
+  render_time_progress(start_time)
+  gotoxy(0, 0)
 
   wait_vblank
+  clear_screen
+  txt_col(0) # change the colour back in case it's changed
   render_sprites
 
   # draw first paragraph
@@ -57,6 +49,7 @@ while true
   j += 1
 
   going_back = false
+  current_col = 0
   # + 1 since we want to wait for keypress after last sentence
   while pres_data[i].size + 1 > j
     btns = read_buttons
@@ -70,9 +63,15 @@ while true
 
     # If Up pressed
     if btns & 0x01 == 0
-      txt_col(1)
+      if current_col != 1
+        txt_col(1)
+        current_col = 1
+      end
     else
-      txt_col(0)
+      if current_col != 0
+        txt_col(0)
+        current_col = 0
+      end
     end
 
     # B button

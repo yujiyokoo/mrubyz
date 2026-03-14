@@ -1,35 +1,45 @@
-:---
+:=
 
-   mrubyz, a minimal mruby VM
+   mruby in the 8 bit world:
 
-      for Zilog Z80
+     mruby VM on Zilog Z80
+
+
+   Fukuoka Rubyist Kaigi 05
 
 
      - Yuji Yokoo, 2026
 
 
+
      Press A to start
 
-:---  About this app
+:= About this app
+:
+  * Running on mrubyz VM
+:
+  * Text + some images
+:
+  * Text colour (whole page)
 :
   * demo04
 :    (SMSPresent)
 :
   * Live demo
-:
-  * Running on mrubyz VM
-:
-  * Text only
-:
-  * Text colour (whole page)
-:
-  * 日本語サポート！
 
-:---  Who is this?
+:= New feature!
+:
+
+
+  * 日本語サポート! <- NEW!
+
+:= About me
 :
   Yuji Yokoo
 :
-    based in Tokyo, Japan
+  Based in Tokyo, Japan
+:
+  ko.rb
 :
   Fediverse
 :
@@ -37,51 +47,56 @@
 :
   Programmer @ CipherStash
 
-:---  What is this project about???
+:= ここまでの流れ
+:
+  * 2025年前半何も考えず引き受ける
+:
+  * NZでmrubyzの開発を開始
+:    mruby on Z80
+:
+  * 2026年1月 タイで発表
+:    本邦初公開!
+
+:= What is this project about???
 :
 
-  Running mruby bytecode
 
-    on a VM for Zilog Z80
+  mrubyのバイトコードを
+
+    Z80上に実装したVMで実行
 
 
 
   URL: https://codeberg.org/
             yujiyokoo/mrubyz
 
-:---  What is mruby?
+:= What is mruby?
 :
-  * smaller, embeddable
-    Ruby implementation
+  * 組み込み向きの小さなRuby実装
 
 :
-  * integrates well with C and
-    other languages
-:
-  * suitable for small
-    environments
+  * 小さな環境でも動く
 
-:---  What is Ruby VM
+:= Ruby VM
 :
   * Virtual Machine
     a machine inside a machine
+    "仮想"マシン
 :
-  * When Ruby is run, the
-    source is compiled into
-    VM instructions first
+  * Ruby source is compiled
+    into bytecode first
 :
   * The VM runs the bytecode
 
-:---  What is bytecode?
+:= What is bytecode?
 :
   * VM instructions
 :
-  * Simple instructions
+  * シンプルなインストラクション
 :
-  * Register-level ops
-    for mruby
+  * mrubyはレジスタまわりのインストラクションが多い
 
-:---  Bytecode example
+:= Bytecodeの例
 
   Ruby:
 :
@@ -95,21 +110,18 @@
   1 006 RETURN     R1
   1 008 STOP
 
-:---  Bytecode usage
-:  mrbc can produce bytecode
-  in C-compatible integer array
+:= Bytecode usage
+:  mrbcはC用ヘッダーのアウトプット可
 :  const uint8_t eq_int[] = {
 
     0x52,0x49,0x54,0x45,0x30,
 
     0x33,0x30,0x30,0x00,0x00,
 
-    0x00,0x45,0x4d,0x41,0x54,
 ...
-:  include in your C source
-:  read from your vm
+:  Cで実装したVMから読み込んで実行
 
-:---  What is mruby/c
+:= What is mruby/c
 :
   * Smaller mruby, VM-only
 :
@@ -119,83 +131,66 @@
   * Inspiration for
     mrubyz
 
-:---  What is Z80?
+:= What is Z80?
 :
-  * Popular processor from the
-    80s
+  * 8-bit CPU
 :
-  * Primarily 8-bit
+  * 1976年-2024年
 :
-  * Used for many platforms
+  * 多様なプラットフォーム
 
     * Sega Master System
 
     * Sega Game Gear
 
-    * Sinclair ZX Spectrum
+    * MSX
 
     * Many more
 
-:---  What is Master System?
+:= Master System?
 :
-  * Sega's Z80 console
+  * Sega Z80 コンソール, マークIII互換
 :
-  * Z80 at 3.5MHz
+  * Z80 at 3.5Mhz
 :
   * 8KB RAM
-    * with 64KB space
-    * 32KB ROM without bank
-      switching
+    * 64KB アドレススペース
+    * 32KB ROM (バンク切り替えもあり)
 :
   * 16KB VRAM, 256x192px
-    Tiles, sprites, and palettes
+    Tiles, sprites, palettes
 :
-  * Mega Drive can run
-    Master System games
+  * Mega DriveはMaster System互換
 
-:---  What is this project about???
+:= What is this project about???
 :
 
-  Running mruby bytecode
+  mrubyのバイトコードを
 
-    on a VM for Zilog Z80
+    Z80上に実装したVMで実行
 
 
-
-  URL: https://codeberg.org/
-            yujiyokoo/mrubyz
-
-:---  What is a 'minimal' VM?
+:= 何故自前で実装するのか
 :
-  A program that reads and
-
-  executes bytecode
+  * Z80はgccもclangもない
 :
-  (a small subset of it)
-:
-  No performance consideration
-
-:---  Why write your own?
-:
-  I wanted to run mruby code
-:
-  Couldn't build mruby/c
-:
-  No gcc or clang.
-
-  Using z88dk
-    zcc frontend,
+  * z88dk, zcc (frontend),
     with sdcc or sccz80
-
-:---  Why write your own?
 :
-  Rather than starting with a
-  big project with possibly
-  many bugs I can introduce,
-  start small
-:  with fewer bugs and features
+  mruby/cなどを大きく変えて何がどう壊れるか
+  わからないし動くかもわからないなら
+:  自分でゼロから実装した方が簡単かも
 
-:---  Existing work on 8-bit
+:=
+
+
+
+
+
+
+             簡単ではない
+
+:= Existing work on 8-bit
 :
  micro mruby
 
@@ -212,7 +207,7 @@
  https://github.com/
     khasinski/ruby-gameboy
 
-:---  What is supported in this VM?
+:= 実装されている機能
 
 :  * Built-in functions
 :  * Assignment
@@ -223,39 +218,28 @@
 :  * equality comparison
 :  * greater than (>)
 :  * arrays
+:  * functions <- NEW!
 :  * Many more!
 
-:---  What is not supported?
+:= 未実装なものなど
 :  * most things
 :  * less than (<), etc.
 :  * garbage collection
 :  * string manipulation
     (data stays in ROM)
 :  * exceptions
-:unsupported instruction: 0x12
-OP: OP_MODULE     = 0x5D
-
-:---  What is not supported?
-
-  * most things
-
-  * less than (<), etc.
-
-  * garbage collection
-
-  * string manipulation
-    (data stays in ROM)
-
-  * exceptions
-:  * classes
+:  * classes / modules
 :  * procs
-:  * function definitions
-    (coming soon!)
 :  * lots more!
 
-:---  What can be written?
+
+:=
+unsupported instruction: 0x12
+OP: OP_MODULE     = 0x5D
+
+:= それで何ができるか
 :
-  This presentation tool!
+  このプレゼンテーションなど小さなプログラム
 :
   i = 0
 
@@ -271,75 +255,105 @@ OP: OP_MODULE     = 0x5D
 
   end
 
-:---  What's the dev process like?
+:= Iterative development
 :
-  * Write some Ruby
+  * Rubyコードを書く
 :
-  * use mrbc to generate
-    bytecode
+  * mrbcでバイトコードにコンパイル
 :
-  * load it and run
-    see it crash
+  * 実行してエラーを出す
 :
-  * add support, or give up
+  * 実装またはwork around
 
-:---  Limitations and challenges
+:= Limitations and challenges
 :
-  * Limited memory
-    Reduce allocation
+  * RAMが少ない
+    アロケーションを少なく!
 :
-  * Docs are hard to find
+  * 32-bitサポートがない
 :
-  * No native 32-bit int
-:
-  * VM bug, or app bug???
+  * VMとアプリケーションの問題の切り分け
 :
   * Slow, but not unusable
 
-:---  Demo game
+:= タイマー実装
 :
-  ...or, summary before that
+  * 時計がない
+:
+  * z88dkはvsyncのカウントをしてくれている
+    1秒につき60
+:  * 16ビットしかないので65535まで
+:    つまり約1092秒で0秒に
+:
+  * floatがない
+    * 19 / 25 * 31
+      floatを使うと23.56,整数なら0
+:    * 19 * 100 / 25 * 31 / 100
+     これなら整数で23
+: * vmがuint16_tを扱えない
 
-:---  Summary
+:= 日本語サポート
 :
-  * even a small subset of Ruby
-    can be used to write useful
-    apps
+  * すべての文字はタイルである
 :
-    "useful" may depend on
-    your perspective
+  * 448 tiles -> 9 bit!
+    8bitでエンコードすると256文字
 :
-  * Conscious decisions about
-    what not to support helps
+  * 使う文字だけROMに入れたい
 :
-  * Writing your own VM is not
-    that hard
+  * カスタムエンコーディング
 :
-    What is "VM" here may be
-    loosely defined here
+  * Cからのエラーメッセージは
+    コンパイルし直さないと読めない
+:
+  * 変換ツールをCoding Agentに書いてもらった
+:
+  * 文字種が256種を超えた
 
-:---  Summary
+:= Summary
 :
-    You can make any platform
-    support mruby by making
-    your own VM
+  * Rubyの小さなサブセットでも実用にはなる
+:
+    "実用"とは?
+:
+  * 小さくキープするには
+       何を作らないかが大切
+:
+  * 自作VMはそこまで難しくない
+:
+    機能にそこまでこだわりがなければ
 
-:---  Summary
+:      return 1 + 2
 
-  Go make your own VM!
+:= Summary
+:
+    Rubyが動かないプラットフォームでも
+    自分でmruby VMを作ればRubyが動く
+    プラットフォームになります
 
-:
-  Or, make whatever you want!
-:
-  Never mind the trend!
+:= Summary
 
-:--- Thanks
-:
-  * mruby and mruby/c developers
-:
-  * z88dk, sdcc, SMSLib
-    developers
-:
-  * RubyConf TH
 
-:---  Demo (finally)!
+    自作VMを作りましょう!
+
+:= Thanks & links
+
+* mruby and mruby/c
+  https://mruby.org
+  https://github.com/
+        mrubyc/mrubyc
+
+* z88dk
+  https://z88dk.org/site/
+
+* 美咲フォント
+  https://littlelimit.net/
+        misaki.htm
+
+* 福岡Rubyist会議 05
+
+https://regional.rubykaigi.org/
+        fukuoka05/
+
+
+:= Demo (finally)!
