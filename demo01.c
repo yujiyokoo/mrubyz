@@ -17,6 +17,10 @@ void check_heap() {
   printf("Heap: %u total, %u largest\r", total, largest);
 }
 
+// empty method just to make the build pass. Don't call this
+void show_logo() {
+}
+
 extern const uint8_t bytecode[];
 void main() {
   int y = 0;

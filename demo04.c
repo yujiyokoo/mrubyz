@@ -38,6 +38,12 @@ const unsigned char player_tile[] = {
   0x63, 0x63, 0x63, 0x63
 };
 
+extern const unsigned char logo_map[];
+
+void show_logo() {
+  set_bkg_map(logo_map, 5, 3, 22, 12);
+}
+
 extern const uint8_t demo04_bytecode[];
 void main() {
   sbrk(&_heap, 4096);  // Register 4KB starting at _heap

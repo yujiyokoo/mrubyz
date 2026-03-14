@@ -13,6 +13,9 @@ const unsigned char pal2[] = {0x00, 0x03, 0x08, 0x28, 0x02, 0x22, 0x0A, 0x2A,
 
 const unsigned char my_tile[] = {0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00,0x00};
 
+// empty method just to make the build pass. Don't call this
+void show_logo() {}
+
 extern const uint8_t demo03_bytecode[];
 void main() {
   sbrk(&_heap, 4096);  // Register 4KB starting at _heap

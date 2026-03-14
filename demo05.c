@@ -116,8 +116,10 @@ static const unsigned char bg_tiles[] = {
 	0x00,0x00,0x00,0x00,
 };
 
-extern const uint8_t demo05_bytecode[];
+// empty method just to make the build pass. Don't call this
+void show_logo() {}
 
+extern const uint8_t demo05_bytecode[];
 void main() {
   sbrk(&_heap, 2048);  // Register 2KB starting at _heap
 

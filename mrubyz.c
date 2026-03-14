@@ -7,8 +7,6 @@
 #include <string.h>
 #include <stdarg.h>
 
-// FIXME: Hack to just get it working! Remove!
-extern const unsigned char logo_map[];
 extern const unsigned char pal1[];
 extern const unsigned char pal2[];
 
@@ -30,6 +28,7 @@ extern const unsigned char pal2[];
 #  include <SMSlib.h>
 
 extern volatile uint16_t timer;
+extern void show_logo();
 #endif
 
 // TODO: Put it in another file, like compat.h?
@@ -83,6 +82,10 @@ static void SMS_loadBGPalette(void* a) {
 const unsigned char logo_map[] = {};
 const unsigned char pal1[] = {};
 const unsigned char pal2[] = {};
+
+extern void show_logo() {
+  debug_out("show_logo() called, but not implemented for non-SMS\n");
+}
 
 #endif
 
@@ -745,8 +748,7 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
       scroll_bkg(0, 0);
     }
   } else if (!strcmp(sym, "show_title_page")) {
-    // TODO: this is demo04's title. Should live somewhere else
-    set_bkg_map(logo_map, 5, 3, 22, 12);
+    show_logo();
   } else if (!strcmp(sym, "wait_vblank")) {
     // XXX: SMS_waitForVBlank() does not seem to work?
     wait_vblank_noint();
@@ -778,8 +780,16 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
   } else if (!strcmp(sym, "play_end_sfx")) {
     play_end_sfx();
   } else if (!strcmp(sym, "system_timer")) {
+    // returns vsync based timer in seconds. Off by 0.25s at 1092
+    static uint8_t wrapped = 0;
+    static uint16_t prev_timer = 0;
+    uint16_t curr_timer = timer;
+    if(prev_timer > curr_timer) {
+      wrapped++;
+    }
+    prev_timer = curr_timer;
     vm->regs[reg_index].type = T_INT;
-    vm->regs[reg_index].u.intval = timer;
+    vm->regs[reg_index].u.intval = timer / 60 + wrapped * 1092;
   } else if (!strcmp(sym, "dbg")) {
 		printf("type is: %d\r", vm->regs[reg_index].type);
 		printf("intval is: %d\r", vm->regs[reg_index].u.intval);
