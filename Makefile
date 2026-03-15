@@ -3,7 +3,12 @@ ZCC = docker run --platform linux/amd64 --rm -i -t -v $(PWD):/src z88dk/z88dk zc
 CFLAGS = +sms -vn -m -DAMALLOC
 MRBC = mrbc
 MISAKI_BDF = misaki_gothic.bdf
-FONT8_BIN  = font8.bin
+FONT8_BIN  = FONT8.BIN
+
+# Check for misaki font bdf
+ifeq (,$(wildcard $(MISAKI_BDF)))
+  $(warning WARNING: $(MISAKI_BDF) is missing — demo04 build will fail. Please download the BDF version from https://littlelimit.net/misaki.htm and place $(MISAKI_BDF) in the root directory of this project)
+endif
 
 # Demo targets
 DEMOS = demo01 demo02 demo03 demo04 demo05
