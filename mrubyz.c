@@ -923,12 +923,12 @@ void parse_irep_record(mrbz_irep *irep, unsigned char *bytecode, uint16_t *pc) {
 
   debug_out("clen is: %d / 0x%x\n", bytecode[*pc], bytecode[*pc]);
   *pc += 2;
-  // TODO: Ignoring upper 2 bytes as we currently only support 16 bits
-  // Perhaps error if upper bits are not zero?
-  uint16_t ilen = bytecode[*pc+3] |
-                 (bytecode[*pc+2] << 8) ;
-                 // ((uint32_t)bytecode[*pc+1] << 16) |
-                 // ((uint32_t)bytecode[*pc] << 24);
+  // XXX: We *could* implement 32bit integers, but should we?
+  uint16_t ilen = bytecode[*pc+3] | (bytecode[*pc+2] << 8);
+  if(bytecode[*pc+1] != 0 || bytecode[*pc] != 0) {
+    printf("Use of upper 2 bytes of 32 bits unsupported. Exiting\r");
+    exit(-1);
+  }
   debug_out("ilen: %d / 0x%x\n", ilen, ilen);
   *pc += 4; // skip 4 bytes for the ilen
   irep->iseq = bytecode + *pc;
@@ -1019,12 +1019,12 @@ void parse_ireps(mrbz_vm **vm, unsigned char *bytecode, uint16_t *pc) {
   ASSERT(strncmp(bytecode+*pc, "IREP", 4) == 0);
   *pc += 4; // skipping over "IREP"
 
-  // TODO: Ignoring upper 2 bytes as we currently only support 16 bits
-  // Perhaps error if upper bits are not zero?
-  uint16_t section_len = bytecode[*pc+3] |
-                 (bytecode[*pc+2] << 8) ;
-                 // ((uint32_t)bytecode[*pc+1] << 16) |
-                 // ((uint32_t)bytecode[*pc] << 24);
+  // XXX: We *could* implement 32bit integers, but should we?
+  uint16_t section_len = bytecode[*pc+3] | (bytecode[*pc+2] << 8);
+  if(bytecode[*pc+1] != 0 || bytecode[*pc] != 0) {
+    printf("Use of upper 2 bytes of 32 bits unsupported. Exiting\r");
+    exit(-1);
+  }
   debug_out("section length: %d / 0x%x\n", section_len, section_len);
   *pc += 4; // 4 bytes for the section length
 
