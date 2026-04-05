@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'set'
+
 module FontBuilder
   # Parse a BDF font file string.
   # Returns a Hash of { codepoint(Integer) => [8 bytes] }
@@ -82,17 +84,33 @@ module FontBuilder
 
   RESERVED_INDICES = [0x00, 0x0C, 0x0D].freeze
 
+  # Characters that are always included and fixed at their ASCII tile positions.
+  FIXED_CHARS = [' ', ',', *('0'..'9'), *('A'..'Z'), *('a'..'z')].freeze
+  FIXED_MAP = FIXED_CHARS.each_with_object({}) { |c, h| h[c] = c.ord }.freeze
+
   # Assign tile indices to an array of character strings.
-  # Indices start at 0 and skip RESERVED_INDICES (0x00 = null, 0x0C = FF/CLS in SMS stdio, 0x0D = CR),
-  # so the first assigned index is 1. Max index is 255 (single-byte SMS tile).
+  # Alphanumeric characters are always placed at their ASCII positions.
+  # All other characters are packed into remaining slots, skipping reserved
+  # indices (0x00 = null, 0x0C = FF/CLS in SMS stdio, 0x0D = CR) and
+  # positions occupied by alphanumerics.
   # Returns a Hash of { char_string => tile_index }.
   def self.assign_indices(characters)
     map = {}
+
+    # Fix alphanumerics at their ASCII positions
+    FIXED_CHARS.each { |c| map[c] = c.ord }
+
+    # Collect indices that are reserved or occupied by alphanumerics
+    taken = Set.new(RESERVED_INDICES + FIXED_MAP.values)
+
+    # Pack remaining characters into free slots
     index = 0
     characters.each do |char|
-      index += 1 while RESERVED_INDICES.include?(index)
+      next if FIXED_MAP.key?(char) # already assigned
+      index += 1 while taken.include?(index)
       abort "ERROR: Too many unique characters (#{map.size + 1}); tile index #{index} exceeds 255. Reduce the character set." if index > 255
       map[char] = index
+      taken.add(index)
       index += 1
     end
     map
@@ -172,6 +190,8 @@ if __FILE__ == $0
   glyphs = bdf_glyphs.merge(bin_glyphs.select { |cp, _| cp <= 0x7F })
 
   characters = FontBuilder.scan_characters(text_content)
+  # Ensure all alphanumeric characters are included even if not in the text
+  characters = (characters + FontBuilder::FIXED_CHARS.dup).uniq.sort_by { |c| c.codepoints.first }
   char_map   = FontBuilder.assign_indices(characters)
 
   puts "Found #{characters.size} unique characters, #{char_map.values.max} tile indices used."

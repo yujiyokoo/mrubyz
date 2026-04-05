@@ -224,31 +224,44 @@ class TestCharacterScanner < Minitest::Test
 end
 
 class TestTileIndexAssigner < Minitest::Test
-  def test_assigns_starting_from_1
-    map = FontBuilder.assign_indices(['a', 'b', 'c'])
-    assert_equal 1, map['a']
+  def test_alphanumerics_at_ascii_positions
+    map = FontBuilder.assign_indices(['A', 'b', '3'])
+    assert_equal 65, map['A']
+    assert_equal 98, map['b']
+    assert_equal 51, map['3']
   end
 
-  def test_assigns_sequentially
-    map = FontBuilder.assign_indices(['a', 'b', 'c'])
-    assert_equal 1, map['a']
-    assert_equal 2, map['b']
-    assert_equal 3, map['c']
+  def test_space_at_ascii_position
+    map = FontBuilder.assign_indices([' ', 'あ'])
+    assert_equal 32, map[' ']
+  end
+
+  def test_always_includes_all_alphanumerics
+    map = FontBuilder.assign_indices(['!'])
+    FontBuilder::FIXED_CHARS.each do |c|
+      assert_equal c.ord, map[c], "expected #{c.inspect} at ASCII position #{c.ord}"
+    end
+  end
+
+  def test_non_alnum_packed_into_free_slots
+    map = FontBuilder.assign_indices(['!', '@', 'あ'])
+    # These should be in low free slots (1, 2, 3...) not at ASCII positions
+    assert map['!'] < 48, "non-alnum should be packed below alphanumeric range"
+    assert map['@'] < 48
   end
 
   def test_skips_reserved_indices
-    chars = ('a'..'z').to_a  # 26 chars — indices 0x00, 0x0C, 0x0D must be skipped
+    chars = ['!', '#', '$', '%', '^', '&', '*', '(', ')', '+', ',', '-']
     map = FontBuilder.assign_indices(chars)
     refute_includes map.values, 0x00
     refute_includes map.values, 0x0C
     refute_includes map.values, 0x0D
-    assert_equal 1, map.values.min, "minimum assigned index should be 1, not 0"
   end
 
   def test_covers_all_input_chars
-    chars = ['a', 'b', 'c']
+    chars = ['a', 'b', 'c', 'あ']
     map = FontBuilder.assign_indices(chars)
-    assert_equal chars.sort, map.keys.sort
+    chars.each { |c| assert map.key?(c), "expected #{c.inspect} in map" }
   end
 end
 
