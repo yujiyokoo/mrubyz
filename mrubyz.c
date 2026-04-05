@@ -736,10 +736,13 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
       exit(-1);
     }
     uint8_t i = vm->regs[reg_index + 1].u.intval;
+    unsigned char hl_pal[] = {0x00, 0x03, 0x08, 0x03, 0x02, 0x22, 0x0A, 0x2A, 0x15, 0x35, 0x1D, 0x3D, 0x17, 0x37, 0x1F, 0x3F};
     if(i == 0) {
       SMS_loadBGPalette(pal1);
+      SMS_loadSpritePalette(pal2);
     } else {
-      SMS_loadBGPalette(pal2);
+      SMS_loadBGPalette(hl_pal);
+      SMS_loadSpritePalette(hl_pal);
     }
   } else if (!strcmp(sym, "read_buttons")) {
     vm->regs[reg_index].type = T_INT;
