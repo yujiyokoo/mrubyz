@@ -13,18 +13,28 @@ module Converter
     str.match?(COMMAND_PATTERN)
   end
 
+  HIGHLIGHT_MARKER = '{hl}'
+  HIGHLIGHT_BYTE = "\x01"
+
   # Encode a display string character-by-character using ENCODING_MAP.
-  # \r is passed through as-is. Missing characters cause abort.
+  # \r is passed through as-is. {hl} is replaced with 0x01 (highlight toggle).
+  # Missing characters cause abort.
   def self.encode_string(str)
     result = String.new(encoding: 'BINARY')
-    str.each_char do |char|
-      if char == "\r"
+    i = 0
+    while i < str.length
+      if str[i, HIGHLIGHT_MARKER.length] == HIGHLIGHT_MARKER
+        result << HIGHLIGHT_BYTE
+        i += HIGHLIGHT_MARKER.length
+      elsif str[i] == "\r"
         result << "\r"
-      elsif ENCODING_MAP.key?(char)
-        result << ENCODING_MAP[char].chr
+        i += 1
+      elsif ENCODING_MAP.key?(str[i])
+        result << ENCODING_MAP[str[i]].chr
+        i += 1
       else
-        abort "ERROR: No tile mapping for character #{char.inspect} " \
-              "(U+#{char.codepoints.first.to_s(16).upcase}). " \
+        abort "ERROR: No tile mapping for character #{str[i].inspect} " \
+              "(U+#{str[i].codepoints.first.to_s(16).upcase}). " \
               "Add it to demo04_data.txt's character set and rebuild font_data.h."
       end
     end

@@ -65,11 +65,14 @@ module FontBuilder
 
   COMMAND_PATTERN = /\A-\w+-\r?\z/
 
+  HIGHLIGHT_MARKER = '{hl}'
+
   # Scan text content for all unique displayable characters.
-  # Skips \r and any item that is a command string (/-\w+-\r?$/).
+  # Skips \r, {hl} markers, and any item that is a command string (/-\w+-\r?$/).
   # Returns a sorted array of unique character strings.
   def self.scan_characters(text)
     text = text.gsub("\n", "\r")
+    text = text.gsub(HIGHLIGHT_MARKER, '')
     chars = []
     text.each_line("\r") do |item|
       next if item.strip.empty?
@@ -82,7 +85,7 @@ module FontBuilder
     chars.uniq.sort_by { |c| c.codepoints.first }
   end
 
-  RESERVED_INDICES = [0x00, 0x0C, 0x0D].freeze
+  RESERVED_INDICES = [0x00, 0x01, 0x0C, 0x0D].freeze  # 0x01 = highlight toggle
 
   # Characters that are always included and fixed at their ASCII tile positions.
   FIXED_CHARS = [' ', ',', *('0'..'9'), *('A'..'Z'), *('a'..'z')].freeze
