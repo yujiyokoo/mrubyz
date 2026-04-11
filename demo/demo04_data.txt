@@ -5,7 +5,7 @@
      mruby VM on Zilog Z80
 
 
-   Fukuoka Rubyist Kaigi 05
+     RubyKaigi 2026
 
 
      - Yuji Yokoo, 2026
@@ -27,11 +27,17 @@
 :
   * Live demo
 
-:= New feature!
+:= New features!
 :
 
+  * 日本語サポート! (since Feb 2026)
+:
+    なんと日本語が表示できるようになりました！
 
-  * 日本語サポート! <- NEW!
+    でも今回は英語メインなので基本使いません
+:
+  * Multi-colour text
+    ({hl}2 colours{hl})
 
 := About me
 :
@@ -41,29 +47,40 @@
 :
   ko.rb
 :
-  Fediverse
-:
+  Fediverse:
+
     @yujiyokoo@ruby.social
 :
   Programmer @ CipherStash
 
-:= ここまでの流れ
+:= Brief Histor of mrubyz
 :
-  * 2025年前半何も考えず引き受ける
+  * At Ruby Kaigi 2025, agreed
+
+    to present something at
+
+    Fukuoka RubyistKaigi 05
 :
-  * NZでmrubyzの開発を開始
-:    mruby on Z80
+  * Started development of
+
+    mruby on Z80
+
+    in NZ, in May 2025
 :
-  * 2026年1月 タイで発表
-:    本邦初公開!
+  * Jan 2026, RubyConf TH
+:
+  * Feb 2026, Fukuoka
+      RubyistKaigi 2026
+:
+  * Apr 2026, RubyKaigi 2026
 
 := What is this project about???
 :
 
 
-  mrubyのバイトコードを
+  Run mruby bytecode on my own
 
-    Z80上に実装したVMで実行
+    VM implemented on Z80
 
 
 
@@ -72,16 +89,23 @@
 
 := What is mruby?
 :
-  * 組み込み向きの小さなRuby実装
-
+  * Lightweight Ruby
 :
-  * 小さな環境でも動く
+  * Great for embedded and
+      small environments
+:
+  * Many variations:
+
+    * mruby
+
+    * mruby/c
+
+    * PicoRuby, FemtoRuby
 
 := Ruby VM
 :
   * Virtual Machine
     a machine inside a machine
-    "仮想"マシン
 :
   * Ruby source is compiled
     into bytecode first
@@ -92,11 +116,13 @@
 :
   * VM instructions
 :
-  * シンプルなインストラクション
+  * Simple instructions
 :
-  * mrubyはレジスタまわりのインストラクションが多い
+  * mruby VM is a register
+    machine, so lots of
+    register-based operations
 
-:= Bytecodeの例
+:= Bytecode example
 
   Ruby:
 :
@@ -104,22 +130,22 @@
 :
   Bytecode:
 :
-  1 000 LOADI_3    R1
-  1 002 LOADI_2    R2
-  1 004 EQ         R1    R2
-  1 006 RETURN     R1
-  1 008 STOP
+  1 000 {hl}LOADI_3    R1{hl}
+  1 002 {hl}LOADI_2    R2{hl}
+  1 004 {hl}EQ         R1    R2{hl}
+  1 006 {hl}RETURN     R1{hl}
+  1 008 {hl}STOP{hl}
 
 := Bytecode usage
-:  mrbcはC用ヘッダーのアウトプット可
-:  const uint8_t eq_int[] = {
+:  mrbc can output C header files
+:  {hl}const uint8_t{hl} eq_int{hl}[]{hl} = {
 
     0x52,0x49,0x54,0x45,0x30,
 
     0x33,0x30,0x30,0x00,0x00,
 
 ...
-:  Cで実装したVMから読み込んで実行
+:  Read the bytecode in the VM and run
 
 := What is mruby/c
 :
@@ -135,9 +161,9 @@
 :
   * 8-bit CPU
 :
-  * 1976年-2024年
+  * 1976-2024
 :
-  * 多様なプラットフォーム
+  * Many platforms
 
     * Sega Master System
 
@@ -149,13 +175,14 @@
 
 := Master System?
 :
-  * Sega Z80 コンソール, マークIII互換
+  * Sega Z80 Console, very similar to
+    Mark III
 :
   * Z80 at 3.5Mhz
 :
   * 8KB RAM
-    * 64KB アドレススペース
-    * 32KB ROM (バンク切り替えもあり)
+    * 64KB Address space
+    * 32KB ROM (more with bank switch)
 :
   * 16KB VRAM, 256x192px
     Tiles, sprites, palettes
