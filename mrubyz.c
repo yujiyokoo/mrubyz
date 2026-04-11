@@ -697,9 +697,38 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
 
   // Hardcoding for now... will fix later
   if(!strcmp(sym, "puts")) {
-    // puts is called with R1 as arg, so R[1+1] is the arg sent to puts
-    fprintf(stdout, "%s\r", vm->regs[reg_index+1].u.strval);
-    vm->regs[reg_index].type = T_NIL; // Use reg[reg_index] for return
+    if(vm->regs[reg_index+1].type == T_STRING) {
+      uint8_t highlight = 0;
+      uint16_t vdp_offs = get_vdp_offs();
+      uint8_t x = (vdp_offs / 2) % 32;
+      uint8_t y = (vdp_offs / 2 ) / 32;
+      char* str = vm->regs[reg_index+1].u.strval;
+      for (; *str; str++, x++) {
+        if(x == 32) {
+          x = 0;
+          y++;
+        }
+        if(*str == 0x01) {
+          highlight = !highlight;
+          x--;
+        } else if(*str == '\r') {
+          x = 0;
+          y += 1;
+        } else {
+          // Read the character, extend to 16 bit as unsigned
+          uint8_t c = (uint8_t)*str;
+          uint16_t tile = (uint16_t)c;
+          if(highlight) {
+            tile = tile | 0x0800; // 0x0800 for using the sprite palette
+          }
+          SMS_setTileatXY(x, y, tile);
+        }
+      }
+      gotoxy(x, y);
+    } else if(vm->regs[reg_index+1].type == T_INT) {
+      fprintf(stdout, "%d", vm->regs[reg_index+1].u.intval);
+    }
+    vm->regs[reg_index].type = T_NIL;
   } else if(!strcmp(sym, "print")) {
     // TODO: use same implementation b/w puts and print
     if(vm->regs[reg_index+1].type == T_STRING) {
@@ -715,6 +744,10 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
       uint8_t y = (vdp_offs / 2 ) / 32;
       char* str = vm->regs[reg_index+1].u.strval;
       for (; *str; str++, x++) {
+        if(x == 32) {
+          x = 0;
+          y++;
+        }
         if(*str == '\r') {
           x = 0;
           y += 1;
