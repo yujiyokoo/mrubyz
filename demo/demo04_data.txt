@@ -137,15 +137,17 @@
   1 008 {hl}STOP{hl}
 
 := Bytecode usage
-:  mrbc can output C header files
-:  {hl}const uint8_t{hl} eq_int{hl}[]{hl} = {
+:  mrbc can output C headers
+:  const uint8_t eq_int[] = {
 
     0x52,0x49,0x54,0x45,0x30,
 
     0x33,0x30,0x30,0x00,0x00,
 
-...
-:  Read the bytecode in the VM and run
+    ...
+:
+    Read this bytecode in the
+    VM and execute
 
 := What is mruby/c
 :
@@ -192,21 +194,25 @@
 := What is this project about???
 :
 
-  mrubyのバイトコードを
+  Run mruby bytecode on my own
 
-    Z80上に実装したVMで実行
+    VM implemented on Z80
 
 
-:= 何故自前で実装するのか
+:= Why implement your own?
 :
-  * Z80はgccもclangもない
+  * No gcc or clang for Z80
 :
   * z88dk, zcc (frontend),
     with sdcc or sccz80
 :
-  mruby/cなどを大きく変えて何がどう壊れるか
-  わからないし動くかもわからないなら
-:  自分でゼロから実装した方が簡単かも
+  Rather than modifying mruby/c
+  (or mruby) in so many places, and
+  not knowing what breaks, or if it
+  would even run,
+:
+  surely, developing your own is
+  easier
 
 :=
 
@@ -215,7 +221,7 @@
 
 
 
-             簡単ではない
+             Is it really easier?
 
 := Existing work on 8-bit
 :
@@ -234,7 +240,7 @@
  https://github.com/
     khasinski/ruby-gameboy
 
-:= 実装されている機能
+:= mrubyz features
 
 :  * Built-in functions
 :  * Assignment
@@ -248,7 +254,7 @@
 :  * functions <- NEW!
 :  * Many more!
 
-:= 未実装なものなど
+:= unimplemented features
 :  * most things
 :  * less than (<), etc.
 :  * garbage collection
@@ -264,104 +270,111 @@
 unsupported instruction: 0x12
 OP: OP_MODULE     = 0x5D
 
-:= それで何ができるか
+:= What can you do with it?
 :
-  このプレゼンテーションなど小さなプログラム
+  This presentation, and other
+  small programs
 :
   i = 0
 
-  while pages.size > i
+  {hl}while{hl} pages.size > i
 
-    if btn_a_pressed?
+    {hl}if{hl} btn_a_pressed?
 
       puts pages[i]
 
       i += 1
 
-    end
+    {hl}end{hl}
 
-  end
+  {hl}end{hl}
 
 := Iterative development
 :
-  * Rubyコードを書く
+  * Write some Ruby
 :
-  * mrbcでバイトコードにコンパイル
+  * Produce bytecode with mrbc
 :
-  * 実行してエラーを出す
+  * See it crash
 :
-  * 実装またはwork around
+  * Implement, or work around
 
 := Limitations and challenges
 :
-  * RAMが少ない
-    アロケーションを少なく!
+  * Limited memory space
+    Avoid allocation
 :
-  * 32-bitサポートがない
+  * No (native) 32-bit support
 :
-  * VMとアプリケーションの問題の切り分け
+  * Is it the VM bug, or app bug?
 :
   * Slow, but not unusable
 
-:= タイマー実装
+:= Timer implementation
 :
-  * 時計がない
+  * No clock available
 :
-  * z88dkはvsyncのカウントをしてくれている
-    1秒につき60
-:  * 16ビットしかないので65535まで
-:    つまり約1092秒で0秒に
+  * z88dk counts vsync interrupts
+    60 times per second
+:  * 16 bit means max 65535
+:    This means overflow to 0 at
+    approx 1092s
 :
-  * floatがない
+  * No floating point type
     * 19 / 25 * 31
-      floatを使うと23.56,整数なら0
+      23.56 with float, 0 with int
 :    * 19 * 100 / 25 * 31 / 100
-     これなら整数で23
-: * vmがuint16_tを扱えない
+      23 with int
+: * The VM can't handle uint16_t
 
-:= 日本語サポート
+:= Japanese support
 :
-  * すべての文字はタイルである
+  * Every character is a tile
 :
   * 448 tiles -> 9 bit!
-    8bitでエンコードすると256文字
+    8bit would be 256 chars
+    minus special chars
 :
-  * 使う文字だけROMに入れたい
+  * Only want the used characters
+    in ROM
 :
-  * カスタムエンコーディング
+  * Break the ecnoding
+
 :
-  * Cからのエラーメッセージは
-    コンパイルし直さないと読めない
+  * Got Coding Agent to write converter
 :
-  * 変換ツールをCoding Agentに書いてもらった
-:
-  * 文字種が256種を超えた
+  * This presentation was okay but
+    previously it has gone over 256
 
 := Summary
 :
-  * Rubyの小さなサブセットでも実用にはなる
+  * Small subset of Ruby is still useful
 :
-    "実用"とは?
+    "useful"?
 :
-  * 小さくキープするには
-       何を作らないかが大切
+  * To keep it small,
+      think hard about what {hl}not{hl} to support
 :
-  * 自作VMはそこまで難しくない
+  * Writing your own VM is not that hard
 :
-    機能にそこまでこだわりがなければ
+    assuming you're okay with limitations
 
 :      return 1 + 2
 
 := Summary
 :
-    Rubyが動かないプラットフォームでも
-    自分でmruby VMを作ればRubyが動く
-    プラットフォームになります
+    If you have a platform that does
+
+    not support Ruby, building your
+
+    own mruby VM will make it a
+
+    platform where Ruby is supported
 
 := Summary
 
 
-    自作VMを作りましょう!
+    Build your own VM!
 
 := Thanks & links
 
@@ -373,14 +386,12 @@ OP: OP_MODULE     = 0x5D
 * z88dk
   https://z88dk.org/site/
 
-* 美咲フォント
+* 美咲フォント (misaki font)
   https://littlelimit.net/
         misaki.htm
 
-* 福岡Rubyist会議 05
-
-https://regional.rubykaigi.org/
-        fukuoka05/
+* RubyKaigi 2026
+  https://rubykaigi.org/2026/
 
 
 := Demo (finally)!
