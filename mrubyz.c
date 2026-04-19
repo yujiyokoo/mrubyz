@@ -146,6 +146,10 @@ void play_end_sfx() {
 
 // Scroll state
 uint8_t scroll_y = 0;
+static uint8_t current_top_row = 0;
+// Current text cursor position
+static uint8_t cursor_x = 0;
+static uint8_t cursor_y = 0;
 
 __sfr __at 0xDC io_port_dc;
 
@@ -684,12 +688,21 @@ void op_send(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   }
 }
 
-uint16_t get_vdp_offs(void) __naked {
-  __asm
-  EXTERN fputc_vdp_offs
-  ld hl, (fputc_vdp_offs)
-  ret
-  __endasm;
+// screen row (0-23) to nametable row conversion
+static uint8_t nametable_row(uint8_t screen_row) {
+  return (screen_row + current_top_row) % 28;
+}
+
+static void text_scroll() {
+  current_top_row = (current_top_row + 1) % 28;
+  scroll_y = (current_top_row * 8);
+  scroll_bkg(0, scroll_y);
+
+  // Blank bottom row name table
+  uint8_t nt_row = nametable_row(22);
+  for (uint8_t x = 0; x < 32; x++) {
+    SMS_setTileatXY(x, nt_row, 0);
+  }
 }
 
 // "builtin" method handler. Returns 1 if handled here, 0 otherwise
@@ -700,21 +713,29 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
   if(!strcmp(sym, "puts")) {
     if(vm->regs[reg_index+1].type == T_STRING) {
       uint8_t highlight = 0;
-      uint16_t vdp_offs = get_vdp_offs();
-      uint8_t x = (vdp_offs / 2) % 32;
-      uint8_t y = (vdp_offs / 2 ) / 32;
       char* str = vm->regs[reg_index+1].u.strval;
-      for (; *str; str++, x++) {
-        if(x == 32) {
-          x = 0;
-          y++;
+      for (; *str; str++, cursor_x++) {
+        if(cursor_x == 32) {
+          cursor_x = 0;
+          cursor_y++;
         }
+
+        // Scroll if necessary
+        if(cursor_y >= 23) {
+          text_scroll();
+          cursor_y = 22;
+        }
+
         if(*str == 0x01) {
           highlight = !highlight;
-          x--;
+          cursor_x--;
         } else if(*str == '\r') {
-          x = 0;
-          y += 1;
+          cursor_x = 0;
+          cursor_y += 1;
+          if(cursor_y >= 23) {
+            text_scroll();
+            cursor_y = 22;
+          }
         } else {
           // Read the character, extend to 16 bit as unsigned
           uint8_t c = (uint8_t)*str;
@@ -722,10 +743,10 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
           if(highlight) {
             tile = tile | 0x0800; // 0x0800 for using the sprite palette
           }
-          SMS_setTileatXY(x, y, tile);
+          SMS_setTileatXY(cursor_x, nametable_row(cursor_y), tile);
         }
       }
-      gotoxy(0, y+1);
+      gotoxy(0, nametable_row(cursor_y + 1));
     } else if(vm->regs[reg_index+1].type == T_INT) {
       fprintf(stdout, "%d", vm->regs[reg_index+1].u.intval);
     }
@@ -762,7 +783,7 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     }
     uint8_t x = vm->regs[reg_index + 1].u.intval;
     uint8_t y = vm->regs[reg_index + 2].u.intval;
-    gotoxy(x, y);
+    gotoxy(cursor_x, nametable_row(cursor_y));
     vm->regs[reg_index].type = T_NIL;
   } else if (!strcmp(sym, "foo")) {
     printf("'foo' called\r");
@@ -771,7 +792,14 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     vm->regs[reg_index].type = T_INT; // Use reg[reg_index] for return
     vm->regs[reg_index].u.intval = 5;
   } else if (!strcmp(sym, "clear_screen")) {
+    current_top_row = 0;
+    scroll_y = 0;
+    cursor_x = 0;
+    cursor_y = 0;
+
     SMS_VRAMmemset(0x3800, 0x00, 32*28*2);
+    scroll_bkg(0, 0);
+    gotoxy(0, 0);
   } else if (!strcmp(sym, "set_background")) {
     // TODO: this is demo05's bg. Should live somewhere else
     int row_data[32];
