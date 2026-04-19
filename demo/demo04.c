@@ -2,8 +2,6 @@
 #include <sms.h>
 #include <stdio.h>
 #include "mrubyz.h"
-#include "logo_tiles.h"
-#include "logo_map.h"
 #include "font_data.h"
 
 long _heap;
@@ -42,6 +40,7 @@ const unsigned char player_tile[] = {
   0x63, 0x63, 0x63, 0x63
 };
 
+extern const unsigned char logo_tiles[];
 extern const unsigned char logo_map[];
 
 void show_logo() {
@@ -51,6 +50,9 @@ void show_logo() {
 extern const uint8_t demo04_bytecode[];
 void main() {
   sbrk(&_heap, 4096);  // Register 4KB starting at _heap
+
+  // Explicitly set bank 2 to slot 2
+  *((unsigned char *)0xFFFF) = 2;
 
   SMS_VRAMmemset(0x0000, 0x00, 16384);
   load_tiles(demo04_font, 1, DEMO04_FONT_TILE_COUNT, 1);

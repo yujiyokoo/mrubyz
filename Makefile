@@ -63,8 +63,8 @@ $(FONT8_BIN):
 encoding_map.rb font_data.h: demo/demo04_data.txt $(MISAKI_BDF) $(FONT8_BIN)
 	ruby scripts/font_builder.rb $< $(MISAKI_BDF) $(FONT8_BIN) encoding_map.rb font_data.h
 
-demo04: demo/demo04.c mrubyz.c demo/demo04.ruby.c font_data.h | $(BUILDDIR)
-	$(ZCC) $(CFLAGS) demo/demo04.c mrubyz.c demo/demo04.ruby.c -o $(BUILDDIR)/demo04 -create-app
+demo04: demo/demo04.c mrubyz.c demo/demo04.ruby.c font_data.h demo/logo_data.c | $(BUILDDIR)
+	$(ZCC) $(CFLAGS) demo/demo04.c mrubyz.c demo/demo04.ruby.c demo/logo_data.c -o $(BUILDDIR)/demo04 -create-app
 
 demo/demo04.rb: demo/demo04.src.rb demo/demo04_data.txt encoding_map.rb
 	ruby scripts/converter.rb demo/demo04_data.txt > /tmp/demo04_temp.rb ; cat demo/demo04.src.rb >> /tmp/demo04_temp.rb ; mv /tmp/demo04_temp.rb demo/demo04.rb
