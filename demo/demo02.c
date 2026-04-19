@@ -12,6 +12,7 @@ const unsigned char pal2[] = {0x00, 0x03, 0x08, 0x28, 0x02, 0x22, 0x0A, 0x2A,
 
 // empty method just to make the build pass. Don't call this
 void show_logo() {}
+void restore_font() {}
 
 extern const uint8_t demo02_bytecode[];
 void main() {
