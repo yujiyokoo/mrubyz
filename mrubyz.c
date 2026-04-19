@@ -769,13 +769,22 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     }
     vm->regs[reg_index].type = T_NIL;
   } else if(!strcmp(sym, "print")) {
-    // TODO: use same implementation b/w puts and print
+    char buf[8];
+    char *str = NULL;
     if(vm->regs[reg_index+1].type == T_STRING) {
-      fprintf(stdout, "%s", vm->regs[reg_index+1].u.strval);
+      str = vm->regs[reg_index+1].u.strval;
     } else if(vm->regs[reg_index+1].type == T_INT) {
-      fprintf(stdout, "%d", vm->regs[reg_index+1].u.intval);
+      sprintf(buf, "%d", vm->regs[reg_index+1].u.intval);
+      str = buf;
     }
-    vm->regs[reg_index].type = T_NIL; // Use reg[reg_index] for return
+    if(str) {
+      for (; *str; str++, cursor_x++) {
+        if(cursor_x == 32) { cursor_x = 0; cursor_y++; }
+        if(cursor_y >= 23) { text_scroll(); cursor_y = 22; }
+        SMS_setTileatXY(cursor_x, nametable_row(cursor_y), (uint16_t)(uint8_t)*str);
+      }
+    }
+    vm->regs[reg_index].type = T_NIL;
   } else if (!strcmp(sym, "txt_col")) {
     if(arg_count != 1) {
       printf("Unexpected argument count for txt_col\r");
@@ -801,6 +810,8 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     uint8_t x = vm->regs[reg_index + 1].u.intval;
     uint8_t y = vm->regs[reg_index + 2].u.intval;
     gotoxy(x, y);
+    cursor_x = x;
+    cursor_y = y;
     vm->regs[reg_index].type = T_NIL;
   } else if (!strcmp(sym, "foo")) {
     printf("'foo' called\r");
