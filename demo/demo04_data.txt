@@ -40,8 +40,24 @@
 
     でも今回は英語メインなので基本使いません
 :
-  * Multi-colour text
+  * Multi-colour text (Apr 2026)
     ({hl}2 colours{hl})
+
+:
+
+
+  * text scrolling (Apr 2026)
+:
+
+
+
+
+
+:    scrolling text is here!
+
+:
+    (but would like to avoid
+     using it)
 
 := About me
 :
@@ -90,6 +106,16 @@
 
   URL: https://codeberg.org/
             yujiyokoo/mrubyz
+
+:= What is...?
+
+  * mruby?
+
+  * bytecode?
+
+  * VM?
+
+  * Z80?
 
 := What is mruby?
 :
@@ -261,6 +287,8 @@
 := unimplemented features
 :  * most things
 :  * less than (<), etc.
+:    if a <= b
+:    -> {hl}if{hl} b > a {hl}or{hl} a == b
 :  * garbage collection
 :  * string manipulation
     (data stays in ROM)
@@ -268,7 +296,6 @@
 :  * classes / modules
 :  * procs
 :  * lots more!
-
 
 :=
 unsupported instruction: 0x12
