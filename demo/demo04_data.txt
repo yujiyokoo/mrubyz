@@ -1,5 +1,9 @@
 :=
 
+
+
+
+
    mruby in the 8 bit world:
 
      mruby VM on Zilog Z80
@@ -27,7 +31,7 @@
 :
   * Live demo
 
-:= New features!
+:= Recently-added features
 :
 
   * 日本語サポート! (since Feb 2026)
@@ -177,14 +181,14 @@
 
 := Master System?
 :
-  * Sega Z80 Console, very similar to
-    Mark III
+  * Sega Z80 Console, very
+    similar to Mark III
 :
   * Z80 at 3.5Mhz
 :
   * 8KB RAM
     * 64KB Address space
-    * 32KB ROM (more with bank switch)
+    * 32KB ROM (more available)
 :
   * 16KB VRAM, 256x192px
     Tiles, sprites, palettes
