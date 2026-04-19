@@ -30,6 +30,13 @@ extern const unsigned char pal2[];
 extern volatile uint16_t timer;
 extern void show_logo();
 extern void restore_font();
+
+__sfr __at 0xDC io_port_dc;
+
+__sfr __at 0x7F PSGPort;
+#define PSG_setVolume(chan, vol)  (PSGPort = 0x90 | ((chan & 3) << 5) | (vol & 0xF))
+#define PSG_setNoise(type, freq)  (PSGPort = 0xE0 | ((type & 1) << 2) | (freq & 0x3))
+
 #endif
 
 // TODO: Put it in another file, like compat.h?
@@ -80,19 +87,31 @@ static void SMS_loadBGPalette(void* a) {
   debug_out("SMS_loadBGPalette() called, but this is not SMS\n");
 }
 
-const unsigned char logo_map[] = {};
-const unsigned char pal1[] = {};
-const unsigned char pal2[] = {};
+static void SMS_setTileatXY(unsigned char x, unsigned char y, unsigned int tile) {
+  debug_out("SMS_setTileatXY() called, but this is not SMS\n");
+}
+
+static void SMS_loadSpritePalette(void* a) {
+  debug_out("SMS_loadSpritePalette() called, but this is not SMS\n");
+}
+
+#define PSG_setVolume(chan, vol) ((void)0)
+#define PSG_setNoise(type, freq) ((void)0)
+#define io_port_dc (0)
+
+const unsigned char logo_map[] = {0};
+const unsigned char pal1[] = {0};
+const unsigned char pal2[] = {0};
 
 extern void show_logo() {
   debug_out("show_logo() called, but not implemented for non-SMS\n");
 }
 
-#endif
+extern void restore_font() {
+  debug_out("restore_font() called, but not implemented for non-SMS\n");
+}
 
-__sfr __at 0x7F PSGPort;
-#define PSG_setVolume(chan, vol)  (PSGPort = 0x90 | ((chan & 3) << 5) | (vol & 0xF))
-#define PSG_setNoise(type, freq)  (PSGPort = 0xE0 | ((type & 1) << 2) | (freq & 0x3))
+#endif
 
 // Sound state
 int sfx2_freq;
@@ -150,8 +169,6 @@ static uint8_t current_top_row = 0;
 // Current text cursor position
 static uint8_t cursor_x = 0;
 static uint8_t cursor_y = 0;
-
-__sfr __at 0xDC io_port_dc;
 
 const char* op_names[] = {
   "OP_NOP        = 0x00",
