@@ -1,6 +1,7 @@
 prev_btns = 0xFF
 waiting = true
 show_title_page
+
 while waiting
   btns = read_buttons
   # Check A button
@@ -9,6 +10,9 @@ while waiting
   end
   prev_btns = btns
 end
+
+clear_screen
+restore_font
 
 def render_page_progress(idx, total)
   total -= 1 if total > 1 # adjust for 0-based index

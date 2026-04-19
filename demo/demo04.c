@@ -11,8 +11,8 @@ extern volatile uint16_t timer;
 
 // First colour is for the BG
 // Second colour is for the text
-const unsigned char pal1[] = {0x00, 0x3F, 0x08, 0x03, 0x02, 0x22, 0x0A, 0x2A,
-  0x15, 0x35, 0x1D, 0x3D, 0x17, 0x37, 0x1F, 0x3F};
+const unsigned char pal1[] = {0x00, 0x3F, 0x01, 0x05, 0x05, 0x06, 0x06, 0x0A,
+  0x3F, 0x35, 0x1D, 0x3D, 0x17, 0x37, 0x1F, 0x3F};
 
 // The second colur is for the higlighted text
 const unsigned char pal2[] = {0x00, 0x0F, 0x08, 0x03, 0x02, 0x22, 0x0A, 0x2A,
@@ -40,11 +40,19 @@ const unsigned char player_tile[] = {
   0x63, 0x63, 0x63, 0x63
 };
 
-extern const unsigned char logo_tiles[];
-extern const unsigned char logo_map[];
+extern const unsigned char title_tiles[];
+extern const unsigned char title_map[];
 
+// This should be defined elesewhere...
+#define TITLE_TILE_COUNT 298
 void show_logo() {
-  set_bkg_map(logo_map, 5, 3, 22, 12);
+  // Tile 0 is 'blank'
+  load_tiles(title_tiles, 1, TITLE_TILE_COUNT, 4);
+  SMS_loadTileMapArea(0, 0, title_map, 32, 24);
+}
+
+void restore_font() {
+  load_tiles(demo04_font, 1, DEMO04_FONT_TILE_COUNT, 1);
 }
 
 extern const uint8_t demo04_bytecode[];
@@ -56,9 +64,9 @@ void main() {
 
   SMS_VRAMmemset(0x0000, 0x00, 16384);
   load_tiles(demo04_font, 1, DEMO04_FONT_TILE_COUNT, 1);
-  load_tiles(logo_tiles, 256, 152, 4);
   SMS_loadBGPalette(pal1);
   SMS_loadSpritePalette(pal2);
+
   SMS_useFirstHalfTilesforSprites(0);
   SMS_loadTiles(player_tile, 447, 32);
   SMS_loadTiles(enemy_tile, 446, 32);

@@ -63,8 +63,23 @@ $(FONT8_BIN):
 encoding_map.rb font_data.h: demo/demo04_data.txt $(MISAKI_BDF) $(FONT8_BIN)
 	ruby scripts/font_builder.rb $< $(MISAKI_BDF) $(FONT8_BIN) encoding_map.rb font_data.h
 
-demo04: demo/demo04.c mrubyz.c demo/demo04.ruby.c font_data.h demo/logo_data.c | $(BUILDDIR)
-	$(ZCC) $(CFLAGS) demo/demo04.c mrubyz.c demo/demo04.ruby.c demo/logo_data.c -o $(BUILDDIR)/demo04 -create-app
+# Convert title.png (256x192) to SMS tile/map/palette header in upper palette half (8-15)
+# Strategy: dither source against the 64-color SMS palette first (so all pixels become valid
+# SMS colors, with dithering creating perceived intermediate hues), then reduce to 8 colors.
+# Background is a tiled brick pattern from a clean region; tiles containing text are kept unique.
+# tile_offset=256 because demo04 loads the title tiles at VRAM index 256.
+$(BUILDDIR)/sms_palette.ppm: scripts/gen_sms_palette.rb | $(BUILDDIR)
+	ruby scripts/gen_sms_palette.rb > $@
+
+title.h: title.png scripts/png_to_sms_pattern.rb $(BUILDDIR)/sms_palette.ppm | $(BUILDDIR)
+	convert title.png -dither FloydSteinberg -remap $(BUILDDIR)/sms_palette.ppm \
+	  +dither -colors 8 PNG8:$(BUILDDIR)/small_8col.png
+	convert $(BUILDDIR)/small_8col.png -depth 8 RGB:$(BUILDDIR)/small_pixels.rgb
+	convert $(BUILDDIR)/small_8col.png -unique-colors -depth 8 RGB:$(BUILDDIR)/small_palette.rgb
+	ruby scripts/png_to_sms_pattern.rb $(BUILDDIR)/small_pixels.rgb $(BUILDDIR)/small_palette.rgb title 2 1 # leave 0x00 for the blank tile
+
+demo04: demo/demo04.c mrubyz.c demo/demo04.ruby.c font_data.h demo/title.c | $(BUILDDIR)
+	$(ZCC) $(CFLAGS) demo/demo04.c mrubyz.c demo/demo04.ruby.c demo/title.c -o $(BUILDDIR)/demo04 -create-app
 
 demo/demo04.rb: demo/demo04.src.rb demo/demo04_data.txt encoding_map.rb
 	ruby scripts/converter.rb demo/demo04_data.txt > /tmp/demo04_temp.rb ; cat demo/demo04.src.rb >> /tmp/demo04_temp.rb ; mv /tmp/demo04_temp.rb demo/demo04.rb
