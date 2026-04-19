@@ -715,10 +715,12 @@ static void text_scroll() {
   scroll_y = (current_top_row * 8);
   scroll_bkg(0, scroll_y);
 
-  // Blank bottom row name table
-  uint8_t nt_row = nametable_row(22);
+  // Blank bottom row (22) and indicator row (23) in nametable
+  uint8_t nt_row0 = nametable_row(22);
+  uint8_t nt_row1 = nametable_row(23);
   for (uint8_t x = 0; x < 32; x++) {
-    SMS_setTileatXY(x, nt_row, 0);
+    SMS_setTileatXY(x, nt_row0, 0);
+    SMS_setTileatXY(x, nt_row1, 0);
   }
 }
 
