@@ -13,6 +13,7 @@ bullet_y = nil
 clear_screen
 game_on = true
 
+=begin
 while game_on
   gotoxy(player_x-1, 22) # -1 for the left space (' A ')
   print ' A '
@@ -201,6 +202,7 @@ while !game_on
 end
 
 
+=end
 # current version
 
 idx = 0
@@ -222,6 +224,7 @@ while true
   set_background
   player_hit = enemy_hit = false
 
+  bgm_start
   while !player_hit && !enemy_hit
     init_sprites
 
@@ -240,18 +243,27 @@ while true
       if !bullet_x && !bullet_y
         bullet_x = player_x
         bullet_y = 21
-        bullet_type = 1
+        if btns & 0x10 == 0 # if A is held down, hyper shot
+          bullet_type = 2
+        else
+          bullet_type = 1
+        end
         start_sfx2
       end
     end
 
     if bullet_x && bullet_y
-      if bullet_y == enemy_y && (bullet_x == enemy_x || (bullet_type == 1 && (enemy_x == bullet_x - 1 || enemy_x == bullet_x + 1)))
+      if bullet_y == enemy_y && (bullet_x == enemy_x || (bullet_type == 2 && (enemy_x == bullet_x - 2 || enemy_x == bullet_x + 2 || enemy_x == bullet_x - 1 || enemy_x == bullet_x + 1)) || (bullet_type == 1 && (enemy_x == bullet_x - 1 || enemy_x == bullet_x + 1)))
         put_sprite(enemy_x * 8, enemy_y * 8, 4)
         enemy_hit = true
       elsif bullet_y > -1
         put_sprite(bullet_x * 8, bullet_y * 8, 3)
-        if bullet_type == 1
+        if bullet_type == 2
+          put_sprite((bullet_x - 2) * 8, bullet_y * 8, 3)
+          put_sprite((bullet_x - 1) * 8, bullet_y * 8, 3)
+          put_sprite((bullet_x + 1) * 8, bullet_y * 8, 3)
+          put_sprite((bullet_x + 2) * 8, bullet_y * 8, 3)
+        elsif bullet_type == 1
           put_sprite((bullet_x - 1) * 8, bullet_y * 8, 3)
           put_sprite((bullet_x + 1) * 8, bullet_y * 8, 3)
         end
@@ -320,6 +332,7 @@ while true
     bg_scroll
   end
 
+  bgm_stop
   play_end_sfx
   wait_vblank
   bg_reset

@@ -245,12 +245,12 @@
     with sdcc or sccz80
 :
   Rather than modifying mruby/c
-  (or mruby) in so many places, and
-  not knowing what breaks, or if it
-  would even run,
+  (or mruby) in so many places,
+  and not knowing what breaks,
+  or if it would even run,
 :
-  surely, developing your own is
-  easier
+  surely, developing your own
+  is easier
 
 :=
 
@@ -259,7 +259,7 @@
 
 
 
-             Is it really easier?
+     Is it really easier?
 
 := Existing work on 8-bit
 :
