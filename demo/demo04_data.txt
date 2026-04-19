@@ -40,8 +40,9 @@
 
     でも今回は英語メインなので基本使いません
 :
-  * Multi-colour text (Apr 2026)
-    ({hl}2 colours{hl})
+  * Multi-colour text
+                  (Apr 2026)
+    ({hl}only 2 colours{hl})
 
 :
 
@@ -55,9 +56,16 @@
 
 :    scrolling text is here!
 
+:    more scrolling text
+
+:    more scrolling...
+
+:    more...
+
 :
-    (but would like to avoid
-     using it)
+    (but probably shouldn't
+     use too much. Shorter
+     paragraphs are better)
 
 := About me
 :
