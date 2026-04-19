@@ -800,7 +800,7 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     }
     uint8_t x = vm->regs[reg_index + 1].u.intval;
     uint8_t y = vm->regs[reg_index + 2].u.intval;
-    gotoxy(cursor_x, nametable_row(cursor_y));
+    gotoxy(x, y);
     vm->regs[reg_index].type = T_NIL;
   } else if (!strcmp(sym, "foo")) {
     printf("'foo' called\r");
