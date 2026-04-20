@@ -16,6 +16,7 @@ const unsigned char my_tile[] = {0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00,0x00};
 // empty method just to make the build pass. Don't call this
 void show_logo() {}
 void restore_font() {}
+uint8_t bytecode_at(uint8_t i) { return 0; }
 
 extern const uint8_t demo03_bytecode[];
 void main() {

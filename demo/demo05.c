@@ -119,6 +119,7 @@ static const unsigned char bg_tiles[] = {
 // empty method just to make the build pass. Don't call this
 void show_logo() {}
 void restore_font() {}
+uint8_t bytecode_at(uint8_t i) { return 0; }
 
 extern const uint8_t demo05_bytecode[];
 void main() {
