@@ -41,7 +41,8 @@
     でも今回は英語メインなので基本使いません
 :
   * Multi-colour text
-                  (Apr 2026)
+    (Apr 2026)
+
     ({hl}only 2 colours{hl})
 
 :
@@ -81,29 +82,27 @@
 :
   Programmer @ CipherStash
 
-:= Brief Histor of mrubyz
-:
-  * At Ruby Kaigi 2025, agreed
-
-    to present something at
-
-    Fukuoka RubyistKaigi 05
+:= Brief History of mrubyz
 :
   * Started development of
 
     mruby on Z80
 
     in NZ, in May 2025
+
 :
   * Jan 2026, RubyConf TH
+
 :
   * Feb 2026, Fukuoka
       RubyistKaigi 2026
+
 :
   * Apr 2026, RubyKaigi 2026
 
 := What is this project about???
 :
+
 
 
   Run mruby bytecode on my own
@@ -112,10 +111,12 @@
 
 
 
+
   URL: https://codeberg.org/
             yujiyokoo/mrubyz
 
 := What is...?
+
 
   * mruby?
 
@@ -127,12 +128,13 @@
 
 := What is mruby?
 :
+
   * Lightweight Ruby
 :
   * Great for embedded and
       small environments
 :
-  * Many variations:
+  * A few variations:
 
     * mruby
 
@@ -175,21 +177,29 @@
   1 008 {hl}STOP{hl}
 
 := Bytecode usage
-:  mrbc can output C headers
-:  const uint8_t eq_int[] = {
+:
+  mrbc can output C headers
+:
+  const uint8_t eq_int[] = {
 
     0x52,0x49,0x54,0x45,0x30,
 
     0x33,0x30,0x30,0x00,0x00,
 
     ...
+
 :
     Read this bytecode in the
     VM and execute
 
-:= What is mruby/c
+:= mruby/c
 :
   * Smaller mruby, VM-only
+    no compiler included
+:
+  * compile somewhere, then
+    put the bytecode on
+    mruby/c VM
 :
   * /c for compact, or
     concurrent
@@ -215,7 +225,7 @@
 
 := Master System?
 :
-  * Sega Z80 Console, very
+  * Sega's Z80 Console, very
     similar to Mark III
 :
   * Z80 at 3.5Mhz
@@ -227,7 +237,8 @@
   * 16KB VRAM, 256x192px
     Tiles, sprites, palettes
 :
-  * Mega DriveはMaster System互換
+  * Mega Drive can run
+    Master System games
 
 := What is this project about???
 :
@@ -364,7 +375,11 @@ OP: OP_MODULE     = 0x5D
       23.56 with float, 0 with int
 :    * 19 * 100 / 25 * 31 / 100
       23 with int
-: * The VM can't handle uint16_t
+:
+  * The VM can't handle uint16_t
+:
+  * (400 * 100) / 25 / 100
+:    {hl}400 * 100 overflows!{hl}
 
 := Japanese support
 :
@@ -374,10 +389,11 @@ OP: OP_MODULE     = 0x5D
     8bit would be 256 chars
     minus special chars
 :
-  * Only want the used characters
+  * Only want the characters
+    that are actually used
     in ROM
 :
-  * Break the ecnoding
+  * Break the ecnoding!
 
 :
   * Got Coding Agent to write converter
@@ -385,32 +401,116 @@ OP: OP_MODULE     = 0x5D
   * This presentation was okay but
     previously it has gone over 256
 
+:= The beginning
+
+:
+      return 1 + 2
+:
+  1 000 {hl}LOADI_1 R1{hl}
+  1 002 {hl}LOADI_2 R2{hl}
+  1 004 {hl}SEND    R1  :+  n=1{hl}
+  1 008 {hl}RETURN  R1{hl}
+  1 010 {hl}RETURN  R1{hl}
+  1 012 {hl}STOP{hl}
+
+:= The beginning
+:
+      return 1 + 2
+:
+  1 000 {hl}LOADI_3 R1{hl}
+  1 002 {hl}RETURN  R1{hl}
+  1 004 {hl}STOP{hl}
+
+:= The minimal VM
+
+:
+   Executing the minimal VM:
+
+     {hl}return{hl} 1 + 2
+:
+   value:
+
+
+:VMRUN
+:= {hl}# Minimal VM source{hl}
+{hl}def{hl} vmrun
+  pc = 48 {hl}# Skip everything!{hl}
+  reg = 0 {hl}# Only one register!{hl}
+  running = true
+
+  {hl}while{hl} running
+    op = read_bytecode(pc)
+    pc += 1
+    {hl}if{hl} op == 0x09 {hl}# LOADI_3{hl}
+      a = read_bytecode(pc)
+      pc += 1 {hl}# Skip{hl}
+      reg = 3
+    {hl}elsif{hl} op == 0x38 {hl}# RETURN{hl}
+      pc += 1 {hl}# Skip{hl}
+      rval = reg
+    {hl}elsif{hl} op == 0x69 {hl}# STOP{hl}
+      running = false
+    {hl}end{hl}
+  {hl}end{hl}
+  {hl}return{hl} rval
+{hl}end{hl}
+:= {hl}# Minimal VM source{hl}
+:
+  It COULD be
+    simplified to:
+:
+  {hl}def{hl} vmrun
+
+    3
+
+  {hl}end{hl}
+:
+    I am not doing this!
+
+:= Future work
+
+:
+  * More Ruby features
+    * Classes, objects
+    * Other instructions
+    * GC
+:
+  * Other Z80 platforms
+
 := Summary
 :
-  * Small subset of Ruby is still useful
+  * Small subset of Ruby is
+    still useful
 :
-    "useful"?
+    {hl}"useful"?{hl}
 :
   * To keep it small,
-      think hard about what {hl}not{hl} to support
+    think hard about
+    what {hl}not{hl} to support
 :
-  * Writing your own VM is not that hard
+  * Writing your own VM is
+    not that hard
 :
-    assuming you're okay with limitations
-
-:      return 1 + 2
+    Pick the features
+    carefully though!
 
 := Summary
 :
-    If you have a platform that does
+    If you have a platform
 
-    not support Ruby, building your
+    that does not support
 
-    own mruby VM will make it a
+    Ruby, building your own
 
-    platform where Ruby is supported
+    mruby VM will make it a
+
+    platform where Ruby is
+
+    supported
 
 := Summary
+
+
 
 
     Build your own VM!
