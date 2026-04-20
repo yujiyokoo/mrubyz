@@ -30,12 +30,18 @@ extern const unsigned char pal2[];
 extern volatile uint16_t timer;
 extern void show_logo();
 extern void restore_font();
+extern uint8_t bytecode_at(uint8_t);
 
 __sfr __at 0xDC io_port_dc;
 
 __sfr __at 0x7F PSGPort;
 #define PSG_setVolume(chan, vol)  (PSGPort = 0x90 | ((chan & 3) << 5) | (vol & 0xF))
 #define PSG_setNoise(type, freq)  (PSGPort = 0xE0 | ((type & 1) << 2) | (freq & 0x3))
+
+void set_sound_freq2(uint8_t channel, uint16_t divider) {
+  PSGPort = 0x80 | ((channel & 3) << 5) | (divider & 0x0F);
+  PSGPort = (divider >> 4) & 0x3F;
+}
 
 #endif
 
@@ -118,6 +124,95 @@ int sfx2_freq;
 unsigned char sfx2_active;
 int sfx1_freq;
 unsigned char sfx1_active;
+
+#define N_REST 0
+#define N_C4   427
+#define N_D4   381
+#define N_E4   339
+#define N_F4   320
+#define N_G4   285
+#define N_A4   254
+#define N_C5   214
+
+#define Q 18
+#define H 36
+#define G 3
+
+const uint16_t bgm_divs[] = {
+  N_C4, N_REST, N_C4, N_REST, N_G4, N_REST, N_G4, N_REST,
+  N_A4, N_REST, N_A4, N_REST, N_G4, N_REST,
+  N_F4, N_REST, N_F4, N_REST, N_E4, N_REST, N_E4, N_REST,
+  N_D4, N_REST, N_D4, N_REST, N_C4, N_REST,
+  N_G4, N_REST, N_G4, N_REST, N_F4, N_REST, N_F4, N_REST,
+  N_E4, N_REST, N_E4, N_REST, N_D4, N_REST,
+  N_G4, N_REST, N_G4, N_REST, N_F4, N_REST, N_F4, N_REST,
+  N_E4, N_REST, N_E4, N_REST, N_D4, N_REST,
+  N_C4, N_REST, N_C4, N_REST, N_G4, N_REST, N_G4, N_REST,
+  N_A4, N_REST, N_A4, N_REST, N_G4, N_REST,
+  N_F4, N_REST, N_F4, N_REST, N_E4, N_REST, N_E4, N_REST,
+  N_D4, N_REST, N_D4, N_REST, N_C4, N_REST,
+  N_REST,
+};
+
+const uint8_t bgm_durs[] = {
+  Q, G, Q, G, Q, G, Q, G,
+  Q, G, Q, G, H, G,
+  Q, G, Q, G, Q, G, Q, G,
+  Q, G, Q, G, H, G,
+  Q, G, Q, G, Q, G, Q, G,
+  Q, G, Q, G, H, G,
+  Q, G, Q, G, Q, G, Q, G,
+  Q, G, Q, G, H, G,
+  Q, G, Q, G, Q, G, Q, G,
+  Q, G, Q, G, H, G,
+  Q, G, Q, G, Q, G, Q, G,
+  Q, G, Q, G, H, G,
+  12,
+};
+
+#define BGM_LENGTH (sizeof(bgm_durs) / sizeof(bgm_durs[0]))
+
+static uint8_t bgm_pos = 0;
+static uint8_t bgm_timer = 0;
+static uint8_t bgm_playing = 0;
+static uint16_t bgm_last_timer = 0;
+
+void bgm_start() {
+  bgm_pos = 0;
+  bgm_timer = 0;
+  bgm_playing = 1;
+  bgm_last_timer = timer;
+}
+
+void bgm_stop() {
+  bgm_playing = 0;
+  PSG_setVolume(0, 15); // silence channel 0
+}
+
+void bgm_update() {
+  if (!bgm_playing) return;
+
+  uint16_t now = timer;
+  uint16_t elapsed = now - bgm_last_timer;
+  bgm_last_timer = now;
+
+  while (elapsed > 0) {
+    if (bgm_timer == 0) {
+      // Start the next note
+      if (bgm_divs[bgm_pos] == N_REST) {
+        PSG_setVolume(0, 15); // silence
+      } else {
+        set_sound_freq(0, bgm_divs[bgm_pos]);
+        PSG_setVolume(0, 4); // moderate volume (0=loudest, 15=silent)
+      }
+      bgm_timer = bgm_durs[bgm_pos];
+      bgm_pos++;
+      if (bgm_pos >= BGM_LENGTH) bgm_pos = 0; // loop
+    }
+    bgm_timer--;
+    elapsed--;
+  }
+}
 
 void start_sfx1() {
   sfx1_freq = 500;
@@ -279,7 +374,7 @@ const char* op_names[] = {
   "OP_STOP       = 0x69"
 };
 
-uint8_t MRBZ_REGS_MAX = 48;
+uint8_t MRBZ_REGS_MAX = 52;
 
 void op_loadi_n(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr, uint8_t inst) {
   int16_t imm_val = inst - OP_LOADI_0;
@@ -878,6 +973,11 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     start_sfx1();
   } else if (!strcmp(sym, "sfx_update")) {
     sfx_update();
+    bgm_update();
+  } else if (!strcmp(sym, "bgm_start")) {
+    bgm_start();
+  } else if (!strcmp(sym, "bgm_stop")) {
+    bgm_stop();
   } else if (!strcmp(sym, "play_end_sfx")) {
     play_end_sfx();
   } else if (!strcmp(sym, "system_timer")) {
@@ -894,6 +994,14 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
   } else if (!strcmp(sym, "dbg")) {
 		printf("type is: %d\r", vm->regs[reg_index].type);
 		printf("intval is: %d\r", vm->regs[reg_index].u.intval);
+  } else if (!strcmp(sym, "read_bytecode")) {
+    if(arg_count != 1) {
+      printf("Unexpected argument count for read_bytecode\r");
+      exit(-1);
+    }
+		int16_t i = vm->regs[reg_index + 1].u.intval;
+		vm->regs[reg_index].type = T_INT;
+		vm->regs[reg_index].u.intval = bytecode_at(i);
   } else {
     // not handled by this built-in only function. Returning 0
     rval = 0;
