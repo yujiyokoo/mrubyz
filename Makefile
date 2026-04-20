@@ -78,8 +78,11 @@ title.h: title.png scripts/png_to_sms_pattern.rb $(BUILDDIR)/sms_palette.ppm | $
 	convert $(BUILDDIR)/small_8col.png -unique-colors -depth 8 RGB:$(BUILDDIR)/small_palette.rgb
 	ruby scripts/png_to_sms_pattern.rb $(BUILDDIR)/small_pixels.rgb $(BUILDDIR)/small_palette.rgb title 2 1 # leave 0x00 for the blank tile
 
-demo04: demo/demo04.c mrubyz.c demo/demo04.ruby.c font_data.h demo/title.c | $(BUILDDIR)
-	$(ZCC) $(CFLAGS) demo/demo04.c mrubyz.c demo/demo04.ruby.c demo/title.c -o $(BUILDDIR)/demo04 -create-app
+demo04: demo/demo04.c mrubyz.c demo/demo04.ruby.c font_data.h demo/title.c demo/add_optimised.ruby.c | $(BUILDDIR)
+	$(ZCC) $(CFLAGS) demo/demo04.c mrubyz.c demo/demo04.ruby.c demo/title.c demo/add_optimised.ruby.c -o $(BUILDDIR)/demo04 -create-app
+
+demo/add_optimised.ruby.c: demo/add_optimised.rb
+	$(MRBC) -B add_optimised --verbose -o $@ $<
 
 demo/demo04.rb: demo/demo04.src.rb demo/demo04_data.txt encoding_map.rb
 	ruby scripts/converter.rb demo/demo04_data.txt > /tmp/demo04_temp.rb ; cat demo/demo04.src.rb >> /tmp/demo04_temp.rb ; mv /tmp/demo04_temp.rb demo/demo04.rb
