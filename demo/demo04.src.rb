@@ -31,6 +31,31 @@ def render_time_progress(start_time)
   put_sprite x * 8, 23 * 8, 190
 end
 
+# A super simple "VM" for running "return 3"
+def vmrun
+  pc = 48 # Skip everything. We know this bytecode
+  reg = 0 # There is only one register!
+  running = true
+
+  while running
+    op = read_bytecode(pc)
+    pc += 1
+
+    if op == 0x09 # LOADI_3
+      a = read_bytecode(pc)
+      pc += 1
+      reg = 3
+    elsif op == 0x38 # RETURN
+      pc += 1
+      rval = reg
+    elsif op == 0x69 # STOP
+      running = false
+    end
+  end
+
+  return rval
+end
+
 # Main presentation
 i = 0
 prev_btns = 0xFF

@@ -8,7 +8,6 @@ long _heap;
 
 extern volatile uint16_t timer;
 
-
 // First colour is for the BG
 // Second colour is for the text
 const unsigned char pal1[] = {0x00, 0x3F, 0x01, 0x05, 0x05, 0x06, 0x06, 0x0A,
@@ -53,6 +52,11 @@ void show_logo() {
 
 void restore_font() {
   load_tiles(demo04_font, 1, DEMO04_FONT_TILE_COUNT, 1);
+}
+
+extern const uint8_t add_optimised[];
+uint8_t bytecode_at(uint8_t i) {
+  return add_optimised[i];
 }
 
 extern const uint8_t demo04_bytecode[];
