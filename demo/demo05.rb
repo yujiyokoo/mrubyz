@@ -13,7 +13,6 @@ bullet_y = nil
 clear_screen
 game_on = true
 
-=begin
 while game_on
   gotoxy(player_x-1, 22) # -1 for the left space (' A ')
   print ' A '
@@ -201,8 +200,6 @@ while !game_on
   wait_vblank
 end
 
-
-=end
 # current version
 
 idx = 0
