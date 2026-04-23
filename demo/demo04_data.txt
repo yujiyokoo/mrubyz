@@ -18,27 +18,45 @@
 
      Press A to start
 
-:= About this app
+:= What is this project about???
+:
+
+
+
+  Run mruby bytecode on my own
+
+    VM implemented on Z80
+
+
+
+
+  URL: https://codeberg.org/
+            yujiyokoo/mrubyz
+
+:= What is...?
+
+
+  * mruby?
+
+  * bytecode?
+
+  * VM?
+
+  * Z80?
+
+:= About this app (SMSPresent)
 :
   * Running on mrubyz VM
-:
-  * Text + some images
-:
-  * Text colour (whole page)
-:
-  * demo04
-:    (SMSPresent)
-:
-  * Live demo
 
-:= Recently-added features
+    ("mrubyz" is my 8bit VM)
 :
-
+  * It's a live demo!
+:
   * 日本語サポート! (since Feb 2026)
 :
-    なんと日本語が表示できるようになりました！
-
     でも今回は英語メインなので基本使いません
+:
+  * Text colour (whole page)
 :
   * Multi-colour text
     (Apr 2026)
@@ -79,43 +97,11 @@
   Fediverse:
 
     @yujiyokoo@ruby.social
+
 :
   Programmer @ CipherStash
 
-:= Brief History of mrubyz
-:
-  * Started development of
-
-    mruby on Z80
-
-    in NZ, in May 2025
-
-:
-  * Jan 2026, RubyConf TH
-
-:
-  * Feb 2026, Fukuoka
-      RubyistKaigi 2026
-
-:
-  * Apr 2026, RubyKaigi 2026
-
-:= What is this project about???
-:
-
-
-
-  Run mruby bytecode on my own
-
-    VM implemented on Z80
-
-
-
-
-  URL: https://codeberg.org/
-            yujiyokoo/mrubyz
-
-:= What is...?
+:= Back to the list
 
 
   * mruby?
@@ -130,19 +116,12 @@
 :
 
   * Lightweight Ruby
+
 :
   * Great for embedded and
       small environments
-:
-  * A few variations:
 
-    * mruby
-
-    * mruby/c
-
-    * PicoRuby, FemtoRuby
-
-:= Ruby VM
+:= VM
 :
   * Virtual Machine
     a machine inside a machine
@@ -157,10 +136,6 @@
   * VM instructions
 :
   * Simple instructions
-:
-  * mruby VM is a register
-    machine, so lots of
-    register-based operations
 
 := Bytecode example
 
@@ -179,6 +154,7 @@
 := Bytecode usage
 :
   mrbc can output C headers
+
 :
   const uint8_t eq_int[] = {
 
@@ -200,9 +176,6 @@
   * compile somewhere, then
     put the bytecode on
     mruby/c VM
-:
-  * /c for compact, or
-    concurrent
 :
   * Inspiration for
     mrubyz
@@ -236,9 +209,6 @@
 :
   * 16KB VRAM, 256x192px
     Tiles, sprites, palettes
-:
-  * Mega Drive can run
-    Master System games
 
 := What is this project about???
 :
@@ -255,13 +225,24 @@
   * z88dk, zcc (frontend),
     with sdcc or sccz80
 :
-  Rather than modifying mruby/c
-  (or mruby) in so many places,
-  and not knowing what breaks,
-  or if it would even run,
+  * It's hard to build mruby
+    or mruby/c
 :
-  surely, developing your own
-  is easier
+  * My thought process:
+:
+    Rather than modifying
+
+    mruby or mruby/c in so
+
+    many places, and not
+
+    knowing what breaks,
+
+    or if it would even run,
+:
+    surely, developing my
+
+    own VM is easier!
 
 :=
 
@@ -270,61 +251,67 @@
 
 
 
-     Is it really easier?
+    Is it really easier?
 
 := Existing work on 8-bit
 :
  micro mruby
 
  https://github.com/kishima/
-    micro_mruby_for_arduino_uno
+  micro_mruby_for_arduino_uno
+
 :
  nesruby
 
  https://github.com/
-    yhara/nesruby
+  yhara/nesruby
+
 :
  ruby-gameboy
 
  https://github.com/
-    khasinski/ruby-gameboy
+  khasinski/ruby-gameboy
 
 := mrubyz features
 
-:  * Built-in functions
-:  * Assignment
-:  * strings
+:  * (very) incomplete
+
 :  * Add, sub, multi, div (int)
-:  * Branching with if-else
-:  * while loop
-:  * equality comparison
+
+:  * No float
+
+:  * loop (only with 'while')
+
+:  * equality comparison (==)
+
 :  * greater than (>)
+
+:  * No less than (<)
+:    a <= b
+:    {hl}->{hl} b > a or b == a
+
 :  * arrays
-:  * functions <- NEW!
-:  * Many more!
 
-:= unimplemented features
-:  * most things
-:  * less than (<), etc.
-:    if a <= b
-:    -> {hl}if{hl} b > a {hl}or{hl} a == b
-:  * garbage collection
-:  * string manipulation
+:  * functions
+
+:  * No GC
+
+:  * No string manipulation
     (data stays in ROM)
-:  * exceptions
-:  * classes / modules
-:  * procs
-:  * lots more!
 
-:=
-unsupported instruction: 0x12
-OP: OP_MODULE     = 0x5D
+:  * No exceptions
+    (prints error message
+     and exits)
+
+:  * No classes / modules
 
 := What can you do with it?
 :
-  This presentation, and other
-  small programs
+  This presentation, for
+  example
 :
+
+
   i = 0
 
   {hl}while{hl} pages.size > i
@@ -356,50 +343,34 @@ OP: OP_MODULE     = 0x5D
 :
   * No (native) 32-bit support
 :
-  * Is it the VM bug, or app bug?
-:
   * Slow, but not unusable
 
 := Timer implementation
 :
-  * No clock available
+  * SMS has no clock
 :
-  * z88dk counts vsync interrupts
-    60 times per second
+  * z88dk counts vsync
+    interrupts 60 times per
+    second
+
 :  * 16 bit means max 65535
-:    This means overflow to 0 at
-    approx 1092s
+:    This means overflow to 0
+    at approx 1092s
 :
   * No floating point type
+
     * 19 / 25 * 31
-      23.56 with float, 0 with int
+      23.56 with float,
+      0 with int
+
 :    * 19 * 100 / 25 * 31 / 100
       23 with int
 :
-  * The VM can't handle uint16_t
+  * The VM can't handle
+    unsigned 16 bit integer
 :
   * (400 * 100) / 25 / 100
 :    {hl}400 * 100 overflows!{hl}
-
-:= Japanese support
-:
-  * Every character is a tile
-:
-  * 448 tiles -> 9 bit!
-    8bit would be 256 chars
-    minus special chars
-:
-  * Only want the characters
-    that are actually used
-    in ROM
-:
-  * Break the ecnoding!
-
-:
-  * Got Coding Agent to write converter
-:
-  * This presentation was okay but
-    previously it has gone over 256
 
 := The beginning
 
@@ -421,17 +392,6 @@ OP: OP_MODULE     = 0x5D
   1 002 {hl}RETURN  R1{hl}
   1 004 {hl}STOP{hl}
 
-:= The minimal VM
-
-:
-   Executing the minimal VM:
-
-     {hl}return{hl} 1 + 2
-:
-   value:
-
-
-:VMRUN
 := {hl}# Minimal VM source{hl}
 {hl}def{hl} vmrun
   pc = 48 {hl}# Skip everything!{hl}
@@ -454,26 +414,33 @@ OP: OP_MODULE     = 0x5D
   {hl}end{hl}
   {hl}return{hl} rval
 {hl}end{hl}
-:= {hl}# Minimal VM source{hl}
-:
-  It COULD be
-    simplified to:
-:
-  {hl}def{hl} vmrun
+:= The minimal VM
 
-    3
-
-  {hl}end{hl}
 :
-    I am not doing this!
+   Executing the minimal VM:
 
-:= Future work
+     return 1 + 2
+:
+   value:
+
+
+:VMRUN
+:= Future plans
+
+  So, that's where I got to
+
+  In my VM implementation,
+
+  but what's happening to it
+
+  in the future?
 
 :
   * More Ruby features
+
     * Classes, objects
-    * Other instructions
-    * GC
+    * More VM instructions
+    * Possibly, GC
 :
   * Other Z80 platforms
 
@@ -533,4 +500,4 @@ OP: OP_MODULE     = 0x5D
   https://rubykaigi.org/2026/
 
 
-:= Demo (finally)!
+:= Demo
