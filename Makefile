@@ -13,10 +13,10 @@ endif
 BUILDDIR=build
 
 # Demo target
-DEMOS = demo01 demo02 demo03 demo04 demo05
+DEMOS = demo01 demo02 demo03 demo04 demo05 demo06
 
 # Ruby bytecode files
-BYTECODE_FILES = demo/add.ruby.c demo/demo02.ruby.c demo/demo03.ruby.c demo/demo04.ruby.c demo/demo05.ruby.c
+BYTECODE_FILES = demo/add.ruby.c demo/demo02.ruby.c demo/demo03.ruby.c demo/demo04.ruby.c demo/demo05.ruby.c demo/demo06.ruby.c
 
 .PHONY: all test clean
 
@@ -95,3 +95,12 @@ demo05: demo/demo05.c mrubyz.c demo/demo05.ruby.c | $(BUILDDIR)
 
 demo/demo05.ruby.c: demo/demo05.rb
 	$(MRBC) -B demo05_bytecode --verbose -o $@ $<
+
+demo/demo06.mrb: demo/demo06.rb
+	$(MRBC) --verbose -o $@ $<
+
+demo/demo06_aot.c: demo/demo06.mrb scripts/aot_compiler.rb
+	ruby scripts/aot_compiler.rb $< > $@
+
+demo06: demo/demo06.c mrubyz.c demo/demo06_aot.c | $(BUILDDIR)
+	$(ZCC) $(CFLAGS) -DAOT demo/demo06.c mrubyz.c demo/demo06_aot.c -o $(BUILDDIR)/demo06 -create-app
