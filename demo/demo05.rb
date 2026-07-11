@@ -1,6 +1,10 @@
 # Initial version
 idx = 0
 prev_btns = 0xFF
+fps_show = false
+fps_count = 0
+fps_value = 0
+fps_last = system_timer
 
 player_x = 15
 enemy_x = 7
@@ -19,6 +23,10 @@ while game_on
   gotoxy(enemy_x-1, enemy_y)
   print ' V '
   btns = read_buttons
+
+  if btns & 0x02 == 0 && prev_btns & 0x02 != 0 # DOWN just pushed → toggle FPS
+    fps_show = !fps_show
+  end
 
   # check btns & 0x20 == 0 if you wanna check for B
   if btns & 0x10 == 0 && prev_btns & 0x10 != 0 # A just pushed
@@ -75,6 +83,18 @@ while game_on
     end
   end
 
+  if fps_show
+    fps_count += 1
+    now_t = system_timer
+    if now_t != fps_last
+      fps_value = fps_count
+      fps_count = 0
+      fps_last = now_t
+    end
+    gotoxy(0, 23)
+    print fps_value
+  end
+
   wait_vblank
 end
 
@@ -94,6 +114,10 @@ end
 # Version in Thailand
 idx = 0
 prev_btns = 0xFF
+fps_show = false
+fps_count = 0
+fps_value = 0
+fps_last = system_timer
 
 player_x = 15
 enemy_x = 7
@@ -114,6 +138,10 @@ while game_on
   put_sprite(enemy_x * 8, enemy_y * 8, 6)
 
   btns = read_buttons
+
+  if btns & 0x02 == 0 && prev_btns & 0x02 != 0 # DOWN just pushed → toggle FPS
+    fps_show = !fps_show
+  end
 
   if btns & 0x10 == 0 && prev_btns & 0x10 != 0 # A just pushed
     if !bullet_x && !bullet_y
@@ -176,6 +204,18 @@ while game_on
     end
   end
 
+  if fps_show
+    fps_count += 1
+    now_t = system_timer
+    if now_t != fps_last
+      fps_value = fps_count
+      fps_count = 0
+      fps_last = now_t
+    end
+    gotoxy(0, 23)
+    print fps_value
+  end
+
   wait_vblank
   render_sprites
 end
@@ -204,6 +244,10 @@ end
 
 idx = 0
 prev_btns = 0xFF
+fps_show = false
+fps_count = 0
+fps_value = 0
+fps_last = system_timer
 
 while true
   player_x = 15
@@ -226,6 +270,10 @@ while true
     init_sprites
 
     btns = read_buttons
+
+    if btns & 0x02 == 0 && prev_btns & 0x02 != 0 # DOWN just pushed → toggle FPS
+      fps_show = !fps_show
+    end
 
     if btns & 0x10 == 0 && prev_btns & 0x10 != 0 # A just pushed
       if !bullet_x && !bullet_y
@@ -321,6 +369,18 @@ while true
       else
         enemy_bullet_y += 1
       end
+    end
+
+    if fps_show
+      fps_count += 1
+      now_t = system_timer
+      if now_t != fps_last
+        fps_value = fps_count
+        fps_count = 0
+        fps_last = now_t
+      end
+      gotoxy(0, 23)
+      print fps_value
     end
 
     sfx_update
