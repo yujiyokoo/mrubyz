@@ -101,6 +101,14 @@ static void SMS_loadSpritePalette(void* a) {
   debug_out("SMS_loadSpritePalette() called, but this is not SMS\n");
 }
 
+static void SMS_setBGPaletteColor(unsigned char entry, unsigned char color) {
+  debug_out("SMS_setBGPaletteColor(%d, %d) called, but this is not SMS\n", entry, color);
+}
+
+static void SMS_setSpritePaletteColor(unsigned char entry, unsigned char color) {
+  debug_out("SMS_setSpritePaletteColor(%d, %d) called, but this is not SMS\n", entry, color);
+}
+
 #define PSG_setVolume(chan, vol) ((void)0)
 #define PSG_setNoise(type, freq) ((void)0)
 #define io_port_dc (0)
@@ -909,6 +917,19 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     gotoxy(x, y);
     cursor_x = x;
     cursor_y = y;
+    vm->regs[reg_index].type = T_NIL;
+  } else if (!strcmp(sym, "set_colour")) {
+    if(arg_count != 2) {
+      printf("Unexpected argument count for set_colour\r");
+      exit(-1);
+    }
+    uint8_t idx = vm->regs[reg_index + 1].u.intval;
+    uint8_t val = vm->regs[reg_index + 2].u.intval;
+    if (idx < 16) {
+      SMS_setBGPaletteColor(idx, val);
+    } else {
+      SMS_setSpritePaletteColor(idx - 16, val);
+    }
     vm->regs[reg_index].type = T_NIL;
   } else if (!strcmp(sym, "foo")) {
     printf("'foo' called\r");
