@@ -9,6 +9,9 @@
 #include "test_arrays.h"
 #include "test_func_call.h"
 #include "test_built_ins.h"
+#include <stdint.h>
+
+uint8_t bytecode_at(uint8_t i) { return 0; }
 
 int main(int argc, char *argv[])
 {
