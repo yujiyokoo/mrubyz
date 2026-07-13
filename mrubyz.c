@@ -931,6 +931,15 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
       SMS_setSpritePaletteColor(idx - 16, val);
     }
     vm->regs[reg_index].type = T_NIL;
+  } else if (!strcmp(sym, "set_scroll")) {
+    if(arg_count != 2) {
+      printf("Unexpected argument count for set_scroll\r");
+      exit(-1);
+    }
+    uint8_t x = vm->regs[reg_index + 1].u.intval;
+    uint8_t y = vm->regs[reg_index + 2].u.intval;
+    scroll_bkg(x, y);
+    vm->regs[reg_index].type = T_NIL;
   } else if (!strcmp(sym, "foo")) {
     printf("'foo' called\r");
     vm->regs[reg_index].type = T_TRUE; // Use reg[reg_index] for return
