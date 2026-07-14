@@ -8,5 +8,6 @@
 /tests/ruby/*.mrb
 /demo/*.mrb
 /demo/demo04.rb
+/demo/shou_circle.h
 /encoding_map.rb
 /font_data.h

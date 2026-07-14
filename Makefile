@@ -1,5 +1,5 @@
 # Z88DK compiler configuration
-ZCC = docker run --platform linux/amd64 --rm -i -t -v $(PWD):/src z88dk/z88dk zcc
+ZCC = docker run --platform linux/amd64 --rm -i -v $(PWD):/src z88dk/z88dk zcc
 CFLAGS = +sms -vn -m -DAMALLOC
 MRBC = mrbc
 MISAKI_BDF = misaki_gothic.bdf
@@ -13,10 +13,10 @@ endif
 BUILDDIR=build
 
 # Demo target
-DEMOS = demo01 demo02 demo03 demo04 demo05 demo06
+DEMOS = demo01 demo02 demo03 demo04 demo05 demo06 demo07
 
 # Ruby bytecode files
-BYTECODE_FILES = demo/add.ruby.c demo/demo02.ruby.c demo/demo03.ruby.c demo/demo04.ruby.c demo/demo05.ruby.c demo/demo06.ruby.c
+BYTECODE_FILES = demo/add.ruby.c demo/demo02.ruby.c demo/demo03.ruby.c demo/demo04.ruby.c demo/demo05.ruby.c demo/demo06.ruby.c demo/demo07.ruby.c
 
 .PHONY: all test clean
 
@@ -104,3 +104,12 @@ demo/demo06_aot.c: demo/demo06.mrb scripts/aot_compiler.rb
 
 demo06: demo/demo06.c mrubyz.c demo/demo06_aot.c | $(BUILDDIR)
 	$(ZCC) $(CFLAGS) -DAOT demo/demo06.c mrubyz.c demo/demo06_aot.c -o $(BUILDDIR)/demo06 -create-app
+
+demo/shou_circle.h: scripts/gen_shou_circle.rb
+	ruby scripts/gen_shou_circle.rb $@
+
+demo07: demo/demo07.c mrubyz.c demo/demo07.ruby.c demo/shou_circle.h | $(BUILDDIR)
+	$(ZCC) $(CFLAGS) demo/demo07.c mrubyz.c demo/demo07.ruby.c -o $(BUILDDIR)/demo07 -create-app
+
+demo/demo07.ruby.c: demo/demo07.rb
+	$(MRBC) -B demo07_bytecode --verbose -o $@ $<
