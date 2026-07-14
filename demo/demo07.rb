@@ -5,8 +5,16 @@
 prev_btns = 0xFF
 lit = 1        # centre disc (band 1) starts white
 whiteout = 13  # SHOU_CIRCLE_BAND_COUNT + 1
+shou_x = 120
+shou_y = 88
 
 while true
+  init_sprites
+  put_sprite(shou_x, shou_y, 188)
+  put_sprite(shou_x + 8, shou_y, 189)
+  put_sprite(shou_x, shou_y + 8, 190)
+  put_sprite(shou_x + 8, shou_y + 8, 191)
+
   btns = read_buttons
 
   if btns & 0x10 == 0 && prev_btns & 0x10 != 0 # A just pushed
@@ -14,6 +22,7 @@ while true
       lit += 1
       if lit == whiteout
         set_colour(0, 0x3F)
+        set_colour(17, 0x3F) # melt the kanji stroke into the white
       else
         set_colour(lit, 0x3F)
       end
@@ -24,6 +33,7 @@ while true
     if lit > 1
       if lit == whiteout
         set_colour(0, 0x00)
+        set_colour(17, 0x00)
       else
         set_colour(lit, 0x00)
       end
@@ -33,4 +43,5 @@ while true
 
   prev_btns = btns
   wait_vblank
+  render_sprites
 end

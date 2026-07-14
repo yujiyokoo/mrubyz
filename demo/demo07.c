@@ -1,12 +1,16 @@
 #include <SMSlib.h>
 #include <sms.h>
-#include <stdio.h>
 #include "mrubyz.h"
 #include "shou_circle.h"
+#include "shou_sprite.h"
+
+#if SHOU_CIRCLE_BAND_COUNT != 12
+#error "demo07.rb hardcodes whiteout = 13 (BAND_COUNT + 1); update it"
+#endif
 
 long _heap;
 
-const unsigned char sprite_pal[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+const unsigned char sprite_pal[] = {0x00, 0x00 /* stroke: black */, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 // mrubyz.c externs these; demo07 never calls the builtin that loads them
@@ -31,6 +35,7 @@ void main() {
   SMS_loadBGPalette(shou_circle_palette);
   SMS_loadSpritePalette(sprite_pal);
   SMS_useFirstHalfTilesforSprites(0);
+  SMS_loadTiles(shou_sprite_tiles, 444, 128);
 
   SMS_displayOn();
   SMS_setBackdropColor(0);

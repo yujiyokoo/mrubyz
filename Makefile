@@ -29,7 +29,7 @@ test:
 clean:
 	rm -f $(BUILDDIR)/*
 	rm -f $(BYTECODE_FILES)
-	rm -f encoding_map.rb font_data.h $(FONT8_BIN)
+	rm -f encoding_map.rb font_data.h $(FONT8_BIN) demo/shou_circle.h demo/shou_sprite.h
 	$(MAKE) -C tests clean
 
 $(BUILDDIR):
@@ -108,7 +108,10 @@ demo06: demo/demo06.c mrubyz.c demo/demo06_aot.c | $(BUILDDIR)
 demo/shou_circle.h: scripts/gen_shou_circle.rb
 	ruby scripts/gen_shou_circle.rb $@
 
-demo07: demo/demo07.c mrubyz.c demo/demo07.ruby.c demo/shou_circle.h | $(BUILDDIR)
+demo/shou_sprite.h: scripts/gen_shou_sprite.rb scripts/font_builder.rb $(MISAKI_BDF)
+	ruby scripts/gen_shou_sprite.rb $(MISAKI_BDF) $@
+
+demo07: demo/demo07.c mrubyz.c demo/demo07.ruby.c demo/shou_circle.h demo/shou_sprite.h | $(BUILDDIR)
 	$(ZCC) $(CFLAGS) demo/demo07.c mrubyz.c demo/demo07.ruby.c -o $(BUILDDIR)/demo07 -create-app
 
 demo/demo07.ruby.c: demo/demo07.rb
