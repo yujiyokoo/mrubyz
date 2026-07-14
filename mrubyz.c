@@ -923,6 +923,10 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
       printf("Unexpected argument count for set_colour\r");
       exit(-1);
     }
+    if(vm->regs[reg_index + 1].type != T_INT || vm->regs[reg_index + 2].type != T_INT) {
+      printf("Unexpected argument type for set_colour\r");
+      exit(-1);
+    }
     uint8_t idx = vm->regs[reg_index + 1].u.intval;
     uint8_t val = vm->regs[reg_index + 2].u.intval;
     if (idx < 16) {
@@ -934,6 +938,10 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
   } else if (!strcmp(sym, "set_scroll")) {
     if(arg_count != 2) {
       printf("Unexpected argument count for set_scroll\r");
+      exit(-1);
+    }
+    if(vm->regs[reg_index + 1].type != T_INT || vm->regs[reg_index + 2].type != T_INT) {
+      printf("Unexpected argument type for set_scroll\r");
       exit(-1);
     }
     uint8_t x = vm->regs[reg_index + 1].u.intval;
