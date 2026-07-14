@@ -81,7 +81,7 @@ static void set_sound_freq(uint16_t a, uint16_t b) {
   debug_out("set_sound_freq() called, but this is not SMS\n");
 }
 
-static void scroll_bkg(void* a, void* b) {
+static void scroll_bkg(int a, int b) {
   debug_out("scroll_bkg() called, but this is not SMS\n");
 }
 
