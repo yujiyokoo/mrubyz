@@ -54,8 +54,7 @@ while true
 
   # +X scroll shifts the image right; +Y scroll shifts it up (so negate oy)
   sy = 0 - oy
-  sy += 224 if 0 > sy
-  set_scroll(ox & 0xFF, sy)
+  sy += 224 if 0 > sy # 224 = BG plane height in px; VDP Y scroll wraps at 224
 
   if btns & 0x10 == 0 && prev_btns & 0x10 != 0 # A just pushed
     if whiteout > lit
@@ -83,5 +82,6 @@ while true
 
   prev_btns = btns
   wait_vblank
+  set_scroll(ox & 0xFF, sy)
   render_sprites
 end
