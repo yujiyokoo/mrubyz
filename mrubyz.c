@@ -948,6 +948,22 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     uint8_t y = vm->regs[reg_index + 2].u.intval;
     scroll_bkg(x, y);
     vm->regs[reg_index].type = T_NIL;
+  } else if (!strcmp(sym, "random")) {
+    if(arg_count != 1) {
+      printf("Unexpected argument count for random\r");
+      exit(-1);
+    }
+    if(vm->regs[reg_index + 1].type != T_INT) {
+      printf("Unexpected argument type for random\r");
+      exit(-1);
+    }
+    int16_t n = vm->regs[reg_index + 1].u.intval;
+    if(n <= 0) {
+      printf("Unexpected argument value for random\r");
+      exit(-1);
+    }
+    vm->regs[reg_index].type = T_INT;
+    vm->regs[reg_index].u.intval = rand() % n;
   } else if (!strcmp(sym, "foo")) {
     printf("'foo' called\r");
     vm->regs[reg_index].type = T_TRUE; // Use reg[reg_index] for return
