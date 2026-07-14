@@ -1,6 +1,6 @@
 # demo07: 「照」 spotlight → whiteout
 # D-pad: move 照 (the white disc chases it)
-# A: light the next band outward   B: darken one band back
+# A: light the next band outward   B: darken one band back (down to full blackout)
 prev_btns = 0xFF
 lit = 1        # centre disc (band 1) starts white
 whiteout = 13  # SHOU_CIRCLE_BAND_COUNT + 1
@@ -61,6 +61,7 @@ while true
       lit += 1
       if lit == whiteout
         set_colour(0, 0x3F)
+        set_colour(16, 0x3F) # CRAM 16 = backdrop/border
         set_colour(17, 0x3F) # melt the kanji stroke into the white
       else
         set_colour(lit, 0x3F)
@@ -69,9 +70,10 @@ while true
   end
 
   if btns & 0x20 == 0 && prev_btns & 0x20 != 0 # B just pushed
-    if lit > 1
+    if lit > 0 # lit 1 -> 0 darkens the centre disc: full blackout
       if lit == whiteout
         set_colour(0, 0x00)
+        set_colour(16, 0x00) # CRAM 16 = backdrop/border
         set_colour(17, 0x00)
       else
         set_colour(lit, 0x00)

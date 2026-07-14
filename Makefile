@@ -7,7 +7,7 @@ FONT8_BIN  = FONT8.BIN
 
 # Check for misaki font bdf
 ifeq (,$(wildcard $(MISAKI_BDF)))
-  $(warning WARNING: $(MISAKI_BDF) is missing — demo04 build will fail. Please download the BDF version from https://littlelimit.net/misaki.htm and place $(MISAKI_BDF) in the root directory of this project)
+  $(warning WARNING: $(MISAKI_BDF) is missing — demo04 and demo07 builds will fail. Please download the BDF version from https://littlelimit.net/misaki.htm and place $(MISAKI_BDF) in the root directory of this project)
 endif
 
 BUILDDIR=build
