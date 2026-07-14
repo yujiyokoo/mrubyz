@@ -1,21 +1,61 @@
-# demo07: 「照」 spotlight → whiteout (phases 2-3: manual band lighting)
-# A = light the next band outward; B = darken one band back.
-# Band b is BG palette index b. lit == whiteout means index 0 (the
-# surround) is white too -> 100% white screen.
+# demo07: 「照」 spotlight → whiteout
+# D-pad: move 照 (the white disc chases it)
+# A: light the next band outward   B: darken one band back
 prev_btns = 0xFF
 lit = 1        # centre disc (band 1) starts white
 whiteout = 13  # SHOU_CIRCLE_BAND_COUNT + 1
-shou_x = 120
+
+shou_x = 120   # sprite top-left; centre of the 16x16 is (shou_x+8, shou_y+8)
 shou_y = 88
+ox = 0         # current circle-centre offset from screen centre, in px
+oy = 0
 
 while true
   init_sprites
+  # tiles 188..191 = VRAM 444..447, see shou_sprite.h
   put_sprite(shou_x, shou_y, 188)
   put_sprite(shou_x + 8, shou_y, 189)
   put_sprite(shou_x, shou_y + 8, 190)
   put_sprite(shou_x + 8, shou_y + 8, 191)
 
   btns = read_buttons
+
+  if btns & 0x01 == 0 # UP held
+    shou_y -= 2 if shou_y > 16
+  end
+  if btns & 0x02 == 0 # DOWN held
+    shou_y += 2 if 160 > shou_y
+  end
+  if btns & 0x04 == 0 # LEFT held
+    shou_x -= 2 if shou_x > 16
+  end
+  if btns & 0x08 == 0 # RIGHT held
+    shou_x += 2 if 224 > shou_x
+  end
+
+  # circle chases 照: move the scroll offset 2px/frame toward the target
+  target_ox = shou_x + 8 - 128
+  target_oy = shou_y + 8 - 96
+  target_ox = 32 if target_ox > 32
+  target_ox = -32 if -32 > target_ox
+  target_oy = 16 if target_oy > 16
+  target_oy = -16 if -16 > target_oy
+
+  if target_ox > ox
+    ox += 2
+  elsif ox > target_ox
+    ox -= 2
+  end
+  if target_oy > oy
+    oy += 2
+  elsif oy > target_oy
+    oy -= 2
+  end
+
+  # +X scroll shifts the image right; +Y scroll shifts it up (so negate oy)
+  sy = 0 - oy
+  sy += 224 if 0 > sy
+  set_scroll(ox & 0xFF, sy)
 
   if btns & 0x10 == 0 && prev_btns & 0x10 != 0 # A just pushed
     if whiteout > lit
