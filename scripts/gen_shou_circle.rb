@@ -14,13 +14,8 @@ module ShouCircle
   VISIBLE_HEIGHT = 192
   CENTRE_X = 128
   CENTRE_Y = 96
-  # Non-linear (roughly quadratic) spacing: bands tight near the centre,
-  # widening towards the edge. Evenly-spaced (6px) bands blow the tile
-  # budget past 300 unique tiles because every ring is thinner than one
-  # tile (8px), so almost every tile straddles 2-3 band boundaries. Wider
-  # outer bands cut that boundary-tile diversity down under MAX_TILES.
-  RADII = [2, 3, 4, 7, 11, 16, 22, 30, 40, 51, 65, 80].freeze
-  MAX_TILES = 250       # BG tiles live in VRAM 0..255; sprites start at 256
+  RADII = [14, 20, 26, 32, 38, 44, 50, 56, 62, 68, 74, 80].freeze
+  MAX_TILES = 440       # BG tiles use VRAM 0..443; the 4 sprite tiles sit at 444..447
   DARK = 0x00
   WHITE = 0x3F
 
