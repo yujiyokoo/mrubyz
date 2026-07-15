@@ -54,10 +54,8 @@ void restore_font() {
   load_tiles(demo04_font, 1, DEMO04_FONT_TILE_COUNT, 1);
 }
 
-extern const uint8_t add_optimised[];
-uint8_t bytecode_at(uint8_t i) {
-  return add_optimised[i];
-}
+// empty method just to make the build pass (mrubyz.c externs it). Don't call this
+uint8_t bytecode_at(uint8_t i) { return 0; }
 
 extern const uint8_t demo04_bytecode[];
 void main() {

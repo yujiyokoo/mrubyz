@@ -31,31 +31,6 @@ def render_time_progress(start_time)
   put_sprite x * 8, 23 * 8, 190
 end
 
-# A super simple "VM" for running "return 3"
-def vmrun
-  pc = 48 # Skip everything. We know this bytecode
-  reg = 0 # There is only one register!
-  running = true
-
-  while running
-    op = read_bytecode(pc)
-    pc += 1
-
-    if op == 0x09 # LOADI_3
-      a = read_bytecode(pc)
-      pc += 1
-      reg = 3
-    elsif op == 0x38 # RETURN
-      pc += 1
-      rval = reg
-    elsif op == 0x69 # STOP
-      running = false
-    end
-  end
-
-  return rval
-end
-
 # Main presentation
 i = 0
 prev_btns = 0xFF
@@ -74,7 +49,7 @@ while true
   render_sprites
 
   # draw first paragraph
-  puts pres_data[i][j] if pres_data[i].size > j
+  puts_packed pres_data[i][j] if pres_data[i].size > j
   j += 1
 
   current_col = 0
@@ -86,12 +61,7 @@ while true
       # Don't try to display if we've gone past the end
       # We just wanted to wait for the keypress
       if pres_data[i].size > j
-        if pres_data[i][j] == "VMRUN\r"
-          print "        "
-          print vmrun
-        else
-          puts pres_data[i][j]
-        end
+        puts_packed pres_data[i][j]
       end
       j += 1
     end
@@ -116,12 +86,7 @@ while true
       j = 0
 			clear_screen
       if pres_data[i].size > j
-        if pres_data[i][j] == "VMRUN\r"
-          print "        "
-          print vmrun
-        else
-          puts pres_data[i][j]
-        end
+        puts_packed pres_data[i][j]
       end
 			j += 1
     end
