@@ -241,7 +241,7 @@ void start_footstep() {
   if (footstep_frames) return; // previous step still sounding
   footstep_toggle = 1 - footstep_toggle;
   set_sound_freq(2, footstep_toggle ? 450 : 625); // ~250Hz / ~180Hz
-  PSG_setVolume(2, 6); // quiet-ish: it's a footstep, not a shot
+  PSG_setVolume(2, 0); // footstep: full volume
   footstep_frames = 1; // silenced at this loop's own sfx_update: a short tick
 }
 
@@ -257,13 +257,13 @@ static uint8_t bell_frames = 0;
 
 void start_type_clack() {
   PSG_setNoise(1, 0); // white noise, highest rate: a crisp mechanical clack
-  PSG_setVolume(3, 4);
+  PSG_setVolume(3, 0); // full-volume clack
   clack_frames = 1;
 }
 
 void start_type_bell() {
   set_sound_freq(2, 56); // ~2kHz: the carriage bell "ding"
-  bell_frames = 12;      // fades out in sfx_update
+  bell_frames = 15;      // fades out in sfx_update (starts at volume 0, full)
 }
 
 void sfx_update() {
@@ -275,7 +275,7 @@ void sfx_update() {
   }
   if (bell_frames) {
     bell_frames--;
-    PSG_setVolume(2, 15 - bell_frames); // ring-down: 4 -> silent
+    PSG_setVolume(2, 15 - bell_frames); // ring-down: full -> silent
   }
   if (footstep_frames) {
     footstep_frames--;
