@@ -1017,9 +1017,12 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     SMS_copySpritestoSAT();
     vm->regs[reg_index].type = T_NIL;
   } else if (!strcmp(sym, "bg_scroll")) {
-    scroll_y -= 1;
+    // VDP Y scroll wraps at 224 (28-row BG plane), not at this uint8_t's 256;
+    // values 224-255 glitch the display
+    scroll_y = (scroll_y == 0) ? 223 : scroll_y - 1;
     scroll_bkg(0, scroll_y);
   } else if (!strcmp(sym, "bg_reset")) {
+    scroll_y = 0;
     scroll_bkg(0, 0);
   } else if (!strcmp(sym, "start_sfx2")) {
     start_sfx2();

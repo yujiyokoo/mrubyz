@@ -1,0 +1,2 @@
+bg_scroll
+bg_reset
