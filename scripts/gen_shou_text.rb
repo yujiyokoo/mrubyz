@@ -14,7 +14,9 @@
 require_relative 'font_builder'
 
 module ShouText
-  MESSAGE = 'KANSAI RUBYKAIGI9'
+  # Trailing space: its reveal press rings the carriage bell on its own,
+  # one beat after the 9's keystroke.
+  MESSAGE = 'KANSAI RUBYKAIGI9 '
 
   # [8 glyph row bytes] -> 32 bytes 4bpp planar. Stroke index 15 = 0b1111,
   # so each row byte lands verbatim in all four bitplanes.

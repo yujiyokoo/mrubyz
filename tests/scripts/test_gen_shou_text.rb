@@ -3,9 +3,11 @@ require 'tmpdir'
 require_relative '../../scripts/gen_shou_text'
 
 class TestMessage < Minitest::Test
-  def test_message_is_the_17_char_reveal
-    assert_equal 'KANSAI RUBYKAIGI9', ShouText::MESSAGE
-    assert_equal 17, ShouText::MESSAGE.length
+  def test_message_is_the_18_char_reveal
+    # trailing space: its reveal press rings the carriage bell on its own,
+    # separated from the 9's clack
+    assert_equal 'KANSAI RUBYKAIGI9 ', ShouText::MESSAGE
+    assert_equal 18, ShouText::MESSAGE.length
   end
 end
 
@@ -36,11 +38,11 @@ class TestGenerateText < Minitest::Test
 
       content = File.read(path)
       assert_includes content, 'shou_text_tiles'
-      assert_equal 17 * 32, content.scan(/0x[0-9a-f]{2}/).length
+      assert_equal 18 * 32, content.scan(/0x[0-9a-f]{2}/).length
       assert_includes content, '0xff', 'K top row should appear in the data'
 
       defs = File.read(File.join(dir, 'shou_text_defs.h'))
-      assert_includes defs, '#define SHOU_TEXT_LEN 17'
+      assert_includes defs, '#define SHOU_TEXT_LEN 18'
       refute_includes defs, 'shou_text_tiles', 'defs header must not define the array'
     end
   end

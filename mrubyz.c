@@ -250,7 +250,33 @@ void start_sfx2() {
     sfx2_active = 1;
 }
 
+// Typewriter effects for the whiteout message: a 1-frame white-noise
+// "clack" per letter (noise channel 3), and a ring-down carriage bell.
+static uint8_t clack_frames = 0;
+static uint8_t bell_frames = 0;
+
+void start_type_clack() {
+  PSG_setNoise(1, 0); // white noise, highest rate: a crisp mechanical clack
+  PSG_setVolume(3, 4);
+  clack_frames = 1;
+}
+
+void start_type_bell() {
+  set_sound_freq(2, 56); // ~2kHz: the carriage bell "ding"
+  bell_frames = 12;      // fades out in sfx_update
+}
+
 void sfx_update() {
+  if (clack_frames) {
+    clack_frames--;
+    if (clack_frames == 0) {
+      PSG_setVolume(3, 15); // silence the noise channel
+    }
+  }
+  if (bell_frames) {
+    bell_frames--;
+    PSG_setVolume(2, 15 - bell_frames); // ring-down: 4 -> silent
+  }
   if (footstep_frames) {
     footstep_frames--;
     if (footstep_frames == 0) {
@@ -1065,6 +1091,10 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     start_sfx2();
   } else if (!strcmp(sym, "start_footstep")) {
     start_footstep();
+  } else if (!strcmp(sym, "start_type_clack")) {
+    start_type_clack();
+  } else if (!strcmp(sym, "start_type_bell")) {
+    start_type_bell();
   } else if (!strcmp(sym, "start_sfx1")) {
     start_sfx1();
   } else if (!strcmp(sym, "sfx_update")) {

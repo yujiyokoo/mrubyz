@@ -9,7 +9,7 @@ shou_x = 120   # sprite top-left; centre of the 16x16 is (shou_x+8, shou_y+8)
 shou_y = 88
 ox = 0         # current circle-centre offset from screen centre, in px
 oy = 0
-shown = 0      # letters of "KANSAI RUBYKAIGI9" revealed during whiteout
+shown = 0      # letters of "KANSAI RUBYKAIGI9 " revealed during whiteout
 
 while true
   btns = read_buttons
@@ -126,8 +126,14 @@ while true
       else
         set_colour(lit, 0x3F)
       end
-    elsif 17 > shown # fully white: reveal the message letter by letter
+    elsif 18 > shown # fully white: reveal the message letter by letter
       reveal_letter(shown)
+      # spaces (positions 6 and 17) are silent key presses; the final
+      # trailing space rings the carriage bell instead, one beat after 9
+      if shown != 6 && shown != 17
+        start_type_clack # typewriter strike
+      end
+      start_type_bell if shown == 17
       shown += 1
     end
   end
