@@ -319,9 +319,9 @@ void play_end_sfx() {
 // Scroll state
 uint8_t scroll_y = 0;
 static uint8_t current_top_row = 0;
-// Current text cursor position
-static uint8_t cursor_x = 0;
-static uint8_t cursor_y = 0;
+// Current text cursor position (non-static so host tests can inspect them)
+uint8_t cursor_x = 0;
+uint8_t cursor_y = 0;
 
 #ifdef DEBUG
 // Debug-only: ~2.5KB of strings; release error paths print the opcode in hex
@@ -876,6 +876,44 @@ static void text_scroll() {
 }
 
 // "builtin" method handler. Returns 1 if handled here, 0 otherwise
+// Emit one 9-bit text code at the cursor. Extracted from puts so that
+// puts (byte stream) and puts_packed (mask blocks) render identically —
+// including the historical quirks: the caller advances cursor_x after
+// every code (so highlight/PAD compensate with cursor_x--, and the
+// column after a newline is 1, exactly as puts has always behaved).
+static void emit_text_code(uint16_t code, uint8_t *highlight) {
+  if(cursor_x == 32) {
+    cursor_x = 0;
+    cursor_y++;
+  }
+
+  // Scroll if necessary
+  if(cursor_y >= 23) {
+    text_scroll();
+    cursor_y = 22;
+  }
+
+  if(code == 0x01) {
+    *highlight = !*highlight;
+    cursor_x--;
+  } else if(code == 0x1FF) { // PAD (packed text only): no-op
+    cursor_x--;
+  } else if(code == 0x0D) {
+    cursor_x = 0;
+    cursor_y += 1;
+    if(cursor_y >= 23) {
+      text_scroll();
+      cursor_y = 22;
+    }
+  } else {
+    uint16_t tile = code;
+    if(*highlight) {
+      tile = tile | 0x0800; // 0x0800 for using the sprite palette
+    }
+    SMS_setTileatXY(cursor_x, nametable_row(cursor_y), tile);
+  }
+}
+
 uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t arg_count) {
   uint8_t rval = 1;
 
@@ -885,36 +923,7 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
       uint8_t highlight = 0;
       char* str = vm->regs[reg_index+1].u.strval;
       for (; *str; str++, cursor_x++) {
-        if(cursor_x == 32) {
-          cursor_x = 0;
-          cursor_y++;
-        }
-
-        // Scroll if necessary
-        if(cursor_y >= 23) {
-          text_scroll();
-          cursor_y = 22;
-        }
-
-        if(*str == 0x01) {
-          highlight = !highlight;
-          cursor_x--;
-        } else if(*str == '\r') {
-          cursor_x = 0;
-          cursor_y += 1;
-          if(cursor_y >= 23) {
-            text_scroll();
-            cursor_y = 22;
-          }
-        } else {
-          // Read the character, extend to 16 bit as unsigned
-          uint8_t c = (uint8_t)*str;
-          uint16_t tile = (uint16_t)c;
-          if(highlight) {
-            tile = tile | 0x0800; // 0x0800 for using the sprite palette
-          }
-          SMS_setTileatXY(cursor_x, nametable_row(cursor_y), tile);
-        }
+        emit_text_code((uint16_t)(uint8_t)*str, &highlight);
       }
       gotoxy(0, nametable_row(cursor_y + 1));
     } else if(vm->regs[reg_index+1].type == T_INT) {
@@ -937,6 +946,27 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
         SMS_setTileatXY(cursor_x, nametable_row(cursor_y), (uint16_t)(uint8_t)*str);
       }
     }
+    vm->regs[reg_index].type = T_NIL;
+  } else if (!strcmp(sym, "puts_packed")) {
+    // 9-bit packed text: 9-byte blocks of [mask][low0..low7], where mask
+    // bit i is code i's bit 8. Length-driven (packed bytes may be 0x00).
+    if(vm->regs[reg_index+1].type != T_STRING) {
+      printf("Unexpected argument type for puts_packed\r");
+      exit(-1);
+    }
+    uint8_t highlight = 0;
+    const uint8_t *p = (const uint8_t *)vm->regs[reg_index+1].u.str.ptr;
+    uint16_t nblocks = vm->regs[reg_index+1].u.str.len / 9;
+    for(uint16_t b = 0; b < nblocks; b++) {
+      uint8_t mask = p[0];
+      for(uint8_t i = 0; i < 8; i++) {
+        uint16_t code = (uint16_t)p[1 + i] | (uint16_t)((mask >> i) & 1) << 8;
+        emit_text_code(code, &highlight);
+        cursor_x++;
+      }
+      p += 9;
+    }
+    gotoxy(0, nametable_row(cursor_y + 1));
     vm->regs[reg_index].type = T_NIL;
   } else if (!strcmp(sym, "txt_col")) {
     if(arg_count != 1) {
