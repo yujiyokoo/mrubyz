@@ -40,8 +40,8 @@ while true
   put_sprite(shou_x, shou_y + 8, 190)
   put_sprite(shou_x + 8, shou_y + 8, 191)
 
-  # circle chases 照 at 1px/frame (照 moves 2), so the light trails behind
-  # and glides in when 照 stops
+  # circle chases 照: 2px/frame while more than 8px behind (keeping up with
+  # 照's own 2px/frame), easing to a 1px/frame glide for the last stretch
   target_ox = shou_x + 8 - 128
   target_oy = shou_y + 8 - 96
 
@@ -57,15 +57,31 @@ while true
   target_oy = 0 - cy if 0 - cy > target_oy
 
   if target_ox > ox
-    ox += 1
+    if target_ox - ox > 8
+      ox += 2
+    else
+      ox += 1
+    end
   elsif ox > target_ox
-    ox -= 1
+    if ox - target_ox > 8
+      ox -= 2
+    else
+      ox -= 1
+    end
   end
 
   if target_oy > oy
-    oy += 1
+    if target_oy - oy > 8
+      oy += 2
+    else
+      oy += 1
+    end
   elsif oy > target_oy
-    oy -= 1
+    if oy - target_oy > 8
+      oy -= 2
+    else
+      oy -= 1
+    end
   end
 
   # +X scroll shifts the image right; +Y scroll shifts it up (so negate oy)
