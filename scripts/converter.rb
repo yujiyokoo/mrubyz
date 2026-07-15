@@ -14,23 +14,24 @@ module Converter
   end
 
   HIGHLIGHT_MARKER = '{hl}'
-  HIGHLIGHT_BYTE = "\x01"
+  HIGHLIGHT_CODE = 0x001
+  NEWLINE_CODE   = 0x00D
+  PAD_CODE       = 0x1FF
 
-  # Encode a display string character-by-character using ENCODING_MAP.
-  # \r is passed through as-is. {hl} is replaced with 0x01 (highlight toggle).
-  # Missing characters cause abort.
-  def self.encode_string(str)
-    result = String.new(encoding: 'BINARY')
+  # Encode a display string to an array of 9-bit tile codes using ENCODING_MAP.
+  # \r becomes NEWLINE_CODE; {hl} becomes HIGHLIGHT_CODE. Missing chars abort.
+  def self.encode_codes(str)
+    result = []
     i = 0
     while i < str.length
       if str[i, HIGHLIGHT_MARKER.length] == HIGHLIGHT_MARKER
-        result << HIGHLIGHT_BYTE
+        result << HIGHLIGHT_CODE
         i += HIGHLIGHT_MARKER.length
       elsif str[i] == "\r"
-        result << "\r"
+        result << NEWLINE_CODE
         i += 1
       elsif ENCODING_MAP.key?(str[i])
-        result << ENCODING_MAP[str[i]].chr
+        result << ENCODING_MAP[str[i]]
         i += 1
       else
         abort "ERROR: No tile mapping for character #{str[i].inspect} " \
@@ -39,6 +40,25 @@ module Converter
       end
     end
     result
+  end
+
+  # Pack 9-bit codes into 9-byte blocks: [mask][low0..low7] where mask
+  # bit i carries code i's bit 8. The final block is padded with PAD_CODE.
+  def self.pack_blocks(codes)
+    padded = codes.dup
+    padded << PAD_CODE while padded.length % 8 != 0
+    out = String.new(encoding: 'BINARY')
+    padded.each_slice(8) do |slice|
+      mask = 0
+      slice.each_with_index { |c, i| mask |= ((c >> 8) & 1) << i }
+      out << mask.chr
+      slice.each { |c| out << (c & 0xFF).chr }
+    end
+    out
+  end
+
+  def self.pack_string(str)
+    pack_blocks(encode_codes(str))
   end
 
   # Format a binary string as a Ruby string literal with \xNN escapes for all bytes.
@@ -73,9 +93,9 @@ if __FILE__ == $0
     encoded_pages = pages.map do |page|
       page.map do |item|
         if Converter.command_string?(item.strip)
-          (item.strip + "\r").inspect  # emit as a normal Ruby string literal
+          (item.strip + "\r").inspect  # unused by current deck; passthrough kept
         else
-          Converter.format_string(Converter.encode_string(item))
+          Converter.format_string(Converter.pack_string(item))
         end
       end
     end
