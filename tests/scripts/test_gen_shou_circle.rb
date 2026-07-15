@@ -129,4 +129,17 @@ class TestGenerate < Minitest::Test
       assert_includes content, 'shou_circle_map'
     end
   end
+
+  # The data header lives in ROM bank 2 (see demo/shou_data.c), so the code
+  # bank gets the counts from a separate defs-only companion header.
+  def test_generate_writes_defs_companion_header
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'shou_circle.h')
+      capture_io { ShouCircle.generate(path) }
+      defs = File.read(File.join(dir, 'shou_circle_defs.h'))
+      assert_includes defs, '#define SHOU_CIRCLE_TILE_COUNT'
+      assert_includes defs, '#define SHOU_CIRCLE_BAND_COUNT 12'
+      refute_includes defs, 'shou_circle_tiles', 'defs header must not define data arrays'
+    end
+  end
 end

@@ -9,6 +9,7 @@
 /demo/*.mrb
 /demo/demo04.rb
 /demo/shou_circle.h
+/demo/shou_circle_defs.h
 /demo/shou_sprite.h
 /encoding_map.rb
 /font_data.h

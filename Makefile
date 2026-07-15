@@ -29,7 +29,7 @@ test:
 clean:
 	rm -f $(BUILDDIR)/*
 	rm -f $(BYTECODE_FILES)
-	rm -f encoding_map.rb font_data.h $(FONT8_BIN) demo/shou_circle.h demo/shou_sprite.h
+	rm -f encoding_map.rb font_data.h $(FONT8_BIN) demo/shou_circle.h demo/shou_circle_defs.h demo/shou_sprite.h
 	$(MAKE) -C tests clean
 
 $(BUILDDIR):
@@ -105,14 +105,14 @@ demo/demo06_aot.c: demo/demo06.mrb scripts/aot_compiler.rb
 demo06: demo/demo06.c mrubyz.c demo/demo06_aot.c | $(BUILDDIR)
 	$(ZCC) $(CFLAGS) -DAOT demo/demo06.c mrubyz.c demo/demo06_aot.c -o $(BUILDDIR)/demo06 -create-app
 
-demo/shou_circle.h: scripts/gen_shou_circle.rb
-	ruby scripts/gen_shou_circle.rb $@
+demo/shou_circle.h demo/shou_circle_defs.h: scripts/gen_shou_circle.rb
+	ruby scripts/gen_shou_circle.rb demo/shou_circle.h
 
 demo/shou_sprite.h: scripts/gen_shou_sprite.rb scripts/font_builder.rb $(MISAKI_BDF)
 	ruby scripts/gen_shou_sprite.rb $(MISAKI_BDF) $@
 
-demo07: demo/demo07.c mrubyz.c demo/demo07.ruby.c demo/shou_circle.h demo/shou_sprite.h | $(BUILDDIR)
-	$(ZCC) $(CFLAGS) demo/demo07.c mrubyz.c demo/demo07.ruby.c -o $(BUILDDIR)/demo07 -create-app
+demo07: demo/demo07.c demo/shou_data.c mrubyz.c demo/demo07.ruby.c demo/shou_circle.h demo/shou_circle_defs.h demo/shou_sprite.h | $(BUILDDIR)
+	$(ZCC) $(CFLAGS) demo/demo07.c demo/shou_data.c mrubyz.c demo/demo07.ruby.c -o $(BUILDDIR)/demo07 -create-app
 
 demo/demo07.ruby.c: demo/demo07.rb
 	$(MRBC) -B demo07_bytecode --verbose -o $@ $<
