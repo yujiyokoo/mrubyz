@@ -368,3 +368,29 @@ class TestEncodingMapGenerator < Minitest::Test
     assert_equal 3, ENCODING_MAP["あ"]
   end
 end
+
+class TestNineBitBudget < Minitest::Test
+  def test_assigns_indices_past_255
+    # 351 distinct non-fixed chars: past the 188 free slots below 256
+    # (spills over 255) but within the 378 free slots of the 445 ceiling
+    chars = (0x3041..0x319F).map { |cp| [cp].pack('U') }
+    map = FontBuilder.assign_indices(chars)
+    assert map.values.max > 255, "expected assignment past the old 255 cap"
+    assert map.values.max <= 445
+    refute map.values.include?(0x0C), "0x0C must stay reserved"
+  end
+
+  def test_aborts_past_445
+    chars = (0x3041..0x3400).map { |cp| [cp].pack('U') }  # way over budget
+    assert_raises(SystemExit) do
+      capture_io { FontBuilder.assign_indices(chars) }
+    end
+  end
+
+  def test_budget_report
+    report = FontBuilder.budget_report({ 'あ' => 100, '照' => 101, 'A' => 65 })
+    assert_includes report, '3'          # total glyphs
+    assert_includes report, '1'          # kanji count (照; あ is kana, A ascii)
+    assert_includes report, '442'        # budget
+  end
+end

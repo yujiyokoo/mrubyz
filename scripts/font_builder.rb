@@ -87,6 +87,11 @@ module FontBuilder
 
   RESERVED_INDICES = [0x00, 0x01, 0x0C, 0x0D].freeze  # 0x01 = highlight toggle
 
+  # 9-bit packed text: tile indices may go up to 445 (sprites own 446/447);
+  # minus the reserved values that leaves 442 assignable glyphs.
+  MAX_TILE_INDEX = 445
+  GLYPH_BUDGET = 442
+
   # Characters that are always included and fixed at their ASCII tile positions.
   FIXED_CHARS = [' ', ',', *('0'..'9'), *('A'..'Z'), *('a'..'z')].freeze
   FIXED_MAP = FIXED_CHARS.each_with_object({}) { |c, h| h[c] = c.ord }.freeze
@@ -111,12 +116,21 @@ module FontBuilder
     characters.each do |char|
       next if FIXED_MAP.key?(char) # already assigned
       index += 1 while taken.include?(index)
-      abort "ERROR: Too many unique characters (#{map.size + 1}); tile index #{index} exceeds 255. Reduce the character set." if index > 255
+      if index > MAX_TILE_INDEX
+        remaining = characters.drop(characters.index(char))
+        abort "ERROR: Too many unique characters (#{map.size + 1}); tile index #{index} exceeds #{MAX_TILE_INDEX} (#{GLYPH_BUDGET}-glyph budget). Reduce the character set. Unassigned: #{remaining.join}"
+      end
       map[char] = index
       taken.add(index)
       index += 1
     end
     map
+  end
+
+  # One-line build report: total glyphs, kanji count, remaining budget.
+  def self.budget_report(map)
+    kanji = map.keys.count { |c| (0x4E00..0x9FFF).cover?(c.codepoints.first) }
+    "font: #{map.size} glyphs (#{kanji} kanji), budget #{map.size}/#{GLYPH_BUDGET}, #{GLYPH_BUDGET - map.size} free"
   end
 
   PLACEHOLDER_GLYPH = [0] * 8
@@ -198,6 +212,7 @@ if __FILE__ == $0
   char_map   = FontBuilder.assign_indices(characters)
 
   puts "Found #{characters.size} unique characters, #{char_map.values.max} tile indices used."
+  puts FontBuilder.budget_report(char_map)
 
   File.write(font_data_out,    FontBuilder.generate_font_data_h(char_map, glyphs))
   File.write(encoding_map_out, FontBuilder.generate_encoding_map_rb(char_map))
