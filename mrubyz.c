@@ -232,12 +232,31 @@ void start_sfx1() {
   sfx1_active = 1;
 }
 
+// Footstep ("piko piko"): a short flat blip, alternating between two
+// low pitches per step. Timed out by sfx_update.
+static uint8_t footstep_frames = 0;
+static uint8_t footstep_toggle = 0;
+
+void start_footstep() {
+  if (footstep_frames) return; // previous step still sounding
+  footstep_toggle = 1 - footstep_toggle;
+  set_sound_freq(2, footstep_toggle ? 450 : 625); // ~250Hz / ~180Hz
+  PSG_setVolume(2, 6); // quiet-ish: it's a footstep, not a shot
+  footstep_frames = 1; // silenced at this loop's own sfx_update: a short tick
+}
+
 void start_sfx2() {
     sfx2_freq = 40;
     sfx2_active = 1;
 }
 
 void sfx_update() {
+  if (footstep_frames) {
+    footstep_frames--;
+    if (footstep_frames == 0) {
+      PSG_setVolume(2, 15); // silence
+    }
+  }
   if(sfx2_active) {
     set_sound_freq(2, sfx2_freq);
     PSG_setVolume(2, 0);
@@ -1044,6 +1063,8 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     scroll_bkg(0, 0);
   } else if (!strcmp(sym, "start_sfx2")) {
     start_sfx2();
+  } else if (!strcmp(sym, "start_footstep")) {
+    start_footstep();
   } else if (!strcmp(sym, "start_sfx1")) {
     start_sfx1();
   } else if (!strcmp(sym, "sfx_update")) {

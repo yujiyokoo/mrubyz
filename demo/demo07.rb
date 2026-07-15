@@ -14,20 +14,42 @@ shown = 0      # letters of "KANSAI RUBYKAIGI9" revealed during whiteout
 while true
   btns = read_buttons
 
+  moved = false
+
   if btns & 0x01 == 0 # UP held
-    shou_y -= 2 if shou_y > 16
+    if shou_y > 16
+      shou_y -= 2
+      moved = true
+    end
   end
 
   if btns & 0x02 == 0 # DOWN held
-    shou_y += 2 if 160 > shou_y
+    if 160 > shou_y
+      shou_y += 2
+      moved = true
+    end
   end
 
   if btns & 0x04 == 0 # LEFT held
-    shou_x -= 2 if shou_x > 16
+    if shou_x > 16
+      shou_x -= 2
+      moved = true
+    end
   end
 
   if btns & 0x08 == 0 # RIGHT held
-    shou_x += 2 if 224 > shou_x
+    if 224 > shou_x
+      shou_x += 2
+      moved = true
+    end
+  end
+
+  # piko-piko footsteps at maximum cadence while 照 is actually walking
+  # (and visible — silent during the whiteout). start_footstep rate-limits
+  # itself: it retriggers as soon as the previous blip finishes, giving one
+  # step every 2 loop frames.
+  if moved && whiteout > lit
+    start_footstep
   end
 
   # draw 照 at its moved position, so sprite and scroll agree on the frame
@@ -126,6 +148,7 @@ while true
   end
 
   prev_btns = btns
+  sfx_update
   wait_vblank
   set_scroll(ox & 0xFF, sy)
   render_sprites
