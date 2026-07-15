@@ -424,7 +424,6 @@
    value:
 
 
-:VMRUN
 := Future plans
 
   So, that's where I got to
