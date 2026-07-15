@@ -11,29 +11,37 @@ ox = 0         # current circle-centre offset from screen centre, in px
 oy = 0
 
 while true
+  btns = read_buttons
+
+  if btns & 0x01 == 0 # UP held
+    shou_y -= 2 if shou_y > 16
+  end
+
+  if btns & 0x02 == 0 # DOWN held
+    shou_y += 2 if 160 > shou_y
+  end
+
+  if btns & 0x04 == 0 # LEFT held
+    shou_x -= 2 if shou_x > 16
+  end
+
+  if btns & 0x08 == 0 # RIGHT held
+    shou_x += 2 if 224 > shou_x
+  end
+
+  # draw 照 at its moved position, so sprite and scroll agree on the frame
+  # (init_sprites must run every frame: it resets the sprite list,
+  #  otherwise put_sprite keeps appending until the 64-entry SAT is full)
   init_sprites
+
   # tiles 188..191 = VRAM 444..447, see shou_sprite.h
   put_sprite(shou_x, shou_y, 188)
   put_sprite(shou_x + 8, shou_y, 189)
   put_sprite(shou_x, shou_y + 8, 190)
   put_sprite(shou_x + 8, shou_y + 8, 191)
 
-  btns = read_buttons
-
-  if btns & 0x01 == 0 # UP held
-    shou_y -= 2 if shou_y > 16
-  end
-  if btns & 0x02 == 0 # DOWN held
-    shou_y += 2 if 160 > shou_y
-  end
-  if btns & 0x04 == 0 # LEFT held
-    shou_x -= 2 if shou_x > 16
-  end
-  if btns & 0x08 == 0 # RIGHT held
-    shou_x += 2 if 224 > shou_x
-  end
-
-  # circle chases 照: move the scroll offset 2px/frame toward the target
+  # circle chases 照 at 1px/frame (照 moves 2), so the light trails behind
+  # and glides in when 照 stops
   target_ox = shou_x + 8 - 128
   target_oy = shou_y + 8 - 96
   target_ox = 32 if target_ox > 32
@@ -42,14 +50,15 @@ while true
   target_oy = -16 if -16 > target_oy
 
   if target_ox > ox
-    ox += 2
+    ox += 1
   elsif ox > target_ox
-    ox -= 2
+    ox -= 1
   end
+
   if target_oy > oy
-    oy += 2
+    oy += 1
   elsif oy > target_oy
-    oy -= 2
+    oy -= 1
   end
 
   # +X scroll shifts the image right; +Y scroll shifts it up (so negate oy)
