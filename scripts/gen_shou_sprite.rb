@@ -3,32 +3,36 @@
 
 # Generate the 16x16 「照」 sprite tiles for demo07.
 #
-# PLACEHOLDER ART: currently scales the 8x8 misaki glyph 2x. The design doc
-# calls for hand-drawn 16x16 art (scaled misaki strokes crush together);
-# when that art exists, replace bitmap_rows16 with it — the tile
-# splitting/encoding below stays the same.
+# The bitmap is the JIS X 0208 0x3E48 glyph, extracted one-time (2026-07-15)
+# from jiskan16.bdf (X.org font-jis-misc; "16-dots Matrix Character Patterns
+# for Display Devices", JIS X 9051-1984 — COPYRIGHT "from JIS X 9051-1984,
+# by permission to use"). Baked in as a literal so the build needs no font
+# file. It replaces the earlier 2x-scaled misaki placeholder.
 #
 # Strokes are sprite palette index 1 (opaque black), not transparent 0,
 # so the kanji reads black over the white spotlight disc.
 #
-# Usage: ruby scripts/gen_shou_sprite.rb misaki_gothic.bdf demo/shou_sprite.h
-
-require_relative 'font_builder'
+# Usage: ruby scripts/gen_shou_sprite.rb demo/shou_sprite.h
 
 module ShouSprite
-  SHOU = 0x7167 # 照
-
-  # [8 bytes] 8x8 -> [16 x 16-bit rows], each pixel doubled in both axes
-  def self.scale2x(rows8)
-    rows8.flat_map do |byte|
-      wide = 0
-      (0...8).each do |bit|
-        next unless (byte >> (7 - bit)) & 1 == 1
-        wide |= 0b11 << (14 - bit * 2)
-      end
-      [wide, wide]
-    end
-  end
+  SHOU_BITMAP = [
+    0x0000, # ................
+    0x7dfe, # .#####.########.
+    0x4422, # .#...#....#...#.
+    0x4462, # .#...#...##...#.
+    0x44c2, # .#...#..##....#.
+    0x7d8e, # .#####.##...###.
+    0x4400, # .#...#..........
+    0x44fe, # .#...#..#######.
+    0x4482, # .#...#..#.....#.
+    0x4482, # .#...#..#.....#.
+    0x7c82, # .#####..#.....#.
+    0x00fe, # ........#######.
+    0x0000, # ................
+    0x2444, # ..#..#...#...#..
+    0x6666, # .##..##..##..##.
+    0xc223, # ##....#...#...##
+  ].freeze
 
   # [16 x 16-bit rows] -> four 64-entry index arrays (TL, TR, BL, BR),
   # set pixels become sprite palette index 1
@@ -56,10 +60,8 @@ module ShouSprite
     bytes
   end
 
-  def self.generate(bdf_path, out_path)
-    glyphs = FontBuilder.parse_bdf(File.read(bdf_path))
-    glyph = glyphs[SHOU] or abort "no 照 (U+7167) glyph in #{bdf_path}"
-    tiles = split_tiles(scale2x(glyph))
+  def self.generate(out_path)
+    tiles = split_tiles(SHOU_BITMAP)
     bytes = tiles.flat_map { |t| encode_tile(t) }
 
     File.open(out_path, 'w') do |f|
@@ -74,6 +76,6 @@ module ShouSprite
 end
 
 if __FILE__ == $0
-  abort "Usage: ruby #{$0} <misaki.bdf> <output.h>" unless ARGV[1]
-  ShouSprite.generate(ARGV[0], ARGV[1])
+  abort "Usage: ruby #{$0} <output.h>" unless ARGV[0]
+  ShouSprite.generate(ARGV[0])
 end

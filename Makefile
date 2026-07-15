@@ -7,7 +7,7 @@ FONT8_BIN  = FONT8.BIN
 
 # Check for misaki font bdf
 ifeq (,$(wildcard $(MISAKI_BDF)))
-  $(warning WARNING: $(MISAKI_BDF) is missing — demo04 and demo07 builds will fail. Please download the BDF version from https://littlelimit.net/misaki.htm and place $(MISAKI_BDF) in the root directory of this project)
+  $(warning WARNING: $(MISAKI_BDF) is missing — demo04 build will fail. Please download the BDF version from https://littlelimit.net/misaki.htm and place $(MISAKI_BDF) in the root directory of this project)
 endif
 
 BUILDDIR=build
@@ -108,8 +108,8 @@ demo06: demo/demo06.c mrubyz.c demo/demo06_aot.c | $(BUILDDIR)
 demo/shou_circle.h demo/shou_circle_defs.h: scripts/gen_shou_circle.rb
 	ruby scripts/gen_shou_circle.rb demo/shou_circle.h
 
-demo/shou_sprite.h: scripts/gen_shou_sprite.rb scripts/font_builder.rb $(MISAKI_BDF)
-	ruby scripts/gen_shou_sprite.rb $(MISAKI_BDF) $@
+demo/shou_sprite.h: scripts/gen_shou_sprite.rb
+	ruby scripts/gen_shou_sprite.rb $@
 
 demo/shou_text.h demo/shou_text_defs.h: scripts/gen_shou_text.rb scripts/font_builder.rb $(FONT8_BIN)
 	ruby scripts/gen_shou_text.rb $(FONT8_BIN) demo/shou_text.h

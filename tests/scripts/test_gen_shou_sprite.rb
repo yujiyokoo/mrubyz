@@ -1,14 +1,19 @@
 require 'minitest/autorun'
+require 'tmpdir'
 require_relative '../../scripts/gen_shou_sprite'
 
-class TestScale2x < Minitest::Test
-  def test_doubles_a_single_row
-    # 8-bit row 0b10000001 -> 16-bit 0b1100000000000011, as two rows
-    out = ShouSprite.scale2x([0x81] + [0x00] * 7)
-    assert_equal 16, out.length
-    assert_equal 0b1100000000000011, out[0]
-    assert_equal 0b1100000000000011, out[1]
-    assert_equal 0, out[2]
+class TestShouBitmap < Minitest::Test
+  def test_is_a_16x16_bitmap
+    assert_equal 16, ShouSprite::SHOU_BITMAP.length
+    ShouSprite::SHOU_BITMAP.each { |row| assert_operator row, :<=, 0xFFFF }
+  end
+
+  def test_matches_the_jiskan16_glyph
+    # spot-check rows of the JIS 0x3E48 glyph as extracted from jiskan16.bdf
+    assert_equal 0x0000, ShouSprite::SHOU_BITMAP[0]
+    assert_equal 0x7dfe, ShouSprite::SHOU_BITMAP[1]  # top strokes of 日 and 召
+    assert_equal 0x6666, ShouSprite::SHOU_BITMAP[14] # the 灬 dots
+    assert_equal 0xc223, ShouSprite::SHOU_BITMAP[15]
   end
 end
 
@@ -29,5 +34,17 @@ class TestSpriteTiles < Minitest::Test
     bytes = ShouSprite.encode_tile(tile)
     assert_equal 32, bytes.length
     assert_equal [0xFF, 0x00, 0x00, 0x00], bytes[0, 4]
+  end
+end
+
+class TestGenerateSprite < Minitest::Test
+  def test_generate_writes_4_tiles_from_the_baked_bitmap
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'shou_sprite.h')
+      capture_io { ShouSprite.generate(path) }
+      content = File.read(path)
+      assert_includes content, 'shou_sprite_tiles'
+      assert_equal 4 * 32, content.scan(/0x[0-9a-f]{2}/).length
+    end
   end
 end
