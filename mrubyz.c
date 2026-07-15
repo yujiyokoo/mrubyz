@@ -273,6 +273,8 @@ static uint8_t current_top_row = 0;
 static uint8_t cursor_x = 0;
 static uint8_t cursor_y = 0;
 
+#ifdef DEBUG
+// Debug-only: ~2.5KB of strings; release error paths print the opcode in hex
 const char* op_names[] = {
   "OP_NOP        = 0x00",
   "OP_MOVE       = 0x01",
@@ -381,6 +383,7 @@ const char* op_names[] = {
   "OP_EXT3       = 0x68",
   "OP_STOP       = 0x69"
 };
+#endif
 
 uint8_t MRBZ_REGS_MAX = 52;
 
@@ -1424,7 +1427,9 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_STOP: exiting = 1; break;
       default:
         printf("unsupported instruction: 0x%x\r", instruction);
+#ifdef DEBUG
         printf("OP: %s\r", op_names[instruction]);
+#endif
         // Crash on unsupported instruction
         exit(-1);
     }

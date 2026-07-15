@@ -2,7 +2,6 @@
 #include <sms.h>
 #include <stdio.h>
 #include "mrubyz.h"
-#include "logo_map.h"
 
 long _heap;
 
