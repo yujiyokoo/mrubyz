@@ -1,5 +1,5 @@
 # Z88DK compiler configuration
-ZCC = docker run --platform linux/amd64 --rm -i -t -v $(PWD):/src z88dk/z88dk zcc
+ZCC = docker run --platform linux/amd64 --rm -i -v $(PWD):/src z88dk/z88dk zcc
 CFLAGS = +sms -vn -m -DAMALLOC
 MRBC = mrbc
 MISAKI_BDF = misaki_gothic.bdf
@@ -13,10 +13,10 @@ endif
 BUILDDIR=build
 
 # Demo target
-DEMOS = demo01 demo02 demo03 demo04 demo05 demo06
+DEMOS = demo01 demo02 demo03 demo04 demo05 demo06 demo07
 
 # Ruby bytecode files
-BYTECODE_FILES = demo/add.ruby.c demo/demo02.ruby.c demo/demo03.ruby.c demo/demo04.ruby.c demo/demo05.ruby.c demo/demo06.ruby.c
+BYTECODE_FILES = demo/add.ruby.c demo/demo02.ruby.c demo/demo03.ruby.c demo/demo04.ruby.c demo/demo05.ruby.c demo/demo06.ruby.c demo/demo07.ruby.c
 
 .PHONY: all test clean
 
@@ -29,7 +29,7 @@ test:
 clean:
 	rm -f $(BUILDDIR)/*
 	rm -f $(BYTECODE_FILES)
-	rm -f encoding_map.rb font_data.h $(FONT8_BIN)
+	rm -f encoding_map.rb font_data.h $(FONT8_BIN) demo/shou_circle.h demo/shou_circle_defs.h demo/shou_sprite.h demo/shou_text.h demo/shou_text_defs.h
 	$(MAKE) -C tests clean
 
 $(BUILDDIR):
@@ -104,3 +104,19 @@ demo/demo06_aot.c: demo/demo06.mrb scripts/aot_compiler.rb
 
 demo06: demo/demo06.c mrubyz.c demo/demo06_aot.c | $(BUILDDIR)
 	$(ZCC) $(CFLAGS) -DAOT demo/demo06.c mrubyz.c demo/demo06_aot.c -o $(BUILDDIR)/demo06 -create-app
+
+demo/shou_circle.h demo/shou_circle_defs.h: scripts/gen_shou_circle.rb
+	ruby scripts/gen_shou_circle.rb demo/shou_circle.h
+
+demo/shou_sprite.h: scripts/gen_shou_sprite.rb
+	ruby scripts/gen_shou_sprite.rb $@
+
+demo/shou_text.h demo/shou_text_defs.h: scripts/gen_shou_text.rb scripts/font_builder.rb $(FONT8_BIN)
+	ruby scripts/gen_shou_text.rb $(FONT8_BIN) demo/shou_text.h
+
+# -DSHOU_TEXT enables the demo07-only reveal_letter/hide_letters builtins in mrubyz.c
+demo07: demo/demo07.c demo/shou_data.c mrubyz.c demo/demo07.ruby.c demo/shou_circle.h demo/shou_circle_defs.h demo/shou_sprite.h demo/shou_text.h demo/shou_text_defs.h | $(BUILDDIR)
+	$(ZCC) $(CFLAGS) -DSHOU_TEXT demo/demo07.c demo/shou_data.c mrubyz.c demo/demo07.ruby.c -o $(BUILDDIR)/demo07 -create-app
+
+demo/demo07.ruby.c: demo/demo07.rb
+	$(MRBC) -B demo07_bytecode --verbose -o $@ $<

@@ -14,6 +14,8 @@ extern const uint8_t div[];
 extern const uint8_t addi[];
 extern const uint8_t subi[];
 
+extern const uint8_t and_int[];
+
 void test_integer_loadi16() {
   printf("\n\ntest_integer_loadi16\n");
   mrbz_val v;
@@ -104,6 +106,16 @@ void test_integer_div() {
   Assert(v.u.intval == 3, "integer div failed");
 }
 
+void test_integer_and() {
+  printf("\n\ntest_integer_and\n");
+  mrbz_val v;
+  mrbz_vm vm;
+  mrbz_vm_run(&vm, &v, and_int);
+
+  Assert(v.type == T_INT, "integer and did not return an integer");
+  Assert(v.u.intval == 224, "integer and (-32 & 0xFF) failed");
+}
+
 int test_integer()
 {
   suite_setup("integer tests");
@@ -117,6 +129,8 @@ int test_integer()
 
   suite_add_test(test_integer_addi);
   suite_add_test(test_integer_subi);
+
+  suite_add_test(test_integer_and);
 
   return suite_run();
 }

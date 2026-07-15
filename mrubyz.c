@@ -31,6 +31,11 @@ extern volatile uint16_t timer;
 extern void show_logo();
 extern void restore_font();
 extern uint8_t bytecode_at(uint8_t);
+#ifdef SHOU_TEXT
+// demo07-only whiteout message builtins, implemented in demo/demo07.c
+extern void reveal_letter(uint8_t i);
+extern void hide_letters();
+#endif
 
 __sfr __at 0xDC io_port_dc;
 
@@ -227,12 +232,57 @@ void start_sfx1() {
   sfx1_active = 1;
 }
 
+// Footstep ("piko piko"): a short flat blip, alternating between two
+// low pitches per step. Timed out by sfx_update.
+static uint8_t footstep_frames = 0;
+static uint8_t footstep_toggle = 0;
+
+void start_footstep() {
+  if (footstep_frames) return; // previous step still sounding
+  footstep_toggle = 1 - footstep_toggle;
+  set_sound_freq(2, footstep_toggle ? 450 : 625); // ~250Hz / ~180Hz
+  PSG_setVolume(2, 0); // footstep: full volume
+  footstep_frames = 1; // silenced at this loop's own sfx_update: a short tick
+}
+
 void start_sfx2() {
     sfx2_freq = 40;
     sfx2_active = 1;
 }
 
+// Typewriter effects for the whiteout message: a 1-frame white-noise
+// "clack" per letter (noise channel 3), and a ring-down carriage bell.
+static uint8_t clack_frames = 0;
+static uint8_t bell_frames = 0;
+
+void start_type_clack() {
+  PSG_setNoise(1, 0); // white noise, highest rate: a crisp mechanical clack
+  PSG_setVolume(3, 0); // full-volume clack
+  clack_frames = 1;
+}
+
+void start_type_bell() {
+  set_sound_freq(2, 56); // ~2kHz: the carriage bell "ding"
+  bell_frames = 15;      // fades out in sfx_update (starts at volume 0, full)
+}
+
 void sfx_update() {
+  if (clack_frames) {
+    clack_frames--;
+    if (clack_frames == 0) {
+      PSG_setVolume(3, 15); // silence the noise channel
+    }
+  }
+  if (bell_frames) {
+    bell_frames--;
+    PSG_setVolume(2, 15 - bell_frames); // ring-down: full -> silent
+  }
+  if (footstep_frames) {
+    footstep_frames--;
+    if (footstep_frames == 0) {
+      PSG_setVolume(2, 15); // silence
+    }
+  }
   if(sfx2_active) {
     set_sound_freq(2, sfx2_freq);
     PSG_setVolume(2, 0);
@@ -967,6 +1017,22 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     }
     vm->regs[reg_index].type = T_INT;
     vm->regs[reg_index].u.intval = rand() % n;
+#ifdef SHOU_TEXT
+  } else if (!strcmp(sym, "reveal_letter")) {
+    if(arg_count != 1) {
+      printf("Unexpected argument count for reveal_letter\r");
+      exit(-1);
+    }
+    if(vm->regs[reg_index + 1].type != T_INT) {
+      printf("Unexpected argument type for reveal_letter\r");
+      exit(-1);
+    }
+    reveal_letter(vm->regs[reg_index + 1].u.intval);
+    vm->regs[reg_index].type = T_NIL;
+  } else if (!strcmp(sym, "hide_letters")) {
+    hide_letters();
+    vm->regs[reg_index].type = T_NIL;
+#endif
   } else if (!strcmp(sym, "foo")) {
     printf("'foo' called\r");
     vm->regs[reg_index].type = T_TRUE; // Use reg[reg_index] for return
@@ -1029,6 +1095,12 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     scroll_bkg(0, 0);
   } else if (!strcmp(sym, "start_sfx2")) {
     start_sfx2();
+  } else if (!strcmp(sym, "start_footstep")) {
+    start_footstep();
+  } else if (!strcmp(sym, "start_type_clack")) {
+    start_type_clack();
+  } else if (!strcmp(sym, "start_type_bell")) {
+    start_type_bell();
   } else if (!strcmp(sym, "start_sfx1")) {
     start_sfx1();
   } else if (!strcmp(sym, "sfx_update")) {
