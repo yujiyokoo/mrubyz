@@ -44,10 +44,17 @@ while true
   # and glides in when 照 stops
   target_ox = shou_x + 8 - 128
   target_oy = shou_y + 8 - 96
-  target_ox = 32 if target_ox > 32
-  target_ox = -32 if -32 > target_ox
-  target_oy = 16 if target_oy > 16
-  target_oy = -16 if -16 > target_oy
+
+  # the light may roam only while its lit bands stay on the BG plane edge-free:
+  # lit radius = 8 + 6*lit px, so the safe scroll range shrinks as it grows.
+  # With just the disc lit (lit == 1) this allows the whole screen; unlit
+  # bands wrapping around the plane edge are black-on-black and invisible.
+  cx = 119 - 6 * lit
+  cy = 87 - 6 * lit
+  target_ox = cx if target_ox > cx
+  target_ox = 0 - cx if 0 - cx > target_ox
+  target_oy = cy if target_oy > cy
+  target_oy = 0 - cy if 0 - cy > target_oy
 
   if target_ox > ox
     ox += 1
