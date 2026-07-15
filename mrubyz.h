@@ -48,6 +48,7 @@ typedef struct mrbz_value {
   union {
     int16_t intval;
     char* strval;
+    struct { char* ptr; uint16_t len; } str;  // ptr aliases strval; len set by op_string
     mrbz_array arrval;
     mrbz_class *clsval_ptr;
     uint8_t proc_index;

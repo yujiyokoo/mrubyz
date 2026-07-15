@@ -642,17 +642,12 @@ void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   void* pool_entry_base = mrbz_irep_pool_entry_ptr(&(vm->ireps[vm->frames[vm->frame_top].irep_idx]), pool_index);
   vm->regs[reg_index].type = T_STRING;
 
-  // TODO: Add length to mrbz value, and copy length
-  uint16_t str_len = (uint16_t)pool_entry_base[1];
-  // TODO: seems like my demo runs out of RAM? Let's point this to static str...
-  //vm->regs[reg_index].u.strval = malloc(str_len * sizeof(char) + 1);
-  vm->regs[reg_index].u.strval = pool_entry_base + 3;
-  // + 1 is there for now to null-terminate the string
-  // debug_out("copying string: %s\n", pool_entry_base+5);
-  // debug_out("regs: %x\n", vm->regs);
-  // debug_out("dest: %x\n", vm->regs[reg_index].u.strval);
-  // strncpy(vm->regs[reg_index].u.strval, pool_entry_base + 5, str_len + 1);
-  // debug_out("copied string: %s\n", vm->regs[reg_index].u.strval);
+  // Pool entry layout: [type][len hi][len lo][data...][NUL]
+  // Strings stay in ROM; the value records both pointer and length
+  // (packed text may contain 0x00 bytes, so consumers can't rely on NUL).
+  const uint8_t *entry = (const uint8_t *)pool_entry_base;
+  vm->regs[reg_index].u.str.ptr = (char *)(entry + 3);
+  vm->regs[reg_index].u.str.len = ((uint16_t)entry[1] << 8) | entry[2];
 }
 
 void op_method(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
@@ -1518,7 +1513,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
         break;
       case T_STRING:
         debug_out("strval: %d\n", retval->u.strval);
-        rval->u.strval = retval->u.strval;
+        rval->u.str = retval->u.str; // copies ptr and len together
         break;
       case T_TRUE:
       case T_FALSE:
