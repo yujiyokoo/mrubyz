@@ -11,5 +11,7 @@
 /demo/shou_circle.h
 /demo/shou_circle_defs.h
 /demo/shou_sprite.h
+/demo/shou_text.h
+/demo/shou_text_defs.h
 /encoding_map.rb
 /font_data.h

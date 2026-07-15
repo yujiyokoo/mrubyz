@@ -31,6 +31,11 @@ extern volatile uint16_t timer;
 extern void show_logo();
 extern void restore_font();
 extern uint8_t bytecode_at(uint8_t);
+#ifdef SHOU_TEXT
+// demo07-only whiteout message builtins, implemented in demo/demo07.c
+extern void reveal_letter(uint8_t i);
+extern void hide_letters();
+#endif
 
 __sfr __at 0xDC io_port_dc;
 
@@ -964,6 +969,22 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
     }
     vm->regs[reg_index].type = T_INT;
     vm->regs[reg_index].u.intval = rand() % n;
+#ifdef SHOU_TEXT
+  } else if (!strcmp(sym, "reveal_letter")) {
+    if(arg_count != 1) {
+      printf("Unexpected argument count for reveal_letter\r");
+      exit(-1);
+    }
+    if(vm->regs[reg_index + 1].type != T_INT) {
+      printf("Unexpected argument type for reveal_letter\r");
+      exit(-1);
+    }
+    reveal_letter(vm->regs[reg_index + 1].u.intval);
+    vm->regs[reg_index].type = T_NIL;
+  } else if (!strcmp(sym, "hide_letters")) {
+    hide_letters();
+    vm->regs[reg_index].type = T_NIL;
+#endif
   } else if (!strcmp(sym, "foo")) {
     printf("'foo' called\r");
     vm->regs[reg_index].type = T_TRUE; // Use reg[reg_index] for return

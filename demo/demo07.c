@@ -2,12 +2,18 @@
 #include <sms.h>
 #include "mrubyz.h"
 #include "shou_circle_defs.h"
+#include "shou_text_defs.h"
 #include "shou_sprite.h"
 
-// circle data lives in ROM bank 2 (demo/shou_data.c)
+// circle and message data live in ROM bank 2 (demo/shou_data.c)
 extern const unsigned char shou_circle_palette[];
 extern const unsigned char shou_circle_tiles[];
 extern const unsigned char shou_circle_map[];
+extern const unsigned char shou_text_tiles[];
+
+// whiteout message position: 17 tiles centred-ish on nametable row 12
+#define SHOU_TEXT_COL 7
+#define SHOU_TEXT_ROW 12
 
 #if SHOU_CIRCLE_BAND_COUNT != 12
 #error "demo07.rb hardcodes whiteout = 13 (BAND_COUNT + 1); update it"
@@ -29,6 +35,19 @@ void show_logo() {}
 void restore_font() {}
 uint8_t bytecode_at(uint8_t i) { return 0; }
 
+// demo07-only builtins (mrubyz.c dispatches these under -DSHOU_TEXT):
+// letter tiles sit right after the circle tiles, one per message character
+void reveal_letter(uint8_t i) {
+  SMS_setTileatXY(SHOU_TEXT_COL + i, SHOU_TEXT_ROW, SHOU_CIRCLE_TILE_COUNT + i);
+}
+
+// restore the circle's own map words over the message cells
+void hide_letters() {
+  SMS_loadTileMapArea(SHOU_TEXT_COL, SHOU_TEXT_ROW,
+    (void *)(shou_circle_map + (SHOU_TEXT_ROW * 32 + SHOU_TEXT_COL) * 2),
+    SHOU_TEXT_LEN, 1);
+}
+
 extern const uint8_t demo07_bytecode[];
 
 void main() {
@@ -44,6 +63,7 @@ void main() {
   SMS_loadSpritePalette(sprite_pal);
   SMS_useFirstHalfTilesforSprites(0);
   SMS_loadTiles(shou_sprite_tiles, 444, 128);
+  SMS_loadTiles(shou_text_tiles, SHOU_CIRCLE_TILE_COUNT, SHOU_TEXT_LEN * 32);
 
   SMS_displayOn();
   SMS_setBackdropColor(0);

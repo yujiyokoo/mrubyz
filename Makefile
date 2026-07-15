@@ -29,7 +29,7 @@ test:
 clean:
 	rm -f $(BUILDDIR)/*
 	rm -f $(BYTECODE_FILES)
-	rm -f encoding_map.rb font_data.h $(FONT8_BIN) demo/shou_circle.h demo/shou_circle_defs.h demo/shou_sprite.h
+	rm -f encoding_map.rb font_data.h $(FONT8_BIN) demo/shou_circle.h demo/shou_circle_defs.h demo/shou_sprite.h demo/shou_text.h demo/shou_text_defs.h
 	$(MAKE) -C tests clean
 
 $(BUILDDIR):
@@ -111,8 +111,12 @@ demo/shou_circle.h demo/shou_circle_defs.h: scripts/gen_shou_circle.rb
 demo/shou_sprite.h: scripts/gen_shou_sprite.rb scripts/font_builder.rb $(MISAKI_BDF)
 	ruby scripts/gen_shou_sprite.rb $(MISAKI_BDF) $@
 
-demo07: demo/demo07.c demo/shou_data.c mrubyz.c demo/demo07.ruby.c demo/shou_circle.h demo/shou_circle_defs.h demo/shou_sprite.h | $(BUILDDIR)
-	$(ZCC) $(CFLAGS) demo/demo07.c demo/shou_data.c mrubyz.c demo/demo07.ruby.c -o $(BUILDDIR)/demo07 -create-app
+demo/shou_text.h demo/shou_text_defs.h: scripts/gen_shou_text.rb scripts/font_builder.rb $(FONT8_BIN)
+	ruby scripts/gen_shou_text.rb $(FONT8_BIN) demo/shou_text.h
+
+# -DSHOU_TEXT enables the demo07-only reveal_letter/hide_letters builtins in mrubyz.c
+demo07: demo/demo07.c demo/shou_data.c mrubyz.c demo/demo07.ruby.c demo/shou_circle.h demo/shou_circle_defs.h demo/shou_sprite.h demo/shou_text.h demo/shou_text_defs.h | $(BUILDDIR)
+	$(ZCC) $(CFLAGS) -DSHOU_TEXT demo/demo07.c demo/shou_data.c mrubyz.c demo/demo07.ruby.c -o $(BUILDDIR)/demo07 -create-app
 
 demo/demo07.ruby.c: demo/demo07.rb
 	$(MRBC) -B demo07_bytecode --verbose -o $@ $<

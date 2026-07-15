@@ -9,6 +9,7 @@ shou_x = 120   # sprite top-left; centre of the 16x16 is (shou_x+8, shou_y+8)
 shou_y = 88
 ox = 0         # current circle-centre offset from screen centre, in px
 oy = 0
+shown = 0      # letters of "KANSAI RUBYKAIGI9" revealed during whiteout
 
 while true
   btns = read_buttons
@@ -41,46 +42,49 @@ while true
   put_sprite(shou_x + 8, shou_y + 8, 191)
 
   # circle chases 照: 2px/frame while more than 8px behind (keeping up with
-  # 照's own 2px/frame), easing to a 1px/frame glide for the last stretch
-  target_ox = shou_x + 8 - 128
-  target_oy = shou_y + 8 - 96
+  # 照's own 2px/frame), easing to a 1px/frame glide for the last stretch.
+  # Frozen during whiteout so the message stays centred on screen.
+  if whiteout > lit
+    target_ox = shou_x + 8 - 128
+    target_oy = shou_y + 8 - 96
 
-  # the light may roam only while its lit bands stay on the BG plane edge-free:
-  # lit radius = 8 + 6*lit px, so the safe scroll range shrinks as it grows.
-  # With just the disc lit (lit == 1) this allows the whole screen; unlit
-  # bands wrapping around the plane edge are black-on-black and invisible.
-  cx = 119 - 6 * lit
-  cy = 87 - 6 * lit
-  target_ox = cx if target_ox > cx
-  target_ox = 0 - cx if 0 - cx > target_ox
-  target_oy = cy if target_oy > cy
-  target_oy = 0 - cy if 0 - cy > target_oy
+    # the light may roam only while its lit bands stay on the BG plane edge-free:
+    # lit radius = 8 + 6*lit px, so the safe scroll range shrinks as it grows.
+    # With just the disc lit (lit == 1) this allows the whole screen; unlit
+    # bands wrapping around the plane edge are black-on-black and invisible.
+    cx = 119 - 6 * lit
+    cy = 87 - 6 * lit
+    target_ox = cx if target_ox > cx
+    target_ox = 0 - cx if 0 - cx > target_ox
+    target_oy = cy if target_oy > cy
+    target_oy = 0 - cy if 0 - cy > target_oy
 
-  if target_ox > ox
-    if target_ox - ox > 8
-      ox += 2
-    else
-      ox += 1
+    if target_ox > ox
+      if target_ox - ox > 8
+        ox += 2
+      else
+        ox += 1
+      end
+    elsif ox > target_ox
+      if ox - target_ox > 8
+        ox -= 2
+      else
+        ox -= 1
+      end
     end
-  elsif ox > target_ox
-    if ox - target_ox > 8
-      ox -= 2
-    else
-      ox -= 1
-    end
-  end
 
-  if target_oy > oy
-    if target_oy - oy > 8
-      oy += 2
-    else
-      oy += 1
-    end
-  elsif oy > target_oy
-    if oy - target_oy > 8
-      oy -= 2
-    else
-      oy -= 1
+    if target_oy > oy
+      if target_oy - oy > 8
+        oy += 2
+      else
+        oy += 1
+      end
+    elsif oy > target_oy
+      if oy - target_oy > 8
+        oy -= 2
+      else
+        oy -= 1
+      end
     end
   end
 
@@ -95,15 +99,22 @@ while true
         set_colour(0, 0x3F)
         set_colour(16, 0x3F) # CRAM 16 = backdrop/border
         set_colour(17, 0x3F) # melt the kanji stroke into the white
+        ox = 0 # snap the (invisible) light home so the message centres on screen
+        oy = 0
       else
         set_colour(lit, 0x3F)
       end
+    elsif 17 > shown # fully white: reveal the message letter by letter
+      reveal_letter(shown)
+      shown += 1
     end
   end
 
   if btns & 0x20 == 0 && prev_btns & 0x20 != 0 # B just pushed
     if lit > 0 # lit 1 -> 0 darkens the centre disc: full blackout
       if lit == whiteout
+        hide_letters if shown > 0 # restore the circle map under the message
+        shown = 0
         set_colour(0, 0x00)
         set_colour(16, 0x00) # CRAM 16 = backdrop/border
         set_colour(17, 0x00)
