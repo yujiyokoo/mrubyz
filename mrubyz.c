@@ -90,6 +90,15 @@ static void scroll_bkg(int a, int b) {
   debug_out("scroll_bkg() called, but this is not SMS\n");
 }
 
+#define VDPFEATURE_LOCKVSCROLL 0x0080
+static void SMS_VDPturnOnFeature(unsigned int f) {
+  debug_out("SMS_VDPturnOnFeature() called, but this is not SMS\n");
+}
+
+static void SMS_VDPturnOffFeature(unsigned int f) {
+  debug_out("SMS_VDPturnOffFeature() called, but this is not SMS\n");
+}
+
 static void set_bkg_map(const unsigned char* a, void* b, void* c, void* d, void* e) {
   debug_out("set_bkg_map() called, but this is not SMS\n");
 }
@@ -1118,6 +1127,12 @@ uint8_t call_builtin(mrbz_vm *vm, const char *sym, uint8_t reg_index, uint8_t ar
   } else if (!strcmp(sym, "bg_reset")) {
     scroll_y = 0;
     scroll_bkg(0, 0);
+  } else if (!strcmp(sym, "lock_vscroll")) {
+    // VDP reg 0 bit 7: columns 24-31 ignore vertical scrolling — a fixed
+    // strip for HUD text (e.g. the FPS display) over a scrolling BG
+    SMS_VDPturnOnFeature(VDPFEATURE_LOCKVSCROLL);
+  } else if (!strcmp(sym, "unlock_vscroll")) {
+    SMS_VDPturnOffFeature(VDPFEATURE_LOCKVSCROLL);
   } else if (!strcmp(sym, "start_sfx2")) {
     start_sfx2();
   } else if (!strcmp(sym, "start_footstep")) {

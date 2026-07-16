@@ -1,4 +1,3 @@
-init_spritesdx = 0
 prev_btns = 0xFF
 fps_show = false
 fps_count = 0
@@ -29,6 +28,13 @@ while true
 
     if btns & 0x02 == 0 && prev_btns & 0x02 != 0 # DOWN just pushed → toggle FPS
       fps_show = !fps_show
+      if fps_show
+        lock_vscroll # columns 24-31 stay put while the BG scrolls
+      else
+        gotoxy(28, 0)
+        print "    " # erase the digits before they start scrolling again
+        unlock_vscroll
+      end
     end
 
     if btns & 0x10 == 0 && prev_btns & 0x10 != 0 # A just pushed
@@ -135,8 +141,9 @@ while true
         fps_count = 0
         fps_last = now_t
       end
-      gotoxy(0, 23)
+      gotoxy(28, 0)
       print fps_value
+      print " " # erase a leftover digit when the value shrinks
     end
 
     sfx_update
