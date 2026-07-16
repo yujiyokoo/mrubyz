@@ -71,12 +71,14 @@ encoding_map.rb font_data.h: demo/demo04_data.txt $(MISAKI_BDF) $(FONT8_BIN)
 $(BUILDDIR)/sms_palette.ppm: scripts/gen_sms_palette.rb | $(BUILDDIR)
 	ruby scripts/gen_sms_palette.rb > $@
 
-title.h: title.png scripts/png_to_sms_pattern.rb $(BUILDDIR)/sms_palette.ppm | $(BUILDDIR)
+# The navy key visual needs no colour warming (RED_SHIFT etc. were tuned for the old bricks)
+demo/title.h: title.png scripts/png_to_sms_pattern.rb $(BUILDDIR)/sms_palette.ppm | $(BUILDDIR)
 	convert title.png -dither FloydSteinberg -remap $(BUILDDIR)/sms_palette.ppm \
 	  +dither -colors 8 PNG8:$(BUILDDIR)/small_8col.png
 	convert $(BUILDDIR)/small_8col.png -depth 8 RGB:$(BUILDDIR)/small_pixels.rgb
 	convert $(BUILDDIR)/small_8col.png -unique-colors -depth 8 RGB:$(BUILDDIR)/small_palette.rgb
-	ruby scripts/png_to_sms_pattern.rb $(BUILDDIR)/small_pixels.rgb $(BUILDDIR)/small_palette.rgb title 2 1 # leave 0x00 for the blank tile
+	RED_SHIFT=0 DARKEN_R=0 DARKEN_G=0 DARKEN_B=0 ruby scripts/png_to_sms_pattern.rb $(BUILDDIR)/small_pixels.rgb $(BUILDDIR)/small_palette.rgb title 2 1 # leave 0x00 for the blank tile
+	mv title.h demo/title.h
 
 demo04: demo/demo04.c mrubyz.c demo/demo04.ruby.c font_data.h demo/title.c | $(BUILDDIR)
 	$(ZCC) $(CFLAGS) demo/demo04.c mrubyz.c demo/demo04.ruby.c demo/title.c -o $(BUILDDIR)/demo04 -create-app

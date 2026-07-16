@@ -8,13 +8,14 @@ long _heap;
 
 extern volatile uint16_t timer;
 
-// First colour is for the BG
+// First colour is for the BG (0x10 = Kansai RubyKaigi 9 navy)
 // Second colour is for the text
-const unsigned char pal1[] = {0x00, 0x3F, 0x01, 0x05, 0x05, 0x06, 0x06, 0x0A,
-  0x3F, 0x35, 0x1D, 0x3D, 0x17, 0x37, 0x1F, 0x3F};
+// Entries 2..9 hold title_palette from demo/title.h (palette_offset=2)
+const unsigned char pal1[] = {0x10, 0x3F, 0x10, 0x3A, 0x3F, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x1D, 0x3D, 0x17, 0x37, 0x1F, 0x3F};
 
-// The second colur is for the higlighted text
-const unsigned char pal2[] = {0x00, 0x0F, 0x08, 0x03, 0x02, 0x22, 0x0A, 0x2A,
+// The second colur is for the higlighted text (entry 0 also sets the backdrop/border)
+const unsigned char pal2[] = {0x10, 0x0F, 0x08, 0x03, 0x02, 0x22, 0x0A, 0x2A,
   0x15, 0x35, 0x1D, 0x3D, 0x17, 0x37, 0x1F, 0x3F};
 
 const unsigned char enemy_tile[] = {
@@ -43,7 +44,7 @@ extern const unsigned char title_tiles[];
 extern const unsigned char title_map[];
 
 // This should be defined elesewhere...
-#define TITLE_TILE_COUNT 298
+#define TITLE_TILE_COUNT 194 // keep in sync with demo/title.h
 void show_logo() {
   // Tile 0 is 'blank'
   load_tiles(title_tiles, 1, TITLE_TILE_COUNT, 4);
