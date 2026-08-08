@@ -4,95 +4,22 @@
 
 
 
-   mruby in the 8 bit world:
+   VMとAOTコンパイラ開発で
+     照らす8Bit機の世界
 
-     mruby VM on Zilog Z80
-
-
-     RubyKaigi 2026
+     KANSAI RUBYKAIGI 9
 
 
      - Yuji Yokoo, 2026
 
 
-
-     Press A to start
-
-:= What is this project about???
-:
-
-
-
-  Run mruby bytecode on my own
-
-    VM implemented on Z80
-
-
-
-
-  URL: https://codeberg.org/
-            yujiyokoo/mrubyz
-
-:= What is...?
-
-
-  * mruby?
-
-  * bytecode?
-
-  * VM?
-
-  * Z80?
-
-:= About this app (SMSPresent)
-:
-  * Running on mrubyz VM
-
-    ("mrubyz" is my 8bit VM)
-:
-  * It's a live demo!
-:
-  * 日本語サポート! (since Feb 2026)
-:
-    でも今回は英語メインなので基本使いません
-:
-  * Text colour (whole page)
-:
-  * Multi-colour text
-    (Apr 2026)
-
-    ({hl}only 2 colours{hl})
-
-:
-
-
-  * text scrolling (Apr 2026)
-:
-
-
-
-
-
-:    scrolling text is here!
-
-:    more scrolling text
-
-:    more scrolling...
-
-:    more...
-
-:
-    (but probably shouldn't
-     use too much. Shorter
-     paragraphs are better)
-
-:= About me
+:= 発表者について
 :
   Yuji Yokoo
 :
-  Based in Tokyo, Japan
+  現在はTokyo, Japan在住
 :
-  ko.rb
+  ko.rbの方からきました
 :
   Fediverse:
 
@@ -101,43 +28,90 @@
 :
   Programmer @ CipherStash
 
-:= Back to the list
-
-
-  * mruby?
-
-  * bytecode?
-
-  * VM?
-
-  * Z80?
-
-:= What is mruby?
+:= このプレゼンテーションについて
 :
 
-  * Lightweight Ruby
+
+
+  Sega Master System 上の自作
+     mruby VM で動いています
 
 :
-  * Great for embedded and
-      small environments
+  今まで何度か発表に使用
 
-:= VM
 :
-  * Virtual Machine
-    a machine inside a machine
-:
-  * Ruby source is compiled
-    into bytecode first
-:
-  * The VM runs the bytecode
+  毎回パワーアップしてます
 
-:= What is bytecode?
-:
-  * VM instructions
-:
-  * Simple instructions
 
-:= Bytecode example
+:
+  URL: https://codeberg.org/
+            yujiyokoo/mrubyz
+
+:= Master System について
+:
+  * マークIIIをベースに海外向けとして1986年発売
+:
+  * CPUはZ80 @ 3.58MHz
+:
+  * 8KBメインRAM、16KB VRAM
+:
+  * ソフトウェアはROMで提供される
+:
+  * ROMはRAMと同じアドレススペースでアクセスできる
+
+    ただし書き込めない
+:
+  * PSG音源と(日本国内版のみ)FM音源を搭載
+:
+  * 本体デザインはカッコイイ
+
+:
+      スペック比較
+
+MacBook (M1)      MasterSystem
+
+64bit 8x 3.2GHz   8bit 3.58MHz
+
+32GB RAM          8KB RAM
+
+2560x1600         256x192
+
+500GB SSD         32KB~ ROM
+
+macOS             OSなし
+
+  (ROMはバンク切替で512KBまで拡張可)
+
+:= Z80について
+:
+  * 8-bit CPU
+:
+  * 1976-2024
+:
+  * 16ビットと8ビットのレジスタ
+:
+  * ある機能
+
+    Fレジスタ、BCD命令、裏レジスタなど
+:
+  * ない機能
+
+    割り算、掛け算、浮動小数点
+
+
+:= mrubyとVM
+:
+  * mruby: 組み込みに適した軽量Ruby
+:
+  * Virtual Machine (仮想マシン)
+
+:
+  * RubyはmrubyでもCRubyでも
+    バイトコードにコンパイルされてから実行される
+:
+  * VMがバイトコードを実行
+
+:= バイトコード紹介
 
   Ruby:
 :
@@ -151,109 +125,68 @@
   1 006 {hl}RETURN     R1{hl}
   1 008 {hl}STOP{hl}
 
-:= Bytecode usage
 :
-  mrbc can output C headers
+  これをCのヘッダに書き出してVMと一緒にコンパイル
+
+
+:= 独自実装の理由
+:
+  * mruby/cは小さい、とはいえMCUがメイン
+:
+RasPi Pico        MasterSystem
+
+32bit 2x 133MHz   8bit 3.58MHz
+
+264KB RAM         8KB RAM
+
+2MB Flash         32KB~ ROM
+
+2021年            1986年
+
+PicoRubyが動く       ???
 
 :
-  const uint8_t eq_int[] = {
-
-    0x52,0x49,0x54,0x45,0x30,
-
-    0x33,0x30,0x30,0x00,0x00,
-
-    ...
-
+  * gccもclangもZ80はサポートしてない
 :
-    Read this bytecode in the
-    VM and execute
+  * z88dkはzccというフロントエンドに
 
-:= mruby/c
-:
-  * Smaller mruby, VM-only
-    no compiler included
-:
-  * compile somewhere, then
-    put the bytecode on
-    mruby/c VM
-:
-  * Inspiration for
-    mrubyz
-
-:= What is Z80?
-:
-  * 8-bit CPU
-:
-  * 1976-2024
-:
-  * Many platforms
-
-    * Sega Master System
-
-    * Sega Game Gear
-
-    * MSX
-
-    * Many more
-
-:= Master System?
-:
-  * Sega's Z80 Console, very
-    similar to Mark III
-:
-  * Z80 at 3.5Mhz
-:
-  * 8KB RAM
-    * 64KB Address space
-    * 32KB ROM (more available)
-:
-  * 16KB VRAM, 256x192px
-    Tiles, sprites, palettes
-
-:= What is this project about???
+    sdccやsccz80というバックエンドを提供
 :
 
-  Run mruby bytecode on my own
+  * 未知のコードを多数箇所改造(デバッガ無しで)するより、
 
-    VM implemented on Z80
-
-
-:= Why implement your own?
-:
-  * No gcc or clang for Z80
-:
-  * z88dk, zcc (frontend),
-    with sdcc or sccz80
-:
-  * It's hard to build mruby
-    or mruby/c
-:
-  * My thought process:
-:
-    Rather than modifying
-
-    mruby or mruby/c in so
-
-    many places, and not
-
-    knowing what breaks,
-
-    or if it would even run,
-:
-    surely, developing my
-
-    own VM is easier!
+    必要なものだけをゼロから作る方が簡単そう
 
 :=
+:
 
 
 
 
 
 
-    Is it really easier?
 
-:= Existing work on 8-bit
+
+          簡単そうに見えた
+
+:= 開発環境について
+
+:
+  * デスクトップでクロスコンパイルする
+
+:
+  * コンパイラは昔は商品だった
+
+:
+  * 今はFOSSのツールチェインがある
+
+:
+  * テストはエミュレータで
+
+:
+  * 実機にはSDカードを使えるカートリッジで
+
+:= 8ビットで動くRubyの紹介
 :
  micro mruby
 
@@ -272,53 +205,18 @@
  https://github.com/
   khasinski/ruby-gameboy
 
-:= mrubyz features
-
-:  * (very) incomplete
-
-:  * Add, sub, multi, div (int)
-
-:  * No float
-
-:  * loop (only with 'while')
-
-:  * equality comparison (==)
-
-:  * greater than (>)
-
-:  * No less than (<)
-:    a <= b
-:    {hl}->{hl} b > a or b == a
-
-:  * arrays
-
-:  * functions
-
-:  * No GC
-
-:  * No string manipulation
-    (data stays in ROM)
-
-:  * No exceptions
-    (prints error message
-     and exits)
-
-:  * No classes / modules
-
-:= What can you do with it?
+:= 何が動くか
 :
-  This presentation, for
-  example
+  このプレゼンテーションのようなシンプルなプログラム
 :
-
 
   i = 0
 
-  {hl}while{hl} pages.size > i
+  {hl}while{hl} pres_data.size > i
 
     {hl}if{hl} btn_a_pressed?
 
-      puts pages[i]
+      puts pres_data[i]
 
       i += 1
 
@@ -326,160 +224,238 @@
 
   {hl}end{hl}
 
-:= Iterative development
-:
-  * Write some Ruby
-:
-  * Produce bytecode with mrbc
-:
-  * See it crash
-:
-  * Implement, or work around
-
-:= Limitations and challenges
-:
-  * Limited memory space
-    Avoid allocation
-:
-  * No (native) 32-bit support
-:
-  * Slow, but not unusable
-
-:= Timer implementation
-:
-  * SMS has no clock
-:
-  * z88dk counts vsync
-    interrupts 60 times per
-    second
-
-:  * 16 bit means max 65535
-:    This means overflow to 0
-    at approx 1092s
-:
-  * No floating point type
-
-    * 19 / 25 * 31
-      23.56 with float,
-      0 with int
-
-:    * 19 * 100 / 25 * 31 / 100
-      23 with int
-:
-  * The VM can't handle
-    unsigned 16 bit integer
-:
-  * (400 * 100) / 25 / 100
-:    {hl}400 * 100 overflows!{hl}
-
-:= The beginning
+:= プラットフォームの制限
 
 :
-      return 1 + 2
-:
-  1 000 {hl}LOADI_1 R1{hl}
-  1 002 {hl}LOADI_2 R2{hl}
-  1 004 {hl}SEND    R1  :+  n=1{hl}
-  1 008 {hl}RETURN  R1{hl}
-  1 010 {hl}RETURN  R1{hl}
-  1 012 {hl}STOP{hl}
-
-:= The beginning
-:
-      return 1 + 2
-:
-  1 000 {hl}LOADI_3 R1{hl}
-  1 002 {hl}RETURN  R1{hl}
-  1 004 {hl}STOP{hl}
-
-:= {hl}# Minimal VM source{hl}
-{hl}def{hl} vmrun
-  pc = 48 {hl}# Skip everything!{hl}
-  reg = 0 {hl}# Only one register!{hl}
-  running = true
-
-  {hl}while{hl} running
-    op = read_bytecode(pc)
-    pc += 1
-    {hl}if{hl} op == 0x09 {hl}# LOADI_3{hl}
-      a = read_bytecode(pc)
-      pc += 1 {hl}# Skip{hl}
-      reg = 3
-    {hl}elsif{hl} op == 0x38 {hl}# RETURN{hl}
-      pc += 1 {hl}# Skip{hl}
-      rval = reg
-    {hl}elsif{hl} op == 0x69 {hl}# STOP{hl}
-      running = false
-    {hl}end{hl}
-  {hl}end{hl}
-  {hl}return{hl} rval
-{hl}end{hl}
-:= The minimal VM
+  * 8ビットで3.58MHzは遅い
 
 :
-   Executing the minimal VM:
-
-     return 1 + 2
+  * 乗算も除算もソフトウェア実装
 :
-   value:
+  * 乱数も実はコストが高い
+:
+  * ビットシフトも1ビットずつ(か8ビット)
+:
+  * 対策
 
-
-:= Future plans
-
-  So, that's where I got to
-
-  In my VM implementation,
-
-  but what's happening to it
-
-  in the future?
+    {hl}できることは事前計算で{hl}
 
 :
-  * More Ruby features
-
-    * Classes, objects
-    * More VM instructions
-    * Possibly, GC
+  * 時計がない
 :
-  * Other Z80 platforms
+    SDKがVSyncのカウントを提供している(60/s)
 
-:= Summary
+:= その他設計方針
+
 :
-  * Small subset of Ruby is
-    still useful
+  * サイズは基本固定
+
+    現段階の例
+    52個のレジスタ、16コールフレーム、
+    8個のトップレベルメソッド
+
+    コンパイル時に決めて、超えたらクラッシュ
+
 :
-    {hl}"useful"?{hl}
+  * エラーが出たらすぐクラッシュする
+
 :
-  * To keep it small,
-    think hard about
-    what {hl}not{hl} to support
+  * できることはビルド時にやる(事前計算)
+
 :
-  * Writing your own VM is
-    not that hard
+  * Rubyで遅い場合はCで実装も
+
+:= 小さくまとめる設計
+
 :
-    Pick the features
-    carefully though!
+  * Classとかは未実装
 
-:= Summary
 :
-    If you have a platform
+  * < オペレータは未実装
 
-    that does not support
+    {hl}a <= b{hl} -> {hl}b > a or b == a{hl}
 
-    Ruby, building your own
+:
+  * floatなし
+:
+    つまり400 / 500 * 100 = 0
+:
+    順序を変えて計算
 
-    mruby VM will make it a
+    (400 * 100) / 500
+:
+    ところがint16_tは-32768から32767まで
+    なのでオーバーフロー
+:
+  * Exceptionなし
 
-    platform where Ruby is
+    エラーはクラッシュ
+:
+  * GCなし
 
-    supported
+    アロケーションを避ける
 
-:= Summary
+    (Stringは改変不可など)
+
+:= 日本語表示について
+:
+  * 今回約250種の文字から約440種にサポートを拡大した
+:
+  * マスターシステムはタイルベースのグラフィック
+    (最大448タイル)
+:
+  * 1バイトで1文字とした
+:
+  * 約250種の文字に収めるため「使う字だけ持ってくる」
+:
+  * オレオレエンコーディングになる
+:
+  * 今回9ビットで1文字とした。正直気持ち悪い
+:
+  * 16ビットでもできるが無駄が多い
+
+    ROM容量は限られている
+:
+  * ひたすら詰め込んでRAMに展開するとRAMが足りない
+:
+  * 9バイトで8文字という変則エンコーディング
 
 
+:= データの並べ方
+:
+例: 111111111と000000000
+    の繰り返し
 
+1 111111111
+2 000000000
+3 111111111
+4 000000000
+5 111111111
+6 000000000
+7 111111111
+8 000000000
 
-    Build your own VM!
+:
+単純な詰め込み
+1 11111111
+2 10000000
+3 00111111
+4 11100000
+5 00001111
+6 11111000
+7 00000011
+8 11111110
+9 00000000
+
+:
+先頭バイトに1ビットずつ入れる
+1 01010101
+2 11111111
+3 00000000
+4 11111111
+5 00000000
+6 11111111
+7 00000000
+8 11111111
+9 00000000
+
+先頭バイトのビットi = 文字iの9ビット目
+
+:
+  * デコードはシフト1回とOR
+:
+  * 密度は同じ9バイト8文字
+:
+  * ついでにダンプも読める
+
+:= AOTコンパイラー
+:
+  * 高速化がしたかった
+:
+  * 単に最近流行っているのでやってみたかった
+:
+  * ただ、RubyからCは色々足りない(Parserなど)
+:
+  * バイトコードからCのAOTコンパイラ
+:
+  * 基本コーディングエージェント任せ(最近の流行)
+
+:= AOTコンパイラー
+:
+  * 事前計算
+:
+  * fetch, decode,
+    dispatch, execute
+
+    dispatchまではビルド時にできる
+:
+  * type inferenceなどはしていない
+
+:= AOTコンパイルの例
+:
+Ruby:
+  {hl}3 == 2{hl}
+
+:
+バイトコード
+  {hl}LOADI_3    R1{hl}
+  {hl}LOADI_2    R2{hl}
+  {hl}EQ         R1    R2{hl}
+  {hl}RETURN     R1{hl}
+  {hl}STOP{hl}
+
+:
+AOTの生成するC
+  {hl}aot_loadi(vm, 1, 3);{hl}
+  {hl}aot_loadi(vm, 2, 2);{hl}
+  {hl}aot_eq(vm, 1);{hl}
+  {hl}*rval = regs[1];{hl}
+  {hl}return;{hl}
+
+:
+  さらに最適化もできるがしていない
+
+:= AOTまとめ
+:
+  * 速くなった
+:
+  * デカくなった
+:
+  * まだまだ高速化の余地がある
+
+    例: 組み込みメソッドは
+          今も実行時に名前で検索
+
+:= 次に照らすもの
+:
+  * TIのグラフ電卓を入手
+:
+  * 同じZ80
+:
+  * クロックも速くRAMも多い
+:
+  * ROMがない
+:
+  * SMSで学んだやり方が通用しない
+
+    (なので手間取っています)
+
+:= 発見と学び
+:
+  * VMを作ればそこはRubyが動く環境
+:
+  * 色々削ってもRubyはRuby
+:
+      普段あまり見ない面を照らした
+      と言ってもいいのでは
+:
+  * AOTを作ったら色々と発見があった
+:
+  * 事前計算は偉大
+:
+  * 機能も速さもROMコストで払う
+:
+  * 皆さんも(まだ作ってないなら)VMを作りましょう
 
 := Thanks & links
 
@@ -495,8 +471,8 @@
   https://littlelimit.net/
         misaki.htm
 
-* RubyKaigi 2026
-  https://rubykaigi.org/2026/
+* Kansai RubyKaigi 9
 
+https://regional.rubykaigi.org/
+        kansai09/
 
-:= Demo

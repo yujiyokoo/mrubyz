@@ -21,7 +21,7 @@ def render_page_progress(idx, total)
 end
 
 def render_time_progress(start_time)
-  secs_per_tile = 1500 / 31 # 25 min
+  secs_per_tile = 900 / 31 # 25 min
   timer_s = system_timer
   # NOTE: This only supports 2 laps of the timer (16 bit)
 
