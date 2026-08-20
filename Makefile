@@ -45,7 +45,7 @@ demo/add.ruby.c: demo/add.rb
 # TI-84 Plus test program (z88dk +ti83p, plain TI-OS `Asm(` executable).
 # Output name ti8401 becomes the TI-OS program name TI8401 (8 chars max, letters and digits only).
 # Not in DEMOS: `make` builds only the SMS demos; run `make ti84_01` for this one.
-TI84_CFLAGS = +ti83p -subtype=asm -vn -m -DAMALLOC -DMRBZ_MINIMAL
+TI84_CFLAGS = +ti83p -subtype=asm -vn -m -DAMALLOC -DMRBZ_MINIMAL -O3 -SO3 --opt-code-size
 
 ti84_01: demo/ti84_01.c mrubyz.c demo/add.ruby.c | $(BUILDDIR)
 	$(ZCC) $(TI84_CFLAGS) demo/ti84_01.c mrubyz.c demo/add.ruby.c -o $(BUILDDIR)/ti8401 -create-app

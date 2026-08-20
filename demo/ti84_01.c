@@ -9,7 +9,9 @@
 // Heap owned by this program. The linker reserves the full array, so the
 // allocator cannot hand out memory that belongs to TI-OS.
 // Do not copy the `long _heap; sbrk(&_heap, 4096)` trick from demo01.c.
-static uint8_t heap[2048];
+// 1 KB is enough for add.rb and keeps the program well under the
+// 8811-byte Asm( limit (an 8.7 KB build gave ERR:INVALID on the emulator).
+static uint8_t heap[1024];
 
 // The read_bytecode builtin in mrubyz.c calls this. This demo does not use it.
 uint8_t bytecode_at(uint8_t i) {
