@@ -23,6 +23,10 @@ extern const unsigned char pal2[];
 #  define ASSERT(cond) ((void)0)
 #endif
 
+// Provided by each demo's main file. Returns one byte of a bytecode stream
+// for the read_bytecode builtin. Demos that do not use it return 0.
+extern uint8_t bytecode_at(uint8_t);
+
 #ifdef __SMS__
 #  include <sms.h>
 #  include <SMSlib.h>
@@ -30,7 +34,6 @@ extern const unsigned char pal2[];
 extern volatile uint16_t timer;
 extern void show_logo();
 extern void restore_font();
-extern uint8_t bytecode_at(uint8_t);
 #ifdef SHOU_TEXT
 // demo07-only whiteout message builtins, implemented in demo/demo07.c
 extern void reveal_letter(uint8_t i);
