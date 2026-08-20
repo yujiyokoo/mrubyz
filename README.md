@@ -32,6 +32,22 @@ make
 
 You should end up with `demo*.sms` files. They are playable on Master System or their emulators.
 
+### TI-84 Plus
+
+There is an experimental build for the TI-84 Plus (the classic Z80 model, not the CE):
+
+```
+make ti84_01
+```
+
+It produces `build/ti8401.8xp`. Send it to the calculator or an emulator
+(for example tilem2), then run `Asm(prgmTI8401)` from the home screen.
+It runs the `demo/add.rb` bytecode and shows the result.
+
+This build uses a reduced VM (`-DMRBZ_MINIMAL`: integer load/arithmetic,
+move and return only) so it fits the 8811-byte TI-OS limit for `Asm(`
+programs.
+
 ## Test
 
 Tests are not extensive (yet), but you can run them with:
