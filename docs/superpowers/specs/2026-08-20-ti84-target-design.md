@@ -16,9 +16,9 @@ features to the VM.
 
 | Topic | Decision | Reason |
 |---|---|---|
-| Model | TI-84 Plus (Z80), not the CE (eZ80) | z88dk supports it with `+ti8x`. Same toolchain as the SMS build. |
+| Model | TI-84 Plus (Z80), not the CE (eZ80) | z88dk supports it with `+ti83p` (the TI-83 Plus family target). Same toolchain as the SMS build. |
 | Test program | Run `demo/add.rb` bytecode and print the result | Proves the VM, not only the toolchain. Needs no new Ruby code. |
-| Launch method | Plain TI-OS, run with `Asm(prgmNAME)` | No shell is needed. z88dk supports it directly. |
+| Launch method | Plain TI-OS, run with `Asm(prgmNAME)` | No shell is needed. z88dk supports it with `-subtype=asm`. |
 | Verification | TI-84 Plus emulator (for example tilem2) | Fast feedback. The user supplies the ROM image. |
 | Build structure | One new demo file and one new Makefile target | Smallest change. Follows the existing pattern. |
 
@@ -51,10 +51,10 @@ errors.
 ### 2. Makefile target `ti84_01` (new)
 
 ```
-TI84_CFLAGS = +ti8x -vn -m -DAMALLOC
+TI84_CFLAGS = +ti83p -subtype=asm -vn -m -DAMALLOC
 
 ti84_01: demo/ti84_01.c mrubyz.c demo/add.ruby.c | $(BUILDDIR)
-	$(ZCC) $(TI84_CFLAGS) demo/ti84_01.c mrubyz.c demo/add.ruby.c -o $(BUILDDIR)/ti84_01 -create-app
+	$(ZCC) $(TI84_CFLAGS) demo/ti84_01.c mrubyz.c demo/add.ruby.c -o $(BUILDDIR)/ti8401 -create-app
 ```
 
 `-create-app` makes a `.8xp` file in `build/`. The TI-OS program name comes
@@ -68,7 +68,7 @@ everything in `build/`, so it needs no change.
 ### 3. `mrubyz.c` (no planned change)
 
 The VM already has a non-SMS path behind `#ifdef __SMS__`, with stub
-functions for the SMS-only builtins. If the `+ti8x` compile shows a gap in
+functions for the SMS-only builtins. If the `+ti83p` compile shows a gap in
 that path, we fix only that gap. We do not change SMS behaviour.
 
 ## Heap design
@@ -91,7 +91,7 @@ and font data that the TI-84 build does not include.
 
 The first implementation step is a size spike:
 
-1. Compile the three files for `+ti8x`.
+1. Compile the three files for `+ti83p -subtype=asm`.
 2. Read the output size from the `.8xp` file and the map file.
 3. If the size is under the limit, continue.
 4. If the size is over the limit, try z88dk size-optimization flags
