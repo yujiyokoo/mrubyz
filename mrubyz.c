@@ -10,6 +10,11 @@
 extern const unsigned char pal1[];
 extern const unsigned char pal2[];
 
+// MRBZ_MINIMAL: integer-only VM for small targets (TI-84 Plus Asm( limit).
+// Compiles out builtins, sound, text, method dispatch, arrays, strings,
+// comparisons and jumps. Removed opcodes fall to `default:` in mrbz_vm_run.
+// Set by the ti84_01 Makefile target; SMS builds never define it.
+
 // Conditional (only in debug builds)
 #ifdef DEBUG
 #  define debug_out(...) do { printf(__VA_ARGS__); } while(0)
@@ -778,7 +783,7 @@ void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 }
 #endif // MRBZ_MINIMAL
 
-#ifndef MRBZ_MINIMAL
+#ifndef MRBZ_MINIMAL // method dispatch, text rendering and builtins
 const char* symbol_at(mrbz_vm *vm, uint8_t sym_index) {
   debug_out("symbol_at called. vm->frames[vm->frame_top].irep_idx is %d\n", vm->frames[vm->frame_top].irep_idx);
   debug_out("symbol_at called. frame_top is %d\n", vm->frame_top);
