@@ -42,7 +42,9 @@ make ti84_01
 
 It produces `build/ti8401.8xp`. Send it to the calculator or an emulator
 (for example tilem2), then run `Asm(prgmTI8401)` from the home screen.
-It runs the `demo/add.rb` bytecode and shows the result.
+It runs the `demo/add.rb` bytecode and shows the result. The program
+must be in RAM (not archived), and `Asm(` needs free RAM of about twice
+the program size (~8 KB for this ~7.6 KB program).
 
 This build uses a reduced VM (`-DMRBZ_MINIMAL`: integer load/arithmetic,
 move and return only) so it fits the 8811-byte TI-OS limit for `Asm(`

@@ -30,7 +30,7 @@ The only new C code. It does not include `sms.h`.
 
 `main` does these steps in order:
 
-1. Initialize a small static heap: `static uint8_t heap[2048];` then
+1. Initialize a small static heap: `static uint8_t heap[1024];` then
    `mallinit()` and `sbrk(heap, sizeof(heap))`.
 2. Print a short banner with `printf`.
 3. Call `mrbz_vm_run(&vm, &v, bytecode)` on the `add.rb` bytecode.
@@ -51,7 +51,7 @@ errors.
 ### 2. Makefile target `ti84_01` (new)
 
 ```
-TI84_CFLAGS = +ti83p -subtype=asm -vn -m -DAMALLOC -DMRBZ_MINIMAL
+TI84_CFLAGS = +ti83p -subtype=asm -vn -m -DAMALLOC -DMRBZ_MINIMAL -O3 -SO3 --opt-code-size
 
 ti84_01: demo/ti84_01.c mrubyz.c demo/add.ruby.c | $(BUILDDIR)
 	$(ZCC) $(TI84_CFLAGS) demo/ti84_01.c mrubyz.c demo/add.ruby.c -o $(BUILDDIR)/ti8401 -create-app
@@ -103,8 +103,8 @@ luck of the memory layout. On the TI-84 Plus the memory after the program
 belongs to TI-OS, so the same trick corrupts the OS and can clear RAM.
 
 The new file uses a real static array. The linker then reserves the full
-region, and it counts toward the program size. 2 KB is the starting size. It
-is enough for the `add.rb` program, and it fits the small RAM budget.
+region, and it counts toward the program size. 1 KB is enough for the
+`add.rb` program (2 KB was the first size; see Result).
 
 ## Size risk — the go/no-go gate
 
@@ -155,3 +155,17 @@ build size and asks the user to confirm the screen output.
 - Fixing the `_heap` trick in the existing SMS demos. It is a known latent
   issue, left for a separate cleanup.
 - Adding TI-84 builds to `make all` or to the test suite.
+
+## Result (2026-08-20)
+
+- Minimal VM build with a 2 KB heap: 8,744 bytes. The emulator (tilem2,
+  TI-84 Plus ROM) refused it with `ERR:INVALID` although it is under 8,811.
+  The OS appears to reject programs close to the edge; cause not confirmed.
+- Same build with a 1 KB heap and `-O3 -SO3 --opt-code-size`: 7,653 bytes.
+  It runs and shows `returned: 6`. This is the committed configuration.
+- `ERR:MEMORY` appears when user RAM is low: `Asm(` needs a second copy of
+  the program, so keep about 2x the program size free (delete other test
+  programs first).
+- Known cosmetic issue: the z88dk console draws over the home screen
+  content and scrolls; a clear-screen call at start is a possible follow-up.
+- The launch method stays plain TI-OS `Asm(prgmTI8401)`.
