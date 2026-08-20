@@ -18,7 +18,7 @@ DEMOS = demo01 demo02 demo03 demo04 demo05 demo06 demo07
 # Ruby bytecode files
 BYTECODE_FILES = demo/add.ruby.c demo/demo02.ruby.c demo/demo03.ruby.c demo/demo04.ruby.c demo/demo05.ruby.c demo/demo06.ruby.c demo/demo07.ruby.c
 
-.PHONY: all test clean
+.PHONY: all test clean ti84_01
 
 all: $(DEMOS)
 
@@ -41,6 +41,14 @@ demo01: demo/demo01.c mrubyz.c demo/add.ruby.c | $(BUILDDIR)
 
 demo/add.ruby.c: demo/add.rb
 	$(MRBC) -B bytecode --verbose -o $@ $<
+
+# TI-84 Plus test program (z88dk +ti83p, plain TI-OS `Asm(` executable).
+# Output name ti8401 becomes the TI-OS program name TI8401 (8 chars max, letters and digits only).
+# Not in DEMOS: `make` builds only the SMS demos; run `make ti84_01` for this one.
+TI84_CFLAGS = +ti83p -subtype=asm -vn -m -DAMALLOC -DMRBZ_MINIMAL
+
+ti84_01: demo/ti84_01.c mrubyz.c demo/add.ruby.c | $(BUILDDIR)
+	$(ZCC) $(TI84_CFLAGS) demo/ti84_01.c mrubyz.c demo/add.ruby.c -o $(BUILDDIR)/ti8401 -create-app
 
 demo02: demo/demo02.c mrubyz.c demo/demo02.ruby.c | $(BUILDDIR)
 	$(ZCC) $(CFLAGS) demo/demo02.c mrubyz.c demo/demo02.ruby.c -o $(BUILDDIR)/demo02 -create-app

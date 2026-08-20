@@ -55,6 +55,7 @@ void set_sound_freq2(uint8_t channel, uint16_t divider) {
 
 // TODO: Put it in another file, like compat.h?
 #ifndef __SMS__
+#ifndef MRBZ_MINIMAL
 uint16_t timer = 0;
 
 static void gotoxy(uint8_t x, uint8_t y) {
@@ -141,9 +142,11 @@ extern void show_logo() {
 extern void restore_font() {
   debug_out("restore_font() called, but not implemented for non-SMS\n");
 }
+#endif // MRBZ_MINIMAL
 
 #endif
 
+#ifndef MRBZ_MINIMAL
 // Sound state
 int sfx2_freq;
 unsigned char sfx2_active;
@@ -327,6 +330,7 @@ void play_end_sfx() {
   for (int i = 0; i < 20; i++) wait_vblank_noint();
   PSG_setVolume(3, 15); // 15 = silent
 }
+#endif // MRBZ_MINIMAL
 
 // Scroll state
 uint8_t scroll_y = 0;
@@ -561,6 +565,7 @@ void op_div(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   vm->regs[reg_index].u.intval /= vm->regs[reg_index + 1].u.intval;
 }
 
+#ifndef MRBZ_MINIMAL
 void op_loadnil(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
   vm->regs[reg_index].type = T_NIL;
@@ -622,6 +627,7 @@ void op_array2(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   vm->regs[dest_index].type = T_ARRAY;
   vm->regs[dest_index].u.arrval = arr;
 }
+#endif // MRBZ_MINIMAL
 
 void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
   // TODO: pool is in RITE binary. Pool belongs to IREP
@@ -647,6 +653,7 @@ void* mrbz_irep_pool_entry_ptr(mrbz_irep* irep_p, uint8_t idx) {
   return pool_cpy;
 }
 
+#ifndef MRBZ_MINIMAL
 void op_string(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   uint8_t reg_index = next_byte(bytecode, pc_ptr);
 
@@ -769,7 +776,9 @@ void op_jmp(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
 
   *pc_ptr += jump_by;
 }
+#endif // MRBZ_MINIMAL
 
+#ifndef MRBZ_MINIMAL
 const char* symbol_at(mrbz_vm *vm, uint8_t sym_index) {
   debug_out("symbol_at called. vm->frames[vm->frame_top].irep_idx is %d\n", vm->frames[vm->frame_top].irep_idx);
   debug_out("symbol_at called. frame_top is %d\n", vm->frame_top);
@@ -1273,6 +1282,7 @@ void op_enter(mrbz_vm *vm, unsigned char* bytecode, uint16_t* pc_ptr) {
   }
 
 }
+#endif // MRBZ_MINIMAL
 
 void parse_irep_record(mrbz_irep *irep, unsigned char *bytecode, uint16_t *pc) {
   uint16_t record_start = *pc;
@@ -1497,6 +1507,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_LOADI_6: // fall through
       case OP_LOADI_7: op_loadi_n(vm, bytecode, &pc, instruction); break;
       case OP_LOADI16: op_loadi_16(vm, bytecode, &pc); break;
+#ifndef MRBZ_MINIMAL
       case OP_LOADNIL: op_loadnil(vm, bytecode, &pc); break;
       case OP_LOADT: op_loadt(vm, bytecode, &pc); break;
       case OP_LOADF: op_loadf(vm, bytecode, &pc); break;
@@ -1507,6 +1518,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_SEND: op_send(vm, bytecode, &pc); break;
       case OP_SSEND: op_ssend(vm, bytecode, &pc); break;
       case OP_ENTER: op_enter(vm, bytecode, &pc); break;
+#endif // MRBZ_MINIMAL
       // FIXME: Currently this return exits from any level...
       case OP_RETURN:
       {
@@ -1531,6 +1543,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_SUBI: op_subi(vm, bytecode, &pc); break;
       case OP_MUL: op_mul(vm, bytecode, &pc); break;
       case OP_DIV: op_div(vm, bytecode, &pc); break;
+#ifndef MRBZ_MINIMAL
       case OP_EQ: op_eq(vm, bytecode, &pc); break;
       case OP_GT: op_gt(vm, bytecode, &pc); break;
       case OP_ARRAY: op_array(vm, bytecode, &pc); break;
@@ -1539,6 +1552,7 @@ void mrbz_vm_run(mrbz_vm *vm, mrbz_val* rval, unsigned char* bytecode) {
       case OP_METHOD: op_method(vm, bytecode, &pc); break;
       case OP_TCLASS: op_tclass(vm, bytecode, &pc); break;
       case OP_DEF: op_def(vm, bytecode, &pc); break;
+#endif // MRBZ_MINIMAL
       case OP_STOP: exiting = 1; break;
       default:
         printf("unsupported instruction: 0x%x\r", instruction);
