@@ -51,7 +51,7 @@ errors.
 ### 2. Makefile target `ti84_01` (new)
 
 ```
-TI84_CFLAGS = +ti83p -subtype=asm -vn -m -DAMALLOC
+TI84_CFLAGS = +ti83p -subtype=asm -vn -m -DAMALLOC -DMRBZ_MINIMAL
 
 ti84_01: demo/ti84_01.c mrubyz.c demo/add.ruby.c | $(BUILDDIR)
 	$(ZCC) $(TI84_CFLAGS) demo/ti84_01.c mrubyz.c demo/add.ruby.c -o $(BUILDDIR)/ti8401 -create-app
@@ -65,11 +65,34 @@ The target is not in `DEMOS`. `make` alone still builds only the SMS demos.
 `make ti84_01` builds the calculator program. `make clean` already removes
 everything in `build/`, so it needs no change.
 
-### 3. `mrubyz.c` (no planned change)
+### 3. `mrubyz.c` — minimal VM build flag `MRBZ_MINIMAL`
 
-The VM already has a non-SMS path behind `#ifdef __SMS__`, with stub
-functions for the SMS-only builtins. If the `+ti83p` compile shows a gap in
-that path, we fix only that gap. We do not change SMS behaviour.
+The VM already has a non-SMS path behind `#ifdef __SMS__`. The first
+`+ti83p` build linked with no gaps, but measured 21,910 bytes — about 2.5x
+the 8811-byte `Asm(` limit (VM code alone ~15.4 KB). Size-optimization flags
+saved only 128 bytes. So the TI build compiles a reduced VM.
+
+A new compile-time flag `MRBZ_MINIMAL` keeps only what `add.rb` needs:
+
+| Kept | Compiled out under `MRBZ_MINIMAL` |
+|---|---|
+| irep/header parsing (`parse_ireps`, `parse_irep_record`) | `call_builtin` and all SMS builtins |
+| `OP_NOP`, `OP_MOVE`, `OP_LOADI*`, `OP_LOADINEG`, `OP_LOADI16` | sound/music (`bgm_*`, `sfx_*`, `start_*`, `play_end_sfx`) |
+| `OP_ADD`, `OP_ADDI`, `OP_SUB`, `OP_SUBI`, `OP_MUL`, `OP_DIV` | text rendering (`text_scroll`, `emit_text_code`, `nametable_row`) |
+| `OP_RETURN`, `OP_STOP` | method dispatch (`op_send`, `op_ssend`, `op_enter`, `op_def`, `op_method`, `op_tclass`, `dispatch_*`, `find_method`) |
+| the `mrbz_vm_run` loop and its `default:` error path | arrays, strings, `getidx`, `eq`, `gt`, `jmp*`, `loadnil/t/f` |
+
+Rules:
+- The flag is additive: without `-DMRBZ_MINIMAL` the file compiles exactly
+  as before. The SMS demos and `make test` do not set it and must not change.
+- Compiled-out opcodes fall to the existing `default:` case in
+  `mrbz_vm_run`, which reports an unknown instruction.
+- The cuts are `#ifndef MRBZ_MINIMAL` blocks around whole functions and
+  whole `case` groups. No logic edits inside kept functions.
+- If parsing code references compiled-out helpers (for example pool or
+  symbol handling), keep those helpers; correctness of parsing comes first.
+
+Estimated result: well under 8811 bytes (the C library is only ~1.3 KB).
 
 ## Heap design
 
@@ -89,14 +112,20 @@ TI-OS refuses `Asm(` programs above about 8.8 KB (8811 bytes). The SMS
 `demo01` code binary is about 23 KB, but most of that is SMS graphics code
 and font data that the TI-84 build does not include.
 
-The first implementation step is a size spike:
+The size spike was done on 2026-08-20: full VM = 21,910 bytes raw
+(code 15,412 + clib 1,304 + rodata ~2,000 + BSS 2,054). Over the limit.
+Size flags: 21,782 bytes. Decision (user, 2026-08-20): build a minimal VM
+(component 3) and use the size to pick the launch method:
 
-1. Compile the three files for `+ti83p -subtype=asm`.
-2. Read the output size from the `.8xp` file and the map file.
-3. If the size is under the limit, continue.
-4. If the size is over the limit, try z88dk size-optimization flags
-   (for example `-SO3 --opt-code-size`), then report the numbers and stop
-   for a decision before more work.
+| Minimal build size | Launch method |
+|---|---|
+| under 8811 bytes | plain TI-OS `Asm(` program (`-subtype=asm`) — preferred |
+| 8811 to ~16 KB | single-page Flash app (`-subtype=app_one_page`, z88dk signs it) — fallback, needs a new decision |
+| over 16 KB | stop; the C runtime, not the VM, is the problem |
+
+Research notes: z88dk's `ti8xk` appmake signs `.8xk` files itself; shells
+that "skip" the 8811 limit are not documented reliably and the 84+ has RAM
+execution protection, so they are not a path.
 
 ## Error handling
 
