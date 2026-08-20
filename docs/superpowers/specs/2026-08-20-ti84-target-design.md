@@ -35,11 +35,18 @@ The only new C code. It does not include `sms.h`.
 2. Print a short banner with `printf`.
 3. Call `mrbz_vm_run(&vm, &v, bytecode)` on the `add.rb` bytecode.
 4. Print the returned number with `printf`.
-5. Wait for a key press, then return to TI-OS.
+5. Wait for a key press with the z88dk console call `fgetc_cons()` (or
+   `getk()`), then return to TI-OS. Do not use any SMS helper such as
+   `wait_vblank_noint`.
 
-The file defines the same stub functions as `demo01.c`: `show_logo`,
-`restore_font`, and `bytecode_at`. The linker needs them because
-`mrubyz.c` references them.
+The file defines one stub only: `uint8_t bytecode_at(uint8_t i)`.
+`mrubyz.c` uses it unconditionally but declares it only inside
+`#ifdef __SMS__`, so the non-SMS build needs a declaration and a definition.
+
+The file must NOT define `show_logo`, `restore_font`, `pal1`, or `pal2`.
+`mrubyz.c` already defines them in its `#ifndef __SMS__` block (lines
+54-143). Copying those stubs from `demo01.c` causes duplicate-symbol link
+errors.
 
 ### 2. Makefile target `ti84_01` (new)
 
@@ -55,8 +62,8 @@ from the output name; it must be 8 characters or fewer, letters and digits
 only. The implementation confirms the exact name that z88dk produces.
 
 The target is not in `DEMOS`. `make` alone still builds only the SMS demos.
-`make ti84_01` builds the calculator program. `make clean` removes the new
-build files.
+`make ti84_01` builds the calculator program. `make clean` already removes
+everything in `build/`, so it needs no change.
 
 ### 3. `mrubyz.c` (no planned change)
 
@@ -93,8 +100,11 @@ The first implementation step is a size spike:
 
 ## Error handling
 
-The VM already has `ASSERT`, which prints a message and exits on a failed
-check. No new error handling is needed for the test program. If the build
+The VM has `ASSERT` and `debug_out`, but they are no-ops unless the build
+sets `-DDEBUG`. The size spike compiles without `-DDEBUG` first, because
+debug output adds code size. If the program misbehaves, a second build with
+`-DDEBUG` added to `TI84_CFLAGS` is the diagnostic step. No new error
+handling is needed for the test program. If the build
 fails because of a missing symbol in the non-SMS path of `mrubyz.c`, the
 fix is a new stub behind the existing `#ifndef __SMS__` block.
 
