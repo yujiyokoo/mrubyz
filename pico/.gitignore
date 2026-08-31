@@ -1,0 +1,4 @@
+# Pico SDK build output and generated artifacts
+build/
+*.log
+*.mrb
