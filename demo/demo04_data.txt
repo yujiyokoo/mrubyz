@@ -4,10 +4,10 @@
 
 
 
-   VMとAOTコンパイラ開発で
-     照らす8Bit機の世界
+   What's new on the mruby VM
+     on Zilog Z80
 
-     KANSAI RUBYKAIGI 9
+     RubyKaigi 2026 Follw Up
 
 
      - Yuji Yokoo, 2026
@@ -28,274 +28,146 @@
 :
   Programmer @ CipherStash
 
-:= このプレゼンテーションについて
+:= このプレゼンターについて
 :
 
 
 
   Sega Master System 上の自作
-     mruby VM で動いています
+     mruby VM で動作
+
+  Z80は8ビットCPUです
 
 :
-  今まで何度か発表に使用
-
-:
-  毎回パワーアップしてます
-
+  今回はエミュレーターから
 
 :
   URL: https://codeberg.org/
             yujiyokoo/mrubyz
 
-:= Master System について
-:
-  * マークIIIをベースに海外向けとして1986年発売
-:
-  * CPUはZ80 @ 3.58MHz
-:
-  * 8KBメインRAM、16KB VRAM
-:
-  * ソフトウェアはROMで提供される
-:
-  * ROMはRAMと同じアドレススペースでアクセスできる
-
-    ただし書き込めない
-:
-  * PSG音源と(日本国内版のみ)FM音源を搭載
-:
-  * 本体デザインはカッコイイ
+:= プランは何だったか
 
 :
-      スペック比較
+  * More Ruby features
 
-MacBook (M1)      MasterSystem
-
-64bit 8x 3.2GHz   8bit 3.58MHz
-
-32GB RAM          8KB RAM
-
-2560x1600         256x192
-
-500GB SSD         32KB~ ROM
-
-macOS             OSなし
-
-  (ROMはバンク切替で512KBまで拡張可)
-
-:= Z80について
+    * Classes, objects
+    * More VM instructions
+    * Possibly, GC
 :
-  * 8-bit CPU
-:
-  * 1976-2024
-:
-  * 16ビットと8ビットのレジスタ
-:
-  * ある機能
+  * Other Z80 platforms
 
-    Fレジスタ、BCD命令、裏レジスタなど
-:
-  * ない機能
-
-    割り算、掛け算、浮動小数点
+:= プランは何だったか
 
 
-:= mrubyとVM
-:
-  * mruby: 組み込みに適した軽量Ruby
-:
-  * Virtual Machine (仮想マシン)
+  * More Ruby features
 
-:
-  * RubyはmrubyでもCRubyでも
-    バイトコードにコンパイルされてから実行される
-:
-  * VMがバイトコードを実行
+    * Classes, objects
+    * More VM instructions
+    * Possibly, GC
 
-:= バイトコード紹介
-
-  Ruby:
-:
-    return 3 == 2
-:
-  Bytecode:
-:
-  1 000 {hl}LOADI_3    R1{hl}
-  1 002 {hl}LOADI_2    R2{hl}
-  1 004 {hl}EQ         R1    R2{hl}
-  1 006 {hl}RETURN     R1{hl}
-  1 008 {hl}STOP{hl}
-
-:
-  これをCのヘッダに書き出してVMと一緒にコンパイル
-
-
-:= 独自実装の理由
-:
-  * mruby/cは小さい、とはいえMCUがメイン
-:
-RasPi Pico        MasterSystem
-
-32bit 2x 133MHz   8bit 3.58MHz
-
-264KB RAM         8KB RAM
-
-2MB Flash         32KB~ ROM
-
-2021年            1986年
-
-PicoRubyが動く       ???
-
-:
-  * gccもclangもZ80はサポートしてない
-:
-  * z88dkはzccというフロントエンドに
-
-    sdccやsccz80というバックエンドを提供
-:
-
-  * 未知のコードを多数箇所改造(デバッガ無しで)するより、
-
-    必要なものだけをゼロから作る方が簡単そう
-
-:=
+:= プランは何だったか
 :
 
 
 
+                        な
+
+      で 得               ん
+
+      し ら               の
+
+      た れ               成
+
+      ! ま               果
+
+        せ               も
+
+        ん               !
+
+:= プランは何だったか
 
 
 
 
 
-          簡単そうに見えた
 
-:= 開発環境について
 
 :
-  * デスクトップでクロスコンパイルする
+  * Other Z80 platforms
+
+:= 結局やったこと
 
 :
-  * コンパイラは昔は商品だった
+  * {hl}Other Z80 platforms{hl}
 
 :
-  * 今はFOSSのツールチェインがある
+    {hl}TI-84 Plus!{hl}
 
 :
-  * テストはエミュレータで
+    グラフ計算機でmrubyバイトコードが動く
 
 :
-  * 実機にはSDカードを使えるカートリッジで
+    # こんなコードが動作可
 
-:= 8ビットで動くRubyの紹介
-:
- micro mruby
-
- https://github.com/kishima/
-  micro_mruby_for_arduino_uno
+    a = 2
+    b = 4
+    c = a + b
 
 :
- nesruby
+  * {hl}AOT Compilation{hl}
 
- https://github.com/
-  yhara/nesruby
+    (mruby bytecode -> C)
+:
+       ここでデモ!
+
+:= TI-84 Plus
+:
+  * Texas Instrumentsのグラフ電卓
+:
+  * 同じZ80
+:
+  * クロックも速くRAMも多い
+:
+  * ROMがない(のかもよくわかってない)
+
+:= AOT Compilation
+:
+  * 高速化がしたかった
+:
+  * 高速化のカギは事前計算
+:
+  * 事前計算を頑張るとAOTコンパイルに行き着く
+:
+  * fetch, decode,
+    dispatch, execute
+
+    dispatchまではビルド時にできる
+:
+  * 単に最近流行っているのでやってみたかった
+:
+  * ただ、RubyからCは色々足りない(Parserなど)
+:
+  * バイトコードからCのAOTコンパイラ
+:
+  * 基本コーディングエージェント任せ(最近の流行)
+:
+  * 速くてでかい
+:
+  * 高速化にはROM容量というコストがかかる
+
+:= その他やったこと
 
 :
- ruby-gameboy
-
- https://github.com/
-  khasinski/ruby-gameboy
-
-:= 何が動くか
-:
-  このプレゼンテーションのようなシンプルなプログラム
-:
-
-  i = 0
-
-  {hl}while{hl} pres_data.size > i
-
-    {hl}if{hl} btn_a_pressed?
-
-      puts pres_data[i]
-
-      i += 1
-
-    {hl}end{hl}
-
-  {hl}end{hl}
-
-:= プラットフォームの制限
+  * 日本語サポートの拡充
+    (presenter, not mrubyz vm)
 
 :
-  * 8ビットで3.58MHzは遅い
-
+    RubyKaigi 2026時点では約250種の
+      文字をサポート
 :
-  * 乗算も除算もソフトウェア実装
+    現時点では400種以上
 :
-  * 乱数も実はコストが高い
-:
-  * ビットシフトも1ビットずつ(か8ビット)
-:
-  * 対策
-
-    {hl}できることは事前計算で{hl}
-
-:
-  * 時計がない
-:
-    SDKがVSyncのカウントを提供している(60/s)
-
-:= その他設計方針
-
-:
-  * サイズは基本固定
-
-    現段階の例
-    52個のレジスタ、16コールフレーム、
-    8個のトップレベルメソッド
-
-    コンパイル時に決めて、超えたらクラッシュ
-
-:
-  * エラーが出たらすぐクラッシュする
-
-:
-  * できることはビルド時にやる(事前計算)
-
-:
-  * Rubyで遅い場合はCで実装も
-
-:= 小さくまとめる設計
-
-:
-  * Classとかは未実装
-
-:
-  * < オペレータは未実装
-
-    {hl}a <= b{hl} -> {hl}b > a or b == a{hl}
-
-:
-  * floatなし
-:
-    つまり400 / 500 * 100 = 0
-:
-    順序を変えて計算
-
-    (400 * 100) / 500
-:
-    ところがint16_tは-32768から32767まで
-    なのでオーバーフロー
-:
-  * Exceptionなし
-
-    エラーはクラッシュ
-:
-  * GCなし
-
-    アロケーションを避ける
-
-    (Stringは改変不可など)
+    9ビットで1文字にしたので気持ち悪い
 
 := 日本語表示について
 :
@@ -304,7 +176,7 @@ PicoRubyが動く       ???
   * マスターシステムはタイルベースのグラフィック
     (最大448タイル)
 :
-  * 1バイトで1文字とした
+  * 元々は1バイトで1文字とした
 :
   * 約250種の文字に収めるため「使う字だけ持ってくる」
 :
@@ -349,7 +221,22 @@ PicoRubyが動く       ???
 
 :
 先頭バイトに1ビットずつ入れる
-1 01010101
+
+:
+端を切り離す
+
+1 {hl}1{hl} 11111111
+2 {hl}0{hl} 00000000
+3 {hl}1{hl} 11111111
+4 {hl}0{hl} 00000000
+5 {hl}1{hl} 11111111
+6 {hl}0{hl} 00000000
+7 {hl}1{hl} 11111111
+8 {hl}0{hl} 00000000
+
+:
+
+1 {hl}10101010{hl}
 2 11111111
 3 00000000
 4 11111111
@@ -365,114 +252,36 @@ PicoRubyが動く       ???
   * デコードはシフト1回とOR
 :
   * 密度は同じ9バイト8文字
-:
-  * ついでにダンプも読める
 
-:= AOTコンパイラー
-:
-  * 高速化がしたかった
-:
-  * 単に最近流行っているのでやってみたかった
-:
-  * ただ、RubyからCは色々足りない(Parserなど)
-:
-  * バイトコードからCのAOTコンパイラ
-:
-  * 基本コーディングエージェント任せ(最近の流行)
+:= スペック比較
 
-:= AOTコンパイラー
-:
-  * 事前計算
-:
-  * fetch, decode,
-    dispatch, execute
+MacBook (M1)     Master System
 
-    dispatchまではビルド時にできる
-:
-  * type inferenceなどはしていない
+64bit 8x 3.2GHz  8bit 3.58MHz
 
-:= AOTコンパイルの例
-:
-Ruby:
-  {hl}3 == 2{hl}
+32GB RAM         8KB RAM
 
-:
-バイトコード
-  {hl}LOADI_3    R1{hl}
-  {hl}LOADI_2    R2{hl}
-  {hl}EQ         R1    R2{hl}
-  {hl}RETURN     R1{hl}
-  {hl}STOP{hl}
+2560x1600px      256x192px
 
-:
-AOTの生成するC
-  {hl}aot_loadi(vm, 1, 3);{hl}
-  {hl}aot_loadi(vm, 2, 2);{hl}
-  {hl}aot_eq(vm, 1);{hl}
-  {hl}*rval = regs[1];{hl}
-  {hl}return;{hl}
+500GB SSD         32KB~ ROM
 
-:
-  さらに最適化もできるがしていない
+macOS             OSなし
 
-:= AOTまとめ
-:
-  * 速くなった
-:
-  * デカくなった
-:
-  * まだまだ高速化の余地がある
+  (ROMはバンク切替で512KBまで拡張可)
 
-    例: 組み込みメソッドは
-          今も実行時に名前で検索
+:= Z80について
+:
+  * 8-bit CPU
+:
+  * 1976-2024
+:
+  * 16ビットと8ビットのレジスタ
+:
+  * ある機能
 
-:= 次に照らすもの
+    Fレジスタ、BCD命令、裏レジスタなど
 :
-  * TIのグラフ電卓を入手
-:
-  * 同じZ80
-:
-  * クロックも速くRAMも多い
-:
-  * ROMがない
-:
-  * SMSで学んだやり方が通用しない
+  * ない機能
 
-    (なので手間取っています)
-
-:= 発見と学び
-:
-  * VMを作ればそこはRubyが動く環境
-:
-  * 色々削ってもRubyはRuby
-:
-      普段あまり見ない面を照らした
-      と言ってもいいのでは
-:
-  * AOTを作ったら色々と発見があった
-:
-  * 事前計算は偉大
-:
-  * 機能も速さもROMコストで払う
-:
-  * 皆さんも(まだ作ってないなら)VMを作りましょう
-
-:= Thanks & links
-
-* mruby and mruby/c
-  https://mruby.org
-  https://github.com/
-        mrubyc/mrubyc
-
-* z88dk
-  https://z88dk.org/site/
-
-* 美咲フォント (misaki font)
-  https://littlelimit.net/
-        misaki.htm
-
-* Kansai RubyKaigi 9
-
-https://regional.rubykaigi.org/
-        kansai09/
+    割り算、掛け算、浮動小数点
 
